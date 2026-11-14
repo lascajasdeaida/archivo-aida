@@ -1,0 +1,5 @@
+config/config.php
+*.xlsx
+*.pdf
+/archivos/
+.DS_Store

@@ -1,0 +1,211 @@
+-- =====================================================================
+-- Archivo AIDA BORTNIK · Las cajas de Aída
+-- Esquema MySQL / MariaDB · InnoDB · utf8mb4
+-- Versión 0.2 (14/11/2026) — alineado con la muestra real de 8 cajas
+-- =====================================================================
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- ---------------------------------------------------------------------
+-- Períodos (ejes cronológicos). Se dan de alta desde el backoffice.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS periodo (
+  id          TINYINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  nombre      VARCHAR(60)  NOT NULL,
+  orden       TINYINT      NOT NULL DEFAULT 0,
+  anio_desde  SMALLINT     NULL,
+  anio_hasta  SMALLINT     NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_periodo_nombre (nombre)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Cajas. `numero` es el número físico del depósito (se puede forzar).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS caja (
+  id               SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  numero           SMALLINT UNSIGNED NOT NULL,
+  nombre           VARCHAR(255) NOT NULL,          -- "Nombre de Caja" (col. B)
+  nombre_pestania  VARCHAR(64)  NULL,              -- título de la pestaña del Excel, para trazabilidad
+  resumen          TEXT         NULL,              -- "Edición de Catálogo" del registro que la presenta
+  anio_desde       SMALLINT     NULL,
+  anio_hasta       SMALLINT     NULL,
+  publicada        TINYINT(1)   NOT NULL DEFAULT 0,
+  campos_bloqueados JSON        NULL,              -- campos editados a mano: el importador no los pisa
+  creado_en        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  actualizado_en   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_caja_numero (numero),
+  FULLTEXT KEY ft_caja (nombre, resumen)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Una caja puede pertenecer a más de un período (decisión sep 2026).
+CREATE TABLE IF NOT EXISTS caja_periodo (
+  caja_id     SMALLINT UNSIGNED NOT NULL,
+  periodo_id  TINYINT UNSIGNED  NOT NULL,
+  PRIMARY KEY (caja_id, periodo_id),
+  CONSTRAINT fk_cp_caja    FOREIGN KEY (caja_id)    REFERENCES caja(id)    ON DELETE CASCADE,
+  CONSTRAINT fk_cp_periodo FOREIGN KEY (periodo_id) REFERENCES periodo(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Registros (una fila del Excel = un registro = una pieza).
+-- La clave pública es `codigo` = C{caja}R{registro}, sin ceros.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS registro (
+  id                   INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  caja_id              SMALLINT UNSIGNED NOT NULL,
+  numero               INT UNSIGNED NOT NULL,          -- "Registro Nº" (col. C)
+  codigo               VARCHAR(16)  NOT NULL,          -- C14R3
+
+  titulo               VARCHAR(500) NULL,              -- col. H
+  autor                VARCHAR(500) NULL,              -- col. G
+  lugar                VARCHAR(500) NULL,              -- col. I
+  fecha_texto          VARCHAR(500) NULL,              -- col. J "Fecha como dice el doc" (solo se muestra)
+  anio                 SMALLINT     NULL,              -- col. K cuando es un año limpio (filtrable)
+  anio_texto           VARCHAR(60)  NULL,              -- col. K tal cual ("1972?", "1982 /1986")
+  paginas              INT UNSIGNED NULL,              -- col. L
+  resumen              TEXT         NULL,              -- col. M
+  isbn                 VARCHAR(60)  NULL,              -- col. R
+  obs_editorial        TEXT         NULL,              -- col. S "Observaciones/Editorial"
+  edicion_catalogo     TEXT         NULL,              -- "Edición de Catálogo"
+  obs_conservacion     TEXT         NULL,
+  obs_digitalizacion   TEXT         NULL,
+  seleccion_digit      VARCHAR(500) NULL,              -- "Selección para digitalización" (nueva, nov 2026)
+
+  -- Lo que dice el Excel, tal cual, para control cruzado
+  excel_digitalizado   TINYINT(1)   NULL,              -- col. "Digitalización" (VERDADERO/FALSO)
+  excel_nomenclatura   VARCHAR(40)  NULL,              -- col. "Nombre de archivo digital"
+  excel_privado        VARCHAR(255) NULL,              -- col. "PRIVADO" (VERDADERO / "VERLO" / texto)
+
+  -- Estado efectivo
+  acceso               ENUM('publico','restringido','a_revisar') NOT NULL DEFAULT 'publico',
+  digitalizado         TINYINT(1)   NOT NULL DEFAULT 0, -- 1 si hay al menos un archivo_digital (lo fija el escaneo)
+  publicado            TINYINT(1)   NOT NULL DEFAULT 1,
+
+  campos_bloqueados    JSON         NULL,              -- campos editados en el backoffice
+  origen               ENUM('excel','backoffice') NOT NULL DEFAULT 'excel',
+  importado_en         DATETIME     NULL,
+  creado_en            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  actualizado_en       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_registro_caja_numero (caja_id, numero),
+  UNIQUE KEY uq_registro_codigo (codigo),
+  KEY idx_registro_anio (anio),
+  KEY idx_registro_acceso (acceso, publicado),
+  FULLTEXT KEY ft_registro (titulo, autor, lugar, resumen),
+  CONSTRAINT fk_registro_caja FOREIGN KEY (caja_id) REFERENCES caja(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Vocabularios curados: Tipo de documento (cols. D–F) y Descriptor (cols. N–Q).
+-- El data entry solo elige de la lista. Si el Excel trae un valor nuevo,
+-- el importador lo agrega como 'propuesto' y lo reporta para curaduría.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS vocabulario (
+  id         SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tipo       ENUM('tipo_documento','descriptor') NOT NULL,
+  nombre     VARCHAR(120) NOT NULL,
+  clave      VARCHAR(120) NOT NULL,                 -- nombre normalizado (sin tildes, minúscula) para deduplicar
+  estado     ENUM('aprobado','propuesto') NOT NULL DEFAULT 'propuesto',
+  fusionado_en SMALLINT UNSIGNED NULL,              -- si se fusionó con otro término
+  creado_en  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_vocab (tipo, clave),
+  CONSTRAINT fk_vocab_fusion FOREIGN KEY (fusionado_en) REFERENCES vocabulario(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS registro_vocabulario (
+  registro_id    INT UNSIGNED      NOT NULL,
+  vocabulario_id SMALLINT UNSIGNED NOT NULL,
+  orden          TINYINT UNSIGNED  NOT NULL DEFAULT 1,  -- Tipo 1/2/3, Descriptor 1..4
+  PRIMARY KEY (registro_id, vocabulario_id),
+  KEY idx_rv_vocab (vocabulario_id),
+  CONSTRAINT fk_rv_registro FOREIGN KEY (registro_id)    REFERENCES registro(id)    ON DELETE CASCADE,
+  CONSTRAINT fk_rv_vocab    FOREIGN KEY (vocabulario_id) REFERENCES vocabulario(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Archivos digitales (1..N por registro). Los binarios NO van en la base.
+-- Hoy: un PDF por registro, suelto en la carpeta de la caja (C14/C14R3.pdf).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS archivo_digital (
+  id             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  registro_id    INT UNSIGNED NOT NULL,
+  ruta           VARCHAR(512) NOT NULL,             -- relativa a la raíz de archivos
+  nombre_archivo VARCHAR(255) NOT NULL,
+  parte          SMALLINT UNSIGNED NOT NULL DEFAULT 0, -- 0 = archivo único; 1..n si viene C14R3_001…
+  formato        VARCHAR(10)  NOT NULL,             -- pdf, jpg, tif, mp3, mp4…
+  tipo_medio     ENUM('documento','imagen','audio','video','otro') NOT NULL DEFAULT 'documento',
+  peso_bytes     BIGINT UNSIGNED NULL,
+  modificado_en  DATETIME     NULL,                 -- mtime del archivo
+  version_web    VARCHAR(512) NULL,                 -- copia liviana para visualizar (pendiente)
+  miniatura      VARCHAR(512) NULL,
+  presente       TINYINT(1)   NOT NULL DEFAULT 1,   -- 0 si desapareció en el último escaneo
+  visto_en       DATETIME     NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_archivo_ruta (ruta),
+  KEY idx_archivo_registro (registro_id),
+  CONSTRAINT fk_archivo_registro FOREIGN KEY (registro_id) REFERENCES registro(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Bitácora de importaciones y escaneos, con incidencias para revisar.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS proceso (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tipo        ENUM('importacion','escaneo','acceso_masivo') NOT NULL,
+  fuente      VARCHAR(512) NULL,
+  simulacion  TINYINT(1)   NOT NULL DEFAULT 0,
+  resumen     JSON         NULL,
+  iniciado_en DATETIME     NOT NULL,
+  terminado_en DATETIME    NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS incidencia (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  proceso_id  INT UNSIGNED NOT NULL,
+  nivel       ENUM('info','aviso','error') NOT NULL DEFAULT 'aviso',
+  codigo      VARCHAR(40)  NOT NULL,                -- p. ej. NOMENCLATURA_DISTINTA, PDF_SIN_REGISTRO
+  caja        SMALLINT UNSIGNED NULL,
+  registro    INT UNSIGNED NULL,
+  detalle     VARCHAR(1000) NOT NULL,
+  resuelta    TINYINT(1)   NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  KEY idx_inc_proceso (proceso_id),
+  KEY idx_inc_codigo (codigo, resuelta),
+  CONSTRAINT fk_inc_proceso FOREIGN KEY (proceso_id) REFERENCES proceso(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- Usuarios del backoffice y, si se define, del front.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS usuario (
+  id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  email         VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  nombre        VARCHAR(120) NULL,
+  rol           ENUM('admin','editor','data_entry','qa','visitante') NOT NULL DEFAULT 'visitante',
+  activo        TINYINT(1)   NOT NULL DEFAULT 1,
+  creado_en     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_usuario_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Métricas propias (complementan GA4)
+CREATE TABLE IF NOT EXISTS evento_uso (
+  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  registro_id INT UNSIGNED NULL,
+  archivo_id  INT UNSIGNED NULL,
+  tipo        ENUM('vista','descarga','busqueda') NOT NULL,
+  termino     VARCHAR(255) NULL,
+  creado_en   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_ev_registro (registro_id),
+  KEY idx_ev_fecha (creado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+SET FOREIGN_KEY_CHECKS = 1;

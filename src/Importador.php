@@ -66,10 +66,25 @@ final class Importador
 
     /**
      * @param int[]|null $soloCajas limitar a estas cajas
+     * @param string|null $fuente nombre que queda en la bitácora (por defecto, el del archivo). El backoffice
+     *                            guarda la subida con un nombre generado y pasa acá el nombre original.
      */
-    public function importar(string $xlsxPath, ?array $soloCajas = null, bool $simulacion = false): Reporte
+    public function importar(string $xlsxPath, ?array $soloCajas = null, bool $simulacion = false, ?string $fuente = null): Reporte
     {
-        $this->rep = Reporte::iniciar('importacion', basename($xlsxPath), $simulacion);
+        // Candado en la base: no puede haber dos importaciones a la vez (web y consola comparten este punto).
+        if ((int)$this->db->query("SELECT GET_LOCK('aida_importacion', 0)")->fetchColumn() !== 1) {
+            throw new \RuntimeException('Hay otra importación corriendo en este momento. Esperá a que termine y probá de nuevo.', 409);
+        }
+        try {
+            return $this->importarSinCandado($xlsxPath, $soloCajas, $simulacion, $fuente);
+        } finally {
+            $this->db->query("SELECT RELEASE_LOCK('aida_importacion')");
+        }
+    }
+
+    private function importarSinCandado(string $xlsxPath, ?array $soloCajas, bool $simulacion, ?string $fuente): Reporte
+    {
+        $this->rep = Reporte::iniciar('importacion', $fuente ?? basename($xlsxPath), $simulacion);
         $this->rep->alcanceTotal = $soloCajas === null;
         $x = new Xlsx($xlsxPath);
 

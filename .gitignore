@@ -6,3 +6,4 @@ config/config.php
 /datos/demo.sql
 /backups-aida/
 *.sql.gz
+/var/

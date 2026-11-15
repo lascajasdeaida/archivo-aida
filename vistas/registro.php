@@ -159,6 +159,18 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
             <span class="nota"><?= e(strtoupper($a['formato'])) ?><?= $a['peso_bytes'] ? ' · ' . number_format($a['peso_bytes'] / 1048576, 1, ',', '.') . ' MB' : '' ?> · <?= e($a['ruta']) ?></span><br>
             <?php if ($quitado): ?><span class="nota">Quitado desde el backoffice el <?= fecha($a['eliminado_en']) ?>. El escaneo no lo vuelve a asociar.</span>
             <?php elseif (!$a['presente']): ?><span class="nota">No apareció en el último escaneo.</span><?php endif ?>
+            <?php if (!$quitado && $a['presente']): $url = '../archivo.php?id=' . (int)$a['id']; ?>
+              <div class="acciones" style="margin-top:6px">
+                <a class="btn btn-chico" href="<?= e($url) ?>" target="_blank" rel="noopener">Ver <?= e(strtoupper($a['formato'])) ?> ↗</a>
+                <a class="btn btn-chico" href="<?= e($url) ?>&amp;descargar=1">Descargar</a>
+                <?php if (strtolower($a['formato']) === 'pdf'): ?>
+                  <button type="button" class="btn btn-chico" data-vista="<?= e($url) ?>" data-nombre="<?= e($a['nombre_archivo']) ?>" aria-controls="vista-previa">Vista previa ↓</button>
+                <?php endif ?>
+              </div>
+              <?php if ($r['acceso'] !== 'publico' || !$r['publicado']): ?>
+                <span class="nota">En el sitio no se puede ver: <?= !$r['publicado'] ? 'el registro no está publicado' : 'se consulta a pedido' ?>. Vos lo ves porque estás en el backoffice.</span>
+              <?php endif ?>
+            <?php endif ?>
           </div>
           <?php if (App::puede('baja') && !$r['eliminado_en']): ?>
             <form method="post" action="<?= App::url($quitado ? 'archivo_restaurar' : 'archivo_baja', ['id' => $a['id']]) ?>">
@@ -196,3 +208,9 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
     <?php endif ?>
   </aside>
 </div>
+
+<section class="panel" id="vista-previa" hidden tabindex="-1">
+  <h2>Vista previa · <span class="nombre"></span></h2>
+  <p class="nota">Visor del navegador. Los PDF pesados cargan de a partes; para verlo más cómodo usá «Ver PDF ↗».
+    <button type="button" class="link cerrar">Cerrar vista previa</button></p>
+</section>

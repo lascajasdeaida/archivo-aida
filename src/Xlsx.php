@@ -41,7 +41,7 @@ final class Xlsx
      */
     public function rows(string $sheet): array
     {
-        $xml = $this->zip->getFromName($this->sheets[$sheet] ?? '');
+        $xml = $this->parte($this->sheets[$sheet] ?? '');
         if ($xml === false) {
             throw new \RuntimeException("Hoja inexistente: $sheet");
         }
@@ -134,9 +134,23 @@ final class Xlsx
         return $n - 1;
     }
 
+    /** Lee una parte del zip y verifica que el tamaño leído coincida con el declarado (zip con tamaños falseados). */
+    private function parte(string $nombre): string|false
+    {
+        $st = $this->zip->statName($nombre);
+        if ($st === false) {
+            return false;
+        }
+        $dato = $this->zip->getFromName($nombre);
+        if ($dato === false || strlen($dato) !== (int)$st['size']) {
+            throw new \RuntimeException("El Excel está dañado: la parte «{$nombre}» no se pudo leer completa.");
+        }
+        return $dato;
+    }
+
     private function loadSharedStrings(): void
     {
-        $xml = $this->zip->getFromName('xl/sharedStrings.xml');
+        $xml = $this->parte('xl/sharedStrings.xml');
         if ($xml === false) {
             return;
         }
@@ -152,7 +166,7 @@ final class Xlsx
 
     private function loadStyles(): void
     {
-        $xml = $this->zip->getFromName('xl/styles.xml');
+        $xml = $this->parte('xl/styles.xml');
         if ($xml === false) {
             return;
         }
@@ -180,8 +194,8 @@ final class Xlsx
 
     private function loadSheets(): void
     {
-        $wb = new \SimpleXMLElement((string)$this->zip->getFromName('xl/workbook.xml'));
-        $rels = new \SimpleXMLElement((string)$this->zip->getFromName('xl/_rels/workbook.xml.rels'));
+        $wb = new \SimpleXMLElement((string)$this->parte('xl/workbook.xml'));
+        $rels = new \SimpleXMLElement((string)$this->parte('xl/_rels/workbook.xml.rels'));
         $targets = [];
         foreach ($rels->Relationship as $rel) {
             $targets[(string)$rel['Id']] = (string)$rel['Target'];

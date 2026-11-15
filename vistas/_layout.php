@@ -14,7 +14,7 @@
   <nav>
     <a href="<?= App::url('cajas') ?>" class="<?= in_array($sec, ['cajas', 'caja', 'registro', 'caja_nueva', 'registro_nuevo'], true) ? 'activo' : '' ?>">Cajas</a>
     <a href="<?= App::url('vocabularios') ?>" class="<?= $sec === 'vocabularios' ? 'activo' : '' ?>">Vocabularios</a>
-    <a href="<?= App::url('procesos') ?>" class="<?= $sec === 'procesos' ? 'activo' : '' ?>">Importaciones</a>
+    <a href="<?= App::url('procesos') ?>" class="<?= in_array($sec, ['procesos', 'importar', 'proceso_deshacer'], true) ? 'activo' : '' ?>">Importaciones</a>
     <a href="<?= App::url('notificaciones') ?>" class="campana <?= $sec === 'notificaciones' ? 'activo' : '' ?>" title="Verificaciones pendientes">
       🔔 <span>Verificaciones</span><?php if ($pend): ?> <b class="contador"><?= $pend ?></b><?php endif ?>
     </a>
@@ -87,6 +87,24 @@ document.querySelectorAll('.contenido table').forEach(function (t) {
   var w = document.createElement('div'); w.className = 'tabla-scroll';
   t.parentNode.insertBefore(w, t); w.appendChild(t);
 });
+/* Vista previa de PDF: el iframe se crea recién al pedirla, para no bajar el archivo con cada ficha */
+(function () {
+  var panel = document.getElementById('vista-previa');
+  if (!panel) return;
+  document.querySelectorAll('[data-vista]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var f = panel.querySelector('iframe');
+      if (!f) { f = document.createElement('iframe'); f.title = 'Vista previa del documento'; panel.appendChild(f); }
+      if (f.getAttribute('src') !== b.dataset.vista) f.src = b.dataset.vista;
+      panel.querySelector('.nombre').textContent = b.dataset.nombre;
+      panel.hidden = false; panel.focus(); panel.scrollIntoView({behavior: 'smooth', block: 'start'});
+    });
+  });
+  panel.querySelector('.cerrar').addEventListener('click', function () {
+    var f = panel.querySelector('iframe'); if (f) f.remove();
+    panel.hidden = true;
+  });
+})();
 /* Selector de términos con casillas y chips */
 document.querySelectorAll('.selector-terminos').forEach(function (sel) {
   var cajas = sel.querySelectorAll('.lista input[type=checkbox]');

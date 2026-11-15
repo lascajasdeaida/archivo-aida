@@ -29,5 +29,10 @@ if (!$archivo || !is_file($archivo)) {
     exit(1);
 }
 
-$rep = (new Aida\Importador(aida_db()))->importar($archivo, $cajas, $simular);
+try {
+    $rep = (new Aida\Importador(aida_db()))->importar($archivo, $cajas, $simular);
+} catch (RuntimeException $e) {
+    fwrite(STDERR, $e->getMessage() . "\n");
+    exit($e->getCode() === 409 ? 3 : 1);
+}
 echo $rep->texto();

@@ -142,6 +142,11 @@ final class Texto
         // Listas con barra, punto o coma; rangos con guion: «1981/82», «2004/ 2005», «(1981.82,83)», «1975-1979»
         $u = trim($t, '() ');
         if (($l = self::listaAnios($u)) !== null) {
+            // Dos años no seguidos separados por barra («1982 /1986»): se toma como rango, pero marcado
+            // sin confirmar y avisado, porque podría ser una lista (decisión del PM, 15/11/2026)
+            if ($l[1] === 'lista' && count($l[0]) === 2 && str_contains($u, '/') && abs($l[0][1] - $l[0][0]) > 1) {
+                return $ok($rango($l[0][0], $l[0][1]), true, 'rango_supuesto');
+            }
             return $ok($l[0], $duda, $l[1]);
         }
         // Varias partes separadas por espacios, cada una con su duda: «1980? 1996/97/98/2006»

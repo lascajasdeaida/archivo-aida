@@ -170,7 +170,7 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 | Año con duda | `1972?`, `¿1984?`, `1989???`, `1977(¿?)` | 1972, sin confirmar |
 | Rango con palabras o guion | `1960 a 2009`, `2001 a 2006`, `Entre 1983 y 1986`, `Desde 1971 hasta 1991`, `1975-1979?` | todos los años del rango (1960 a 2009; con «?», sin confirmar) |
 | Años con barra, punto, coma o «y», seguidos | `1981/82`, `1981/1982`, `2004/ 2005`, `2000/1999`, `1981/82/83`, `(1981.82,83)`, `1969. 1970. 1971`, `1988 y 1989` | los años escritos; como son consecutivos, equivale a un rango (1981, 1982 y 1983) |
-| Lista salteada | `1998/2006/2007/2008`, `1985/87/90`, `1981/1990/1993/1994/ 2004`, `1982 /1986` | **solo** los años escritos (1998, 2006, 2007, 2008) |
+| Lista salteada | `1998/2006/2007/2008`, `1985/87/90`, `1981/1990/1993/1994/ 2004` | **solo** los años escritos (1998, 2006, 2007, 2008) |
 | Uno u otro | `1977 o 1978` | los dos, sin confirmar |
 | Varias partes con su duda | `1980? 1996/97/98/2006` | 1980 sin confirmar; 1996, 1997, 1998 y 2006 confirmados |
 | Fecha completa | `03/02/2006`, `02/02/1982 (sobre)`, `20 al 25 de junio de 1988` | el año de la fecha |
@@ -183,11 +183,13 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   filtrables 77** (51 rangos, 11 listas, 8 con duda, 7 fechas); quedan 25 sin año (20 «sin fecha» y 5 textos).
   En total: 62 registros con rango y 13 sin confirmar.
 - Si el año se editó a mano (`anio_texto` bloqueado), los campos derivados salen del texto de la base, no del Excel.
-- **Barra entre dos años no seguidos** («1982 /1986», «1981/1983», «1973/1986»): se lee como **dos años sueltos**, igual que
-  cualquier lista con barra; para un rango hay que escribir «1982 a 1986» o «1982-1986». Con el Excel del 14/11/2026 son 10
-  registros (C7R2, C15R17, C21R5–R8, C46R11, C46R19, C54R1, C54R2). *Pendiente de confirmar por el PM.*
-- **Cambio respecto de la regla anterior** (Excel del 14/11/2026, 1098 registros): **13 registros** cambian de años. 12 dejan de
-  aparecer en años intermedios (las 2 listas de 3 o más años salteados —C66R10, C66R13— y los 10 de arriba) y 1 pasa a tener año
+- **Barra entre dos años no seguidos** («1982 /1986», «1981/1983», «1973/1986»): se toma como **rango** (el registro aparece en
+  todos los años del medio), pero **marcado sin confirmar** (en rojo en el backoffice, «(sin confirmar)» en el sitio) y avisado en
+  Verificaciones como `ANIO_RANGO_SUPUESTO`, porque podría ser una lista de dos años (decisión del PM, 15/11/2026). Con el Excel
+  del 14/11/2026 son 10 registros (C7R2, C15R17, C21R5–R8, C46R11, C46R19, C54R1, C54R2). Tres o más años salteados siguen
+  siendo lista.
+- **Cambio respecto de la regla anterior** (Excel del 14/11/2026, 1098 registros): **13 registros** cambian de años. 2 dejan de
+  aparecer en años intermedios (las listas de 3 o más años salteados —C66R10, C66R13—), los 10 de arriba quedan como rango sin confirmar y 1 pasa a tener año
   (C66R18, «1980? 1996/97/98/2006»). Quedan 4 sin año por texto ilegible.
 - **Migración 004** (`db/migraciones/004_registro_anio.sql`): crea `registro_anio` y la completa con los rangos que había; el
   `Migrador` corre después `Anios::reconstruir()`, que pasa las listas salteadas a sus años reales. Los textos que antes no se leían

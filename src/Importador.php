@@ -350,6 +350,9 @@ final class Importador
         if ($an['formato'] === 'ilegible') {
             $this->rep->incidencia('info', 'ANIO_NO_INTERPRETADO', $numCaja, $num,
                 'La columna Año dice «' . mb_substr((string)$anioTxt, 0, 80) . '»: no se pudo leer un año, así que no aparece en el filtro por año');
+        } elseif ($an['formato'] === 'rango_supuesto') {
+            $this->rep->incidencia('info', 'ANIO_RANGO_SUPUESTO', $numCaja, $num,
+                'La columna Año dice «' . mb_substr((string)$anioTxt, 0, 80) . "»: se tomó como rango {$an['desde']}–{$an['hasta']}, sin confirmar");
         }
 
         // Nomenclatura (control cruzado)

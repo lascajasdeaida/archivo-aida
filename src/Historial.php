@@ -95,6 +95,9 @@ final class Historial
         foreach ($listas as $campo => $nombres) {
             $this->escribirLista($id, $campo, (array)$nombres);
         }
+        if ($entidad === 'registro') {
+            (new Anios($this->db))->sincronizar($id);
+        }
         $this->registrar($entidad, $id, 'alta', [], $datos);
         return $id;
     }
@@ -276,6 +279,10 @@ final class Historial
         }
         foreach (array_intersect_key($datos, self::LISTAS) as $campo => $nombres) {
             $this->escribirLista($id, $campo, (array)$nombres, $omitirInvalidos);
+        }
+        // Los años del filtro (registro_anio) siguen al año del registro, también al deshacer
+        if ($entidad === 'registro' && array_intersect(array_keys($datos), Anios::CAMPOS)) {
+            (new Anios($this->db))->sincronizar($id);
         }
     }
 

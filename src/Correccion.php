@@ -318,7 +318,7 @@ final class Correccion
             if ($campo === 'anio_texto') {
                 $an = Texto::anio($nuevo);
                 $p['nota'] = $an['desde'] === null ? 'Sin año para el filtro (no se pudo leer un año).'
-                    : 'Para el filtro: ' . Texto::anioEtiqueta($an['desde'], $an['hasta'], $an['sin_confirmar']) . '.';
+                    : 'Para el filtro: ' . Texto::aniosEtiqueta($an['anios']) . '.';
             }
         }
         $p['nuevo'] = $nuevo;

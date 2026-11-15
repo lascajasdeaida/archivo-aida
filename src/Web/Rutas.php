@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Aida\Web;
 
 use Aida\Alertas;
+use Aida\Anios;
 use Aida\Correccion;
 use Aida\Curaduria;
 use Aida\Historial;
@@ -493,6 +494,7 @@ final class Rutas
             'bloqueadoPor' => $quien,
             'alertas' => self::alertasAbiertas((int)$c['numero'], (int)$r['numero']),
             'historial' => self::historialDe('registro', (int)$r['id']),
+            'anios' => (new Anios(self::db()))->leer((int)$r['id']),
             'anterior' => $pos !== false && $pos > 0 ? $lista[$pos - 1] : null,
             'siguiente' => $pos !== false && isset($lista[$pos + 1]) ? $lista[$pos + 1] : null,
         ]);

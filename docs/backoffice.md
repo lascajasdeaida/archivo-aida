@@ -203,8 +203,8 @@ Las operaciones no aparecen en la lista de Importaciones (son procesos de tipo `
 
 ## 11. Años en la ficha y en la lista de la caja (15/11/2026)
 
-- Debajo del campo Año, la ficha dice cómo se interpretó para el filtro: «Para el filtro por año: 1981–1982», o
-  «Sin año para el filtro…» si no se pudo leer.
+- Debajo del campo Año, la ficha dice a qué años responde en el filtro (`registro_anio`): «Para el filtro por año: 1981–1982»,
+  «1998, 2006–2008», «1980 (sin confirmar), 1996–1998, 2006», o «Sin año para el filtro…» si no se pudo leer.
 - **Año no confirmado** («1972?»): chip rojo en la cabecera de la ficha y en la lista de la caja (el año, en rojo), con la
   aclaración de que en el sitio se verá «1972 (sin confirmar)».
 - Un texto que no es un año lleva el chip «sin año» en la lista de la caja.
@@ -265,5 +265,6 @@ C6R5;PRIVADO;;VERLO
 **Cerrar el circuito:** cuando el equipo corrige lo mismo en su planilla, la importación ve que el Excel trae el mismo valor que
 la base, desbloquea el campo y lo informa (`CORREGIDO_EN_PLANILLA`). Así base y Excel no quedan distintos.
 
-**Años de registros cargados a mano:** `php bin/recalcular-anios.php --simular` muestra qué cambia; sin `--simular` lo aplica
+**Años de registros cargados a mano:** `php bin/recalcular-anios.php --simular` muestra qué cambia (con `--todos`, también los del
+Excel: sirve después de la migración 004 sin volver a importar); sin `--simular` lo aplica
 como proceso `correccion` (se deshace desde Importaciones).

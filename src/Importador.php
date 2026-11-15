@@ -20,8 +20,9 @@ namespace Aida;
  *  - El estado «digitalizado» no lo toca: lo define el escaneo de carpetas.
  *  - Lo dado de baja desde el backoffice (eliminado_en) no se vuelve a crear, y los registros
  *    creados desde el backoffice (origen = 'backoffice') no se modifican.
- *  - Año (col. K): Texto::anio() da desde/hasta y si está sin confirmar. Un registro responde a todos
- *    los años del rango. Lo que no se puede interpretar queda sin año y se informa.
+ *  - Año (col. K): Texto::anio() da la lista de años (registro_anio, src/Anios.php) y el resumen
+ *    menor/mayor/sin confirmar. Un rango responde a todos sus años; una lista salteada, solo a los que nombra.
+ *    Lo que no se puede interpretar queda sin año y se informa.
  *  - Tipos y descriptores se resuelven con Aida\Vocabulario: fusiones, términos movidos al otro
  *    vocabulario y grafías anteriores van al término vigente; los descartados se ignoran.
  *    Cada regla aplicada se informa agrupada por caja (src/Alertas.php, VOCAB_*).
@@ -460,6 +461,9 @@ final class Importador
                 $this->rep->sumar('registros sin cambios');
             }
         }
+
+        // Años del filtro (registro_anio): siguen al año que quedó en el registro
+        (new Anios($this->db))->sincronizar($regId);
 
         // Vocabularios
         $this->vincular($regId, [

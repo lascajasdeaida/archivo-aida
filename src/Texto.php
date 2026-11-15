@@ -56,34 +56,44 @@ final class Texto
     /**
      * Interpreta la columna Año (K) del Excel. Tabla de formatos en docs/decisiones.md («Años»).
      *
-     * Devuelve ['desde' => int|null, 'hasta' => int|null, 'sin_confirmar' => bool, 'formato' => string]:
-     *   anio      «1972», 1972                         → 1972–1972
-     *   duda      «1972?», «¿1984?», «1977(¿?)»        → 1972–1972, sin confirmar
-     *   rango     «1981/82», «2004/ 2005», «1981-1983», «1960 a 2009», «Entre 1983 y 1986», «Desde 1971 hasta 1991»
-     *   lista     «1981/82/83», «1969. 1970. 1971»     → del menor al mayor
-     *   o         «1977 o 1978»                        → rango, sin confirmar (es uno de los dos)
+     * Devuelve los años a los que responde el registro y un resumen:
+     *   anios          [año => sin confirmar (bool)], ordenado. Es lo que filtra (tabla registro_anio).
+     *   desde, hasta   el menor y el mayor (resumen para ordenar y mostrar; registro.anio / anio_hasta)
+     *   sin_confirmar  si alguno de los años es dudoso (registro.anio_sin_confirmar)
+     *   formato        cómo se leyó:
+     *   anio      «1972», 1972                         → 1972
+     *   duda      «1972?», «¿1984?», «1977(¿?)»        → 1972, sin confirmar
+     *   rango     «1960 a 2009», «Entre 1983 y 1986», «Desde 1971 hasta 1991», «1975-1979» → todos los años del rango
+     *   lista     «1981/82», «2004/ 2005», «1981/82/83», «1969. 1970. 1971», «1998/2006/2007/2008», «1988 y 1989»
+     *             → solo los años escritos (si son seguidos, es lo mismo que un rango)
+     *   o         «1977 o 1978»                        → los dos, sin confirmar (es uno de los dos)
      *   fecha     «03/02/2006», «02/02/1982 (sobre)», «20 al 25 de junio de 1988» → el año de la fecha
-     *   decada    «años 70», «década del 80», «1970s»  → 1970–1979
+     *   decada    «años 70», «década del 80», «1970s»  → 1970 a 1979
+     *   varios    «1980? 1996/97/98/2006»: partes separadas por espacios, cada una con su propia duda
+     *             → 1980 sin confirmar; 1996, 1997, 1998 y 2006 confirmados
      *   sin_fecha «sin fecha», «s/f», «Sin dato», «No tiene fecha», «sin precisar», solo signos → sin año
      *   vacio     celda vacía                          → sin año
      *   ilegible  cualquier otra cosa («Posterior a 1990…», «Año XXII…») → sin año; el importador lo informa
-     * Con «?» en cualquier formato, queda sin confirmar.
-     * @return array{desde:?int, hasta:?int, sin_confirmar:bool, formato:string}
+     * Con «?» en una parte, los años de esa parte quedan sin confirmar.
+     * @return array{anios:array<int,bool>, desde:?int, hasta:?int, sin_confirmar:bool, formato:string}
      */
     public static function anio(mixed $v): array
     {
-        $nada = fn(string $f) => ['desde' => null, 'hasta' => null, 'sin_confirmar' => false, 'formato' => $f];
-        $ok = function (int $d, int $h, bool $duda, string $f) use ($nada): array {
-            if ($d > $h) {
-                [$d, $h] = [$h, $d];
+        $nada = fn(string $f) => ['anios' => [], 'desde' => null, 'hasta' => null, 'sin_confirmar' => false, 'formato' => $f];
+        /** @param list<int> $lista */
+        $ok = function (array $lista, bool $duda, string $f) use ($nada): array {
+            $anios = [];
+            foreach ($lista as $a) {
+                if ($a < self::ANIO_MIN || $a > self::ANIO_MAX) {
+                    return $nada('ilegible');
+                }
+                $anios[$a] = $duda;
             }
-            if ($d < self::ANIO_MIN || $h > self::ANIO_MAX) {
-                return $nada('ilegible');
-            }
-            return ['desde' => $d, 'hasta' => $h, 'sin_confirmar' => $duda, 'formato' => $f];
+            return self::resumenAnios($anios, $f) ?? $nada('ilegible');
         };
+        $rango = fn(int $d, int $h) => $d > $h ? range($h, $d) : range($d, $h);
         if (is_int($v) || (is_float($v) && floor($v) === $v)) {
-            return $ok((int)$v, (int)$v, false, 'anio');
+            return $ok([(int)$v], false, 'anio');
         }
         if ($v === null || is_bool($v) || trim((string)$v) === '') {
             return $nada('vacio');
@@ -103,53 +113,110 @@ final class Texto
 
         // Año solo
         if (preg_match('/^(\d{4})$/', $t, $m)) {
-            return $ok((int)$m[1], (int)$m[1], $duda, $duda ? 'duda' : 'anio');
+            return $ok([(int)$m[1]], $duda, $duda ? 'duda' : 'anio');
         }
         // Década: «años 70», «década del 80», «1970s», «los 70»
         if (preg_match('/^(?:(?:los )?anos|(?:la )?decada(?: de(?:l| los)?)?|los) ?\'?(\d{2}|\d{4})s?$|^(\d{4})s$/u', $t, $m)) {
             $n = (int)($m[1] !== '' ? $m[1] : $m[2]);
             $n = $n < 100 ? 1900 + $n : $n;
             if ($n % 10 === 0) {
-                return $ok($n, $n + 9, $duda, 'decada');
+                return $ok(range($n, $n + 9), $duda, 'decada');
             }
         }
         // Fecha completa: «03/02/2006», «02/02/1982 (sobre)», «3-2-2006»
         if (preg_match('~^\d{1,2}[/.\-]\d{1,2}[/.\-](\d{4})(?: \([^)]*\))?$~u', $t, $m)) {
-            return $ok((int)$m[1], (int)$m[1], $duda, 'fecha');
+            return $ok([(int)$m[1]], $duda, 'fecha');
         }
         // Fecha escrita: «20 al 25 de junio de 1988», «junio de 1988», «30 marzo 1991»
         if (preg_match('/^(?:(?:\d{1,2}(?: (?:al|y|a) \d{1,2})? )?(?:de )?)?(?:' . self::MESES . ')\.?(?: de| del)? (\d{4})$/u', $t, $m)) {
-            return $ok((int)$m[1], (int)$m[1], $duda, 'fecha');
+            return $ok([(int)$m[1]], $duda, 'fecha');
         }
-        // «Entre 1983 y 1986», «Desde 1971 hasta 1991», «1960 a 2009», «1977 o 1978», «1988 y 1989»
-        if (preg_match('/^(?:entre |desde |de )?(\d{4}) ?(a|al|y|o|hasta|-|–) ?(\d{4})$/u', $t, $m)) {
-            $o = $m[2] === 'o';
-            return $ok((int)$m[1], (int)$m[3], $duda || $o, 'rango');
+        // Rango con palabras: «Entre 1983 y 1986», «Desde 1971 hasta 1991», «1960 a 2009»
+        if (preg_match('/^(?:entre (\d{4}) y|(?:desde |de )?(\d{4}) ?(?:a|al|hasta|-|–)) ?(\d{4})$/u', $t, $m)) {
+            return $ok($rango((int)($m[1] !== '' ? $m[1] : $m[2]), (int)$m[3]), $duda, 'rango');
         }
-        // Listas y rangos con barra, guion, punto o coma: «1981/82», «2004/ 2005», «(1981.82,83)», «1969. 1970. 1971»
+        // Uno u otro, o dos años sueltos: «1977 o 1978» (sin confirmar), «1988 y 1989»
+        if (preg_match('/^(\d{4}) (o|y) (\d{4})$/u', $t, $m)) {
+            return $ok([(int)$m[1], (int)$m[3]], $duda || $m[2] === 'o', $m[2] === 'o' ? 'o' : 'lista');
+        }
+        // Listas con barra, punto o coma; rangos con guion: «1981/82», «2004/ 2005», «(1981.82,83)», «1975-1979»
         $u = trim($t, '() ');
-        if (preg_match('~^\d{4}(?: ?[/,.\-–] ?(?:\d{4}|\d{2}))+$~u', $u)) {
-            preg_match_all('/\d+/', $u, $mm);
+        if (($l = self::listaAnios($u)) !== null) {
+            return $ok($l[0], $duda, $l[1]);
+        }
+        // Varias partes separadas por espacios, cada una con su duda: «1980? 1996/97/98/2006»
+        $partes = preg_split('/ +/u', $s) ?: [];
+        if (count($partes) > 1) {
             $anios = [];
-            $prev = null;
-            foreach ($mm[0] as $x) {
-                if (strlen($x) === 2) {
-                    // «1981/82»: mismo siglo que el anterior; «1999/00» pasa al siguiente
-                    $n = intdiv((int)$prev, 100) * 100 + (int)$x;
-                    if ($n < $prev) {
-                        $n += 100;
-                    }
-                } else {
-                    $n = (int)$x;
+            foreach ($partes as $p) {
+                $r = self::anio($p);
+                if (!$r['anios'] || in_array($r['formato'], ['fecha', 'decada'], true)) {
+                    return $nada('ilegible');
                 }
-                $anios[] = $prev = $n;
+                foreach ($r['anios'] as $a => $d) {
+                    // Si un año aparece confirmado en alguna parte, queda confirmado
+                    $anios[$a] = isset($anios[$a]) ? ($anios[$a] && $d) : $d;
+                }
             }
-            return $ok(min($anios), max($anios), $duda, count($anios) > 2 ? 'lista' : 'rango');
+            return self::resumenAnios($anios, 'varios') ?? $nada('ilegible');
         }
         return $nada('ilegible');
     }
 
-    /** «1972», «1981–1982», con « (sin confirmar)» si corresponde. Para mostrar en el backoffice y el sitio. */
+    /**
+     * «1981/82/83», «1998/2006/2007/2008», «1975-1979», «1999/00»: años separados por «/», «,» o «.» (cada uno cuenta solo)
+     * o por guion (rango: todos los del medio). Dos dígitos siguen el siglo del año anterior («1999/00» = 1999 y 2000).
+     * @return array{0:list<int>,1:string}|null [años, 'lista' | 'rango']
+     */
+    private static function listaAnios(string $u): ?array
+    {
+        if (!preg_match('~^\d{4}(?: ?[/,.\-–] ?(?:\d{4}|\d{2}))+$~u', $u)) {
+            return null;
+        }
+        preg_match_all('~(\d+)|([/,.\-–])~u', $u, $mm, PREG_SET_ORDER);
+        $anios = [];
+        $prev = null;
+        $guion = false;
+        $hayGuion = false;
+        foreach ($mm as $x) {
+            if (($x[2] ?? '') !== '') {
+                $guion = in_array($x[2], ['-', '–'], true);
+                $hayGuion = $hayGuion || $guion;
+                continue;
+            }
+            $n = (int)$x[1];
+            if (strlen($x[1]) === 2) {
+                $n = intdiv((int)$prev, 100) * 100 + $n;
+                if ($n < $prev) {
+                    $n += 100;
+                }
+            }
+            if ($guion && $prev !== null) {
+                array_push($anios, ...($n >= $prev ? range($prev, $n) : range($n, $prev)));
+            } else {
+                $anios[] = $n;
+            }
+            $prev = $n;
+            $guion = false;
+        }
+        return [array_values(array_unique($anios)), $hayGuion && count($mm) === 3 ? 'rango' : 'lista'];
+    }
+
+    /**
+     * @param array<int,bool> $anios año => sin confirmar
+     * @return array{anios:array<int,bool>, desde:int, hasta:int, sin_confirmar:bool, formato:string}|null
+     */
+    private static function resumenAnios(array $anios, string $formato): ?array
+    {
+        if (!$anios) {
+            return null;
+        }
+        ksort($anios);
+        $k = array_keys($anios);
+        return ['anios' => $anios, 'desde' => $k[0], 'hasta' => end($k), 'sin_confirmar' => in_array(true, $anios, true), 'formato' => $formato];
+    }
+
+    /** «1972», «1981–1982», con « (sin confirmar)» si corresponde. Resumen desde–hasta; para la lista real, aniosEtiqueta(). */
     public static function anioEtiqueta(?int $desde, ?int $hasta, bool $sinConfirmar): ?string
     {
         if ($desde === null) {
@@ -157,6 +224,33 @@ final class Texto
         }
         $s = $hasta !== null && $hasta !== $desde ? "{$desde}–{$hasta}" : (string)$desde;
         return $sinConfirmar ? "$s (sin confirmar)" : $s;
+    }
+
+    /**
+     * Los años a los que responde un registro, como se muestran: «1998, 2006–2008», «1981–1982 (sin confirmar)»,
+     * «1980 (sin confirmar), 1996–1998, 2006». Los años seguidos se juntan en un tramo.
+     * Si todos están sin confirmar, se aclara una sola vez al final; si no, en cada tramo dudoso.
+     * @param array<int,bool|int> $anios año => sin confirmar
+     */
+    public static function aniosEtiqueta(array $anios): ?string
+    {
+        if (!$anios) {
+            return null;
+        }
+        ksort($anios);
+        $todos = !in_array(false, array_map('boolval', $anios), true);
+        $tramos = [];
+        foreach ($anios as $a => $d) {
+            $d = (bool)$d;
+            $u = count($tramos) - 1;
+            if ($u >= 0 && $tramos[$u][1] === $a - 1 && ($todos || $tramos[$u][2] === $d)) {
+                $tramos[$u][1] = $a;
+            } else {
+                $tramos[] = [$a, $a, $d];
+            }
+        }
+        $txt = array_map(fn($t) => ($t[0] === $t[1] ? (string)$t[0] : "{$t[0]}–{$t[1]}") . (!$todos && $t[2] ? ' (sin confirmar)' : ''), $tramos);
+        return implode(', ', $txt) . ($todos ? ' (sin confirmar)' : '');
     }
 
     /** Clave más laxa para encontrar equivalentes entre vocabularios: sin signos y sin plural («Referencias de época» = «Referencia de época»). */

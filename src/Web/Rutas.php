@@ -81,7 +81,9 @@ final class Rutas
                   (SELECT COUNT(*) FROM registro r WHERE r.caja_id = c.id AND r.eliminado_en IS NULL AND r.acceso <> \'publico\') no_publicos,
                   (SELECT COUNT(*) FROM incidencia i WHERE i.caja = c.numero AND i.resuelta = 0 AND i.requiere_validacion = 1) alertas
                 FROM caja c ' . ($verBajas ? '' : 'WHERE c.eliminado_en IS NULL ') . 'ORDER BY c.numero';
-        App::render('cajas', ['cajas' => self::db()->query($sql)->fetchAll(), 'verBajas' => $verBajas]);
+        $todas = self::db()->query('SELECT id, numero, nombre FROM caja WHERE eliminado_en IS NULL')->fetchAll();
+        App::render('cajas', ['cajas' => self::db()->query($sql)->fetchAll(), 'verBajas' => $verBajas,
+                              'parecidos' => count(self::gruposParecidos($todas))]);
     }
 
     public static function caja(): void
@@ -100,8 +102,9 @@ final class Rutas
             $w[] = 'r.eliminado_en IS NULL';
         }
         if ($f['q'] !== '') {
-            $w[] = '(r.titulo LIKE ? OR r.resumen LIKE ? OR r.autor LIKE ? OR r.codigo = ?)';
-            array_push($p, "%{$f['q']}%", "%{$f['q']}%", "%{$f['q']}%", strtoupper($f['q']));
+            $w[] = "(r.titulo LIKE ? OR r.resumen LIKE ? OR r.autor LIKE ? OR r.codigo = ? OR EXISTS (SELECT 1 FROM registro_vocabulario rv
+                    JOIN vocabulario v ON v.id = rv.vocabulario_id WHERE rv.registro_id = r.id AND v.nombre LIKE ?))";
+            array_push($p, "%{$f['q']}%", "%{$f['q']}%", "%{$f['q']}%", strtoupper($f['q']), "%{$f['q']}%");
         }
         if ($f['estado'] === 'digitalizado') {
             $w[] = 'r.digitalizado = 1';
@@ -112,9 +115,11 @@ final class Rutas
             $w[] = 'r.acceso = ?';
             $p[] = $f['acceso'];
         }
-        $st = self::db()->prepare('SELECT r.*,
-              (SELECT COUNT(*) FROM incidencia i WHERE i.caja = ? AND i.registro = r.numero AND i.resuelta = 0 AND i.requiere_validacion = 1) alertas
-            FROM registro r WHERE ' . implode(' AND ', $w) . ' ORDER BY r.numero');
+        $st = self::db()->prepare("SELECT r.*,
+              (SELECT COUNT(*) FROM incidencia i WHERE i.caja = ? AND i.registro = r.numero AND i.resuelta = 0 AND i.requiere_validacion = 1) alertas,
+              (SELECT GROUP_CONCAT(v.nombre ORDER BY rv.orden SEPARATOR ' · ') FROM registro_vocabulario rv
+                 JOIN vocabulario v ON v.id = rv.vocabulario_id WHERE rv.registro_id = r.id AND v.tipo = 'tipo_documento') tipos
+            FROM registro r WHERE " . implode(' AND ', $w) . ' ORDER BY r.numero');
         $st->execute(array_merge([$c['numero']], $p));
         App::render('caja', [
             'caja' => $c,
@@ -123,6 +128,91 @@ final class Rutas
             'alertas' => self::alertasAbiertas((int)$c['numero'], null),
             'historial' => self::historialDe('caja', (int)$c['id']),
         ]);
+    }
+
+    /**
+     * Sugiere grupos de cajas con nombres casi iguales (tildes, mayúsculas, comillas, errores de tipeo)
+     * y permite unificarlos. Cada cambio pasa por el historial (se puede deshacer y bloquea el campo para el Excel).
+     */
+    public static function cajas_unificar(): void
+    {
+        App::exigir('editar');
+        $cajas = self::db()->query('SELECT id, numero, nombre, campos_bloqueados FROM caja WHERE eliminado_en IS NULL ORDER BY numero')->fetchAll();
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::verificarPost();
+            $nombre = trim((string)($_POST['nombre'] ?? ''));
+            $ids = array_map('intval', (array)($_POST['cajas'] ?? []));
+            if ($nombre === '' || count($ids) < 1) {
+                App::aviso('error', 'Elegí al menos una caja y escribí cómo tiene que quedar el nombre.');
+            } else {
+                $h = self::historial();
+                $n = 0;
+                foreach ($cajas as $c) {
+                    if (in_array((int)$c['id'], $ids, true) && $c['nombre'] !== $nombre) {
+                        $h->actualizar('caja', (int)$c['id'], ['nombre' => $nombre], true);
+                        $n++;
+                    }
+                }
+                App::aviso('ok', $n ? "Nombre unificado en $n caja" . ($n === 1 ? '' : 's') . ": «{$nombre}». Se puede deshacer desde el historial de cada caja."
+                                    : 'Esas cajas ya tenían ese nombre.');
+            }
+            App::redirigir('cajas_unificar');
+        }
+        App::render('cajas_unificar', ['grupos' => self::gruposParecidos($cajas)]);
+    }
+
+    /** @return list<array{cajas:list<array>, sugerido:string}> */
+    private static function gruposParecidos(array $cajas): array
+    {
+        $base = function (string $s): string {
+            $s = Texto::clave($s);
+            $s = (string)preg_replace('/[^\p{L}\p{N} ]+/u', ' ', $s);
+            return trim((string)preg_replace('/\s+/', ' ', $s));
+        };
+        $sinParentesis = fn(string $s) => trim((string)preg_replace('/\([^)]*\)/u', '', $s));
+        $n = count($cajas);
+        $padre = range(0, $n - 1);
+        $raiz = function (int $i) use (&$padre, &$raiz): int { return $padre[$i] === $i ? $i : ($padre[$i] = $raiz($padre[$i])); };
+        $bases = array_map(fn($c) => $base($c['nombre']), $cajas);
+        $cortas = array_map(fn($c) => $base($sinParentesis($c['nombre'])), $cajas);
+        for ($i = 0; $i < $n; $i++) {
+            for ($j = $i + 1; $j < $n; $j++) {
+                $a = $bases[$i]; $b = $bases[$j];
+                if ($a === '' || $b === '') continue;
+                $parecido = $a === $b || ($cortas[$i] !== '' && $cortas[$i] === $cortas[$j]);
+                if (!$parecido && strlen($a) >= 6 && strlen($b) >= 6 && strlen($a) < 255 && strlen($b) < 255) {
+                    $parecido = levenshtein($a, $b) / max(strlen($a), strlen($b)) <= 0.15;
+                }
+                if ($parecido) {
+                    $padre[$raiz($i)] = $raiz($j);
+                }
+            }
+        }
+        $grupos = [];
+        foreach ($cajas as $i => $c) {
+            $grupos[$raiz($i)][] = $c;
+        }
+        $out = [];
+        foreach ($grupos as $g) {
+            if (count(array_unique(array_column($g, 'nombre'))) < 2) {
+                continue; // mismos nombres exactos: no hay nada que unificar
+            }
+            // Sugerencia: la variante con más tildes; a igualdad, la que no está toda en mayúsculas
+            $mejor = null;
+            $puntaje = -1;
+            foreach ($g as $c) {
+                $nom = trim((string)preg_replace(['/["“”«»]/u', '/\s+/u'], ['', ' '], $c['nombre']));
+                $letras = max(1, preg_match_all('/\p{L}/u', $nom));
+                $mayus = preg_match_all('/\p{Lu}/u', $nom);
+                $p = preg_match_all('/[áéíóúÁÉÍÓÚñÑü]/u', $nom) * 10 + (1 - $mayus / $letras) * 9;
+                if ($p > $puntaje) {
+                    $puntaje = $p;
+                    $mejor = $nom;
+                }
+            }
+            $out[] = ['cajas' => $g, 'sugerido' => (string)$mejor];
+        }
+        return $out;
     }
 
     public static function caja_nueva(): void

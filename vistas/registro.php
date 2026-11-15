@@ -13,7 +13,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
 <div class="cabecera">
   <div>
     <p class="eyebrow">Registro <?= (int)$r['numero'] ?> · <?= e($r['codigo']) ?></p>
-    <h1><?= e($r['titulo'] ?: '(sin título)') ?></h1>
+    <h1><?= e($r['titulo'] ?: ($tipos ? implode(' · ', $tipos) : 'Sin título ni tipo cargado')) ?></h1>
     <div class="chips">
       <?= $r['digitalizado'] ? '<span class="chip chip-ok">Digitalizado</span>' : '<span class="chip">Sin archivo</span>' ?>
       <span class="chip <?= $r['acceso'] === 'publico' ? '' : 'chip-warn' ?>"><?= acceso_txt($r['acceso']) ?></span>

@@ -21,7 +21,7 @@ App::iniciarSesion();
 $ruta = (string)($_GET['r'] ?? (App::usuario() ? 'cajas' : 'login'));
 $publicas = ['login'];
 $rutas = [
-    'login', 'salir', 'cajas', 'caja', 'caja_nueva', 'caja_guardar', 'caja_baja', 'caja_restaurar',
+    'login', 'salir', 'cajas', 'cajas_unificar', 'caja', 'caja_nueva', 'caja_guardar', 'caja_baja', 'caja_restaurar',
     'registro', 'registro_guardar', 'registro_nuevo', 'registro_baja', 'registro_restaurar',
     'campo_desbloquear', 'origen_excel', 'archivo_baja', 'archivo_restaurar', 'deshacer',
     'notificaciones', 'validar', 'procesos', 'proceso_deshacer', 'vocabularios', 'vocab_accion',

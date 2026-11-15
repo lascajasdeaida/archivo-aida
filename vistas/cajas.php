@@ -5,6 +5,7 @@
     <h1>Cajas</h1>
   </div>
   <div class="acciones">
+    <?php if ($parecidos && App::puede('editar')): ?><a class="btn" href="<?= App::url('cajas_unificar') ?>">Unificar nombres parecidos <b class="contador"><?= $parecidos ?></b></a><?php endif ?>
     <a class="btn" href="<?= App::url('cajas', $verBajas ? [] : ['bajas' => 1]) ?>"><?= $verBajas ? 'Ocultar dadas de baja' : 'Ver también las dadas de baja' ?></a>
     <?php if (App::puede('baja')): ?><a class="btn btn-primario" href="<?= App::url('caja_nueva') ?>">+ Nueva caja</a><?php endif ?>
   </div>

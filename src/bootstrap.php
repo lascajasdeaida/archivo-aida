@@ -35,7 +35,9 @@ function aida_db(): PDO
     if ($pdo === null) {
         $c = aida_config()['db'];
         $pdo = new PDO(
-            sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $c['host'], $c['port'] ?? 3306, $c['name']),
+            !empty($c['socket'])
+                ? sprintf('mysql:unix_socket=%s;dbname=%s;charset=utf8mb4', $c['socket'], $c['name'])
+                : sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $c['host'], $c['port'] ?? 3306, $c['name']),
             $c['user'],
             $c['pass'],
             [

@@ -2,7 +2,7 @@
 
 Diseño web · 15/11/2026 · rama `diseno/sitio-publico`. Parte de la identidad del sitio actual
 ([`referencias/identidad-sitio-actual.md`](referencias/identidad-sitio-actual.md)) y de la estructura de UX
-([`../ux/sitio-publico.md`](../ux/sitio-publico.md)). Tokens: [`tokens.css`](tokens.css). Componentes: [`componentes.md`](componentes.md).
+([`../ux/sitio-publico.md`](../ux/sitio-publico.md)). Tokens: [`public/sitio/tokens.css`](../../public/sitio/tokens.css). Componentes: [`componentes.md`](componentes.md).
 Maquetas: [`maquetas/index.html`](maquetas/index.html) · catálogo vivo: [`maquetas/componentes.html`](maquetas/componentes.html).
 
 ## 1. Criterio

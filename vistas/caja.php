@@ -10,6 +10,7 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
     <h1><?= e($caja['nombre']) ?></h1>
   </div>
   <div class="acciones">
+    <a class="btn" href="<?= App::url('vista_previa', ['caja' => $caja['id']]) ?>" target="_blank" rel="noopener" title="Abre en una pestaña nueva cómo se vería esta caja en el sitio público">Ver como en el sitio ↗</a>
     <?php if (!$caja['eliminado_en'] && App::puede('editar')): ?><a class="btn btn-crear" href="<?= App::url('registro_nuevo', ['caja' => $caja['id']]) ?>">+ Nuevo registro</a><?php endif ?>
   </div>
 </div>

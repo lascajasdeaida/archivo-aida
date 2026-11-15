@@ -11,4 +11,6 @@ return [
     ],
     // Carpeta raíz donde están las carpetas de cajas (C1/, C2/, …) con los PDF
     'archivos_raiz' => '/var/www/aida-archivos',
+    // Backups de la base (bin/backup.sh). Opcional: por defecto ../backups-aida y 8 copias
+    // 'backup' => ['dir' => '/home/usuario/backups-aida', 'conservar' => 8],
 ];

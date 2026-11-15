@@ -33,7 +33,11 @@ $base = ['tab' => $tab] + array_filter(['caja' => $_GET['caja'] ?? null, 'codigo
 <form method="post" action="<?= App::url('validar') ?>">
   <?= App::campoToken() ?>
   <input type="hidden" name="volver" value="<?= e($volver) ?>">
-  <?php foreach ($items as $i): $al = Alertas::de($i['codigo']); $donde = $i['caja'] ? 'C' . (int)$i['caja'] . ($i['registro'] ? 'R' . (int)$i['registro'] : '') : ''; ?>
+  <?php $grupoPrev = null; $cuenta = array_count_values(array_column($items, 'codigo'));
+  foreach ($items as $i): $al = Alertas::de($i['codigo']);
+    if ($i['codigo'] !== $grupoPrev): $grupoPrev = $i['codigo']; ?>
+      <h2 class="grupo-alertas"><?= e($al['titulo']) ?> (<?= (int)$cuenta[$i['codigo']] ?>)</h2>
+    <?php endif; $donde = $i['caja'] ? 'C' . (int)$i['caja'] . ($i['registro'] ? 'R' . (int)$i['registro'] : '') : ''; ?>
     <article class="tarjeta <?= $tab === 'resueltas' ? 'resuelta' : ($i['requiere_validacion'] ? '' : 'info') ?>">
       <div><?php if ($tab === 'pendientes' && App::puede('validar')): ?><input type="checkbox" name="ids[]" value="<?= (int)$i['id'] ?>" aria-label="Elegir"><?php endif ?></div>
       <div>
@@ -44,7 +48,7 @@ $base = ['tab' => $tab] + array_filter(['caja' => $_GET['caja'] ?? null, 'codigo
             <?php else: ?><?= $donde ?><?php endif ?>
           <?php endif ?>
         </h3>
-        <div class="det"><?= e($al['leyenda']) ?></div>
+        <?php if (mb_strtolower(trim($al['leyenda'], ' .')) !== mb_strtolower(trim((string)$i['detalle'], ' .'))): ?><div class="det"><?= e($al['leyenda']) ?></div><?php endif ?>
         <div class="nota"><?= e($i['detalle']) ?></div>
         <div class="accion">Qué hacer: <?= e($al['accion']) ?></div>
         <div class="nota">Surgió en <?= $i['proceso_tipo'] === 'escaneo' ? 'el escaneo' : 'la importación' ?> #<?= (int)$i['proceso_id'] ?> · <?= fecha($i['iniciado_en']) ?></div>

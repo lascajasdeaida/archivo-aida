@@ -11,7 +11,9 @@ $etiquetas = \Aida\Web\Rutas::CAMPOS_REGISTRO + [
 ];
 $acciones = ['alta' => 'Alta', 'modificacion' => 'Modificación', 'baja' => 'Baja', 'restauracion' => 'Restauración', 'reversion' => 'Deshacer'];
 $origenes = ['backoffice' => 'backoffice', 'importacion' => 'importación del Excel', 'escaneo' => 'escaneo', 'reversion' => 'deshacer'];
-$mostrar = function ($v) {
+$mostrar = function ($v, string $campo = '') {
+    if ($campo === 'acceso' && is_string($v) && $v !== '') return acceso_txt($v);
+    if (in_array($campo, ['publicado', 'publicada', 'excel_digitalizado'], true) && ($v === 0 || $v === 1 || $v === '0' || $v === '1' || is_bool($v))) return $v ? 'Sí' : 'No';
     if ($v === null || $v === '' || $v === []) return '—';
     if (is_array($v)) return implode(', ', $v);
     $s = (string)$v;
@@ -37,12 +39,17 @@ $mostrar = function ($v) {
       <?php if ($a['proceso_id']): ?><span>· proceso #<?= (int)$a['proceso_id'] ?></span><?php endif ?>
       <?php if ($a['revierte_id']): ?><span class="chip">deshace #<?= (int)$a['revierte_id'] ?></span><?php endif ?>
       <?php if ($a['revertido_en']): ?><span class="chip chip-stop">deshecho <?= fecha($a['revertido_en']) ?></span>
+      <?php elseif ($a['accion'] === 'alta' && in_array($a['entidad'], ['registro', 'caja'], true)):
+          $ent = $a['entidad'] === 'registro' ? ($r ?? null) : ($caja ?? null);
+          if ($puede && App::puede('baja') && $ent && !$ent['eliminado_en']): ?>
+        <a class="btn btn-chico btn-peligro-borde" href="<?= App::url($a['entidad'] . '_baja', ['id' => $a['entidad_id']]) ?>" title="Deshacer el alta lo da de baja">Deshacer…</a>
+      <?php endif ?>
       <?php elseif ($puede): ?>
         <form method="post" action="<?= App::url('deshacer') ?>">
           <?= App::campoToken() ?>
           <input type="hidden" name="cambio" value="<?= (int)$a['id'] ?>">
           <input type="hidden" name="volver" value="<?= e($volver) ?>">
-          <button class="btn btn-chico btn-peligro-borde" data-doble="<?= $a['accion'] === 'alta' ? 'Queda dado de baja. ¿Confirmar?' : 'Vuelve al valor anterior. ¿Confirmar?' ?>">Deshacer</button>
+          <button class="btn btn-chico btn-peligro-borde" data-doble="<?= $a['accion'] === 'alta' ? 'Se quita lo agregado.' : 'Vuelve al valor anterior.' ?>">Deshacer</button>
         </form>
       <?php endif ?>
     </div>
@@ -51,7 +58,7 @@ $mostrar = function ($v) {
       <?php foreach ($campos as $campo => [$antes, $despues]): ?>
         <tr>
           <td style="width:28%"><?= e($etiquetas[$campo] ?? $campo) ?></td>
-          <td><?php if ($a['accion'] !== 'alta'): ?><span class="antes"><?= e($mostrar($antes)) ?></span> → <?php endif ?><span class="despues"><?= e($mostrar($despues)) ?></span></td>
+          <td><?php if ($a['accion'] !== 'alta'): ?><span class="antes"><?= e($mostrar($antes, $campo)) ?></span> → <?php endif ?><span class="despues"><?= e($mostrar($despues, $campo)) ?></span></td>
         </tr>
       <?php endforeach ?>
     </table>

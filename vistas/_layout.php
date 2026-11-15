@@ -52,8 +52,8 @@
 </main>
 <footer class="pie">Archivo Aída Bortnik · backoffice · P3DESIGN</footer>
 <script>
-/* Doble validación: el primer clic arma el botón y explica qué va a pasar;
-   el segundo, dentro de 6 segundos, ejecuta. Se desarma solo. */
+/* Doble validación: el primer clic arma el botón ("Confirmar") y al lado explica qué va a pasar;
+   el segundo, dentro de 10 segundos, ejecuta. Se desarma solo o con Esc. */
 document.addEventListener('click', function (ev) {
   var b = ev.target.closest('[data-doble]');
   if (!b) return;
@@ -63,8 +63,12 @@ document.addEventListener('click', function (ev) {
   b.dataset.original = b.innerHTML;
   b.dataset.armado = '1';
   b.classList.add('armado');
-  b.innerHTML = '⚠ ' + b.dataset.doble;
-  b._t = setTimeout(function () { desarmar(b); }, 6000);
+  b.innerHTML = 'Confirmar';
+  var s = document.createElement('span');
+  s.className = 'aviso-doble'; s.setAttribute('role', 'alert');
+  s.textContent = '⚠ ' + b.dataset.doble.replace(/\s*¿Confirmar\?$/, '') + ' Hacé clic de nuevo para confirmar.';
+  b.insertAdjacentElement('afterend', s); b._aviso = s;
+  b._t = setTimeout(function () { desarmar(b); }, 10000);
 }, true);
 function desarmar(b) {
   clearTimeout(b._t);
@@ -72,9 +76,45 @@ function desarmar(b) {
   b.dataset.armado = '0';
   b.classList.remove('armado');
   b.innerHTML = b.dataset.original;
+  if (b._aviso) { b._aviso.remove(); b._aviso = null; }
 }
 document.addEventListener('keydown', function (ev) {
   if (ev.key === 'Escape') document.querySelectorAll('[data-armado="1"]').forEach(desarmar);
+});
+/* Tablas anchas: se envuelven para desplazarse en pantallas chicas */
+document.querySelectorAll('.contenido table').forEach(function (t) {
+  if (t.closest('.historial, aside, .tabla-scroll')) return;
+  var w = document.createElement('div'); w.className = 'tabla-scroll';
+  t.parentNode.insertBefore(w, t); w.appendChild(t);
+});
+/* Selector de términos con casillas y chips */
+document.querySelectorAll('.selector-terminos').forEach(function (sel) {
+  var cajas = sel.querySelectorAll('.lista input[type=checkbox]');
+  var zona = sel.querySelector('.elegidos');
+  function pintar() {
+    zona.innerHTML = '';
+    var n = 0;
+    cajas.forEach(function (c) {
+      if (!c.checked) return; n++;
+      var chip = document.createElement('span'); chip.className = 'chip-termino';
+      chip.textContent = c.value;
+      if (!c.disabled) {
+        var x = document.createElement('button'); x.type = 'button'; x.textContent = '×';
+        x.setAttribute('aria-label', 'Quitar ' + c.value);
+        x.onclick = function () { c.checked = false; pintar(); };
+        chip.appendChild(x);
+      }
+      zona.appendChild(chip);
+    });
+    if (!n) { zona.innerHTML = '<span class="vacio">Ninguno elegido</span>'; }
+  }
+  cajas.forEach(function (c) { c.addEventListener('change', pintar); });
+  var q = sel.querySelector('.buscar');
+  if (q) q.addEventListener('input', function () {
+    var t = q.value.toLowerCase();
+    sel.querySelectorAll('.lista label').forEach(function (l) { l.hidden = t && l.textContent.toLowerCase().indexOf(t) < 0; });
+  });
+  pintar();
 });
 </script>
 </body>

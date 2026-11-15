@@ -211,3 +211,102 @@ button.link[data-doble]{color:var(--stop)}
 .btn-crear{background:var(--crear);border-color:var(--crear);color:#fff}
 .btn-crear:hover{background:var(--crear-osc);border-color:var(--crear-osc)}
 .btn-primario{font-weight:700}
+
+/* ===================================================================
+   Ajustes de QA (accesibilidad WCAG AA y móvil) — nov 2026
+   =================================================================== */
+:root{--warn:#755A0F;--accent-ink:#8F4C18;--muted:#5E5140;--borde-control:#9C8A6E;--borde-btn:#A08C70}
+.chip-acc{color:#8F4C18}
+.fila-link:hover td,.fila-link:hover td a{color:var(--ink)}
+
+/* Foco de teclado visible en todo */
+a:focus-visible,.btn:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.barra a:focus-visible,.barra button:focus-visible{outline-color:#E8A05C}
+
+/* Bordes de controles con contraste suficiente (≥ 3:1) */
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],textarea,select{border-color:var(--borde-control)}
+.btn{background:#fff;border-color:var(--borde-btn)}
+.btn:hover{background:var(--surface-2)}
+.btn-primario{background:var(--accent);border-color:var(--accent)}
+.btn-primario:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+.chip{border-color:var(--borde-btn)}
+.chip-ok{border-color:#8FA984}.chip-warn{border-color:#C7AE63}.chip-stop{border-color:#C98F82}.chip-acc{border-color:#D3A579}
+input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}
+
+/* Bajas y cambios deshechos: atenuados pero legibles (sin opacidad) */
+tr.baja td{opacity:1;color:var(--muted)}
+.historial li.deshecho{opacity:1;color:var(--muted)}
+.historial li.deshecho .antes,.historial li.deshecho .despues{color:var(--muted)}
+
+/* Áreas de clic */
+td a{display:inline-block;min-width:32px;padding:4px 2px}
+.migas a,.usuario button.link{display:inline-block;padding:4px 0}
+
+/* Tablas: en pantallas chicas se desplazan horizontalmente en lugar de romper la página */
+.tabla-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:8px}
+.tabla-scroll > table{min-width:560px}
+
+/* Guardar siempre a la vista en formularios largos */
+.acciones-guardar{position:sticky;bottom:0;z-index:3;background:var(--blanco);padding:10px 0;margin:12px 0 0;border-top:1px solid var(--line);box-shadow:0 -10px 16px -14px rgba(42,33,26,.5)}
+
+/* Zona de riesgo: separada de Guardar */
+.zona-riesgo{border-top:4px solid var(--stop)!important;margin-top:24px}
+.zona-riesgo > h2:first-child{background:var(--stop-soft)!important;color:var(--stop)!important;border-bottom-color:#e0b7ad!important}
+
+/* Doble validación: el aviso va al lado, el botón no cambia de tamaño */
+.aviso-doble{display:inline-block;margin-left:6px;font-size:.8rem;color:var(--stop);font-weight:700}
+.armado{animation:latido 1s ease-in-out infinite}
+
+/* Selector de términos con casillas */
+.selector-terminos{border:1px solid var(--borde-control);border-radius:var(--radio);background:#fff;margin-top:4px}
+.selector-terminos .elegidos{display:flex;flex-wrap:wrap;gap:6px;padding:8px;min-height:40px;border-bottom:1px solid var(--line)}
+.selector-terminos .elegidos .vacio{color:var(--muted);font-size:.85rem}
+.chip-termino{display:inline-flex;align-items:center;gap:4px;background:var(--accent-soft);border:1px solid #D3A579;color:var(--ink);border-radius:999px;padding:1px 4px 1px 10px;font-size:.82rem}
+.chip-termino button{border:0;background:none;color:var(--stop);font-size:1rem;line-height:1;cursor:pointer;padding:2px 6px;border-radius:999px}
+.chip-termino button:hover{background:var(--stop-soft)}
+.selector-terminos details summary{cursor:pointer;padding:8px;font-size:.85rem;color:var(--accent-ink)}
+.selector-terminos .buscar{margin:0 8px 6px;width:calc(100% - 16px)}
+.selector-terminos .lista{max-height:240px;overflow-y:auto;padding:0 8px 8px}
+.selector-terminos .lista label{display:flex;gap:8px;align-items:center;margin:0;padding:4px 2px;font-size:.88rem;color:var(--ink)}
+.selector-terminos .lista label.propuesto span{color:var(--muted)}
+.selector-terminos .lista label.propuesto span::after{content:" · propuesto";font-size:.75rem}
+
+/* Vocabularios */
+select[name=destino]{display:inline-block;width:200px;margin:0}
+td .acciones{flex-wrap:nowrap}
+.renombrar input{display:inline-block;width:180px;margin:0}
+
+/* Verificaciones: la barra de lote no tapa la última tarjeta */
+.lote{border-top:3px solid var(--accent)}
+form:has(> .lote){padding-bottom:12px}
+.grupo-alertas{font-family:"Playfair Display",Georgia,serif;font-size:1.15rem;margin:20px 0 8px}
+
+/* Móvil */
+@media (max-width:640px){
+  .contenido{padding:14px}
+  .barra{position:static;padding:8px 12px;gap:6px 12px}
+  .barra nav a{padding:4px 8px}
+  .usuario{width:100%;justify-content:space-between}
+  h1{font-size:1.6rem}
+  .leyenda{flex-direction:column}
+  .leyenda form{margin-left:0;width:100%}
+  .panel{padding:16px}
+  .panel > h2:first-child{margin:-16px -16px 14px;padding:10px 16px}
+  .filtros input,.filtros select{min-width:0;width:100%}
+  .filtros label{flex:1 1 140px}
+  .lote input[type=text]{min-width:0}
+}
+.grilla > *{min-width:0}
+@media (max-width:980px){.grilla{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.lote{flex-direction:column;align-items:stretch}}
+/* Re-afirmar colores por intención después del ajuste de .btn */
+.btn.btn-primario{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.btn-primario:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+.btn.btn-crear{background:var(--crear);border-color:var(--crear);color:#fff}
+.btn.btn-crear:hover{background:var(--crear-osc);border-color:var(--crear-osc)}
+.btn.btn-peligro{background:var(--stop);border-color:var(--stop);color:#fff}
+.btn.btn-peligro:hover{background:#73291F;border-color:#73291F}
+.btn.btn-peligro-borde{background:#fff;border-color:var(--stop);color:var(--stop)}
+.btn.btn-peligro-borde:hover{background:var(--stop-soft)}
+.btn.armado{background:var(--stop)!important;color:#fff!important;border-color:var(--stop)!important}
+.selector-terminos .lista label[hidden],tr[hidden]{display:none!important}

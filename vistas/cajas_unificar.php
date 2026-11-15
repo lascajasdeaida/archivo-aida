@@ -5,7 +5,7 @@
     <p class="eyebrow">Curaduría</p>
     <h1>Unificar nombres de cajas</h1>
     <p class="nota">Grupos de cajas con nombres casi iguales: diferencias de tildes, mayúsculas, comillas o errores de tipeo.
-      Tildá las cajas que van con el mismo nombre, corregí cómo tiene que quedar escrito y unificá.
+      Ninguna viene tildada: tildá solo las cajas que son la misma obra, corregí cómo tiene que quedar escrito y unificá.
       Cada cambio queda en el historial de la caja (se puede deshacer) y la planilla ya no lo pisa.</p>
   </div>
 </div>
@@ -19,7 +19,7 @@
       <thead><tr><th style="width:40px"></th><th style="width:80px">Caja</th><th>Nombre actual</th></tr></thead>
       <?php foreach ($g['cajas'] as $c): ?>
         <tr>
-          <td><input type="checkbox" name="cajas[]" value="<?= (int)$c['id'] ?>" checked aria-label="Incluir caja <?= (int)$c['numero'] ?>"></td>
+          <td><input type="checkbox" name="cajas[]" value="<?= (int)$c['id'] ?>" aria-label="Incluir caja <?= (int)$c['numero'] ?>"></td>
           <td><a href="<?= App::url('caja', ['id' => $c['id']]) ?>"><?= (int)$c['numero'] ?></a></td>
           <td><?= e($c['nombre']) ?>
             <button type="button" class="link" style="margin-left:8px;font-size:.8rem"
@@ -31,7 +31,7 @@
       <label style="flex:1;margin:0">Nombre unificado
         <input type="text" name="nombre" value="<?= e($g['sugerido']) ?>" required>
       </label>
-      <button class="btn btn-primario" style="align-self:flex-end">Unificar las tildadas</button>
+      <button class="btn btn-peligro" style="align-self:flex-end" data-doble="Las cajas tildadas pasan a llamarse igual (se puede deshacer).">Unificar las cajas tildadas</button>
     </div>
   </form>
 <?php endforeach ?>

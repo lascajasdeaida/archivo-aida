@@ -23,6 +23,11 @@ namespace Aida;
  */
 final class Importador
 {
+    /** Nombres de campo legibles para los avisos. */
+    private const ETIQUETAS = ['titulo' => 'Título', 'autor' => 'Autor', 'lugar' => 'Lugar', 'fecha_texto' => 'Fecha',
+        'anio_texto' => 'Año', 'isbn' => 'ISBN', 'seleccion_digit' => 'Selección para digitalizar',
+        'excel_nomenclatura' => 'Nombre de archivo', 'excel_privado' => 'PRIVADO'];
+
     private const FIJAS = [
         0 => 'caja_excel', 1 => 'nombre_caja', 2 => 'numero',
         3 => 'tipo1', 4 => 'tipo2', 5 => 'tipo3',
@@ -334,7 +339,7 @@ final class Importador
                   'isbn' => 60, 'seleccion_digit' => 500, 'excel_nomenclatura' => 40, 'excel_privado' => 255] as $k => $max) {
             if ($datos[$k] !== null && mb_strlen((string)$datos[$k]) > $max) {
                 $datos[$k] = mb_substr((string)$datos[$k], 0, $max);
-                $this->rep->incidencia('aviso', 'TEXTO_RECORTADO', $numCaja, $num, "El campo $k superaba $max caracteres");
+                $this->rep->incidencia('aviso', 'TEXTO_RECORTADO', $numCaja, $num, "El campo «" . (self::ETIQUETAS[$k] ?? $k) . "» superaba $max caracteres");
             }
         }
 

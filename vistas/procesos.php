@@ -10,7 +10,7 @@ $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevo
   </div>
 </div>
 <table>
-  <thead><tr><th>#</th><th>Tipo</th><th>Fuente</th><th>Fecha</th><th>Resultado</th><th>Verificaciones</th><th></th></tr></thead>
+  <thead><tr><th>#</th><th>Tipo</th><th>Fuente</th><th>Fecha</th><th>Resultado</th><th>Verificaciones</th><th>Acciones</th></tr></thead>
   <tbody>
   <?php foreach ($procesos as $p): $res = json_decode((string)$p['resumen'], true) ?: []; $vivos = (int)$p['cambios'] - (int)$p['deshechos']; ?>
     <tr>
@@ -29,4 +29,4 @@ $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevo
   <?php if (!$procesos): ?><tr><td colspan="7" class="nota">Todavía no se corrió ninguna importación.</td></tr><?php endif ?>
   </tbody>
 </table>
-<p class="nota">Por ahora la importación y el escaneo se corren desde el servidor: <code>php bin/importar.php</code> y <code>php bin/escanear.php</code>.</p>
+<p class="nota">Por ahora la importación y el escaneo los corre el equipo técnico en el servidor.</p>

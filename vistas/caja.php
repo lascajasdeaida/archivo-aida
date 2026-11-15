@@ -6,7 +6,7 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
 <div class="migas"><a href="<?= App::url('cajas') ?>">Cajas</a> / Caja <?= (int)$caja['numero'] ?></div>
 <div class="cabecera">
   <div>
-    <p class="eyebrow">Caja <?= (int)$caja['numero'] ?><?= $caja['nombre_pestania'] ? ' · pestaña «' . e($caja['nombre_pestania']) . '»' : '' ?></p>
+    <p class="eyebrow">Caja <?= (int)$caja['numero'] ?></p>
     <h1><?= e($caja['nombre']) ?></h1>
   </div>
   <div class="acciones">
@@ -33,7 +33,7 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
       <label>Estado<select name="estado">
         <option value="">Todos</option>
         <option value="digitalizado" <?= $filtros['estado'] === 'digitalizado' ? 'selected' : '' ?>>Digitalizados</option>
-        <option value="pendiente" <?= $filtros['estado'] === 'pendiente' ? 'selected' : '' ?>>Sin archivo</option>
+        <option value="pendiente" <?= $filtros['estado'] === 'pendiente' ? 'selected' : '' ?>>Sin digitalizar</option>
       </select></label>
       <label>Acceso<select name="acceso">
         <option value="">Todos</option>
@@ -57,7 +57,7 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
           <td><?= e($r0['anio_texto']) ?></td>
           <td class="no-tachar"><div class="chips">
             <?php if ($r0['eliminado_en']): ?><span class="chip chip-stop">Baja</span><?php endif ?>
-            <?= $r0['digitalizado'] ? '<span class="chip chip-ok">Digitalizado</span>' : ($r0['excel_digitalizado'] ? '<span class="chip">Archivo pendiente</span>' : '<span class="chip">Sin digitalizar</span>') ?>
+            <?= $r0['digitalizado'] ? '<span class="chip chip-ok">Digitalizado</span>' : ($r0['excel_digitalizado'] ? '<span class="chip chip-warn">Archivo pendiente</span>' : '<span class="chip">Sin digitalizar</span>') ?>
             <?php if ($r0['acceso'] !== 'publico'): ?><span class="chip chip-warn"><?= acceso_txt($r0['acceso']) ?></span><?php endif ?>
             <?php if ($r0['origen'] === 'backoffice'): ?><span class="chip">Cargado a mano</span><?php endif ?>
             <?php if ($r0['campos_bloqueados'] && $r0['campos_bloqueados'] !== '[]'): ?><span class="chip" title="Tiene campos editados a mano">✎</span><?php endif ?>
@@ -86,7 +86,7 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
           <?php endif ?>
         <?php endforeach ?>
         <label class="check"><input type="checkbox" name="publicada" value="1" <?= $caja['publicada'] ? 'checked' : '' ?>> Publicada en el sitio</label>
-        <?php if (App::puede('editar')): ?><button class="btn btn-primario">Guardar</button><?php endif ?>
+        <?php if (App::puede('editar')): ?><div class="acciones"><button class="btn btn-primario">Guardar</button></div><?php endif ?>
       </form>
       <?php foreach (array_intersect($bloq, ['nombre', 'resumen']) as $k): ?>
         <form method="post" action="<?= App::url('campo_desbloquear') ?>" class="acciones">
@@ -94,14 +94,24 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
           <button class="link" data-doble="La planilla va a reemplazar este valor. ¿Confirmar?">Volver a tomar «<?= e($k) ?>» del Excel</button>
         </form>
       <?php endforeach ?>
-      <?php if (!$caja['eliminado_en'] && App::puede('baja')): ?>
-        <p class="acciones"><a class="btn btn-chico btn-peligro-borde" href="<?= App::url('caja_baja', ['id' => $caja['id']]) ?>">Dar de baja la caja…</a></p>
-      <?php endif ?>
     </section>
+    <?php if ($caja['nombre_pestania']): ?>
+    <section class="panel">
+      <h2>Datos de la planilla</h2>
+      <table><tr><td>Pestaña</td><td><?= e($caja['nombre_pestania']) ?></td></tr></table>
+    </section>
+    <?php endif ?>
 
     <section class="panel">
       <h2>Historial</h2>
       <?php require __DIR__ . '/_historial.php'; ?>
     </section>
+    <?php if (!$caja['eliminado_en'] && App::puede('baja')): ?>
+    <section class="panel zona-riesgo">
+      <h2>Zona de riesgo</h2>
+      <p class="nota">La caja y sus registros dejan de mostrarse en el sitio. Se puede restaurar.</p>
+      <a class="btn btn-chico btn-peligro-borde" href="<?= App::url('caja_baja', ['id' => $caja['id']]) ?>">Dar de baja la caja…</a>
+    </section>
+    <?php endif ?>
   </aside>
 </div>

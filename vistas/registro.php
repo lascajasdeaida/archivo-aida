@@ -15,7 +15,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
     <p class="eyebrow">Registro <?= (int)$r['numero'] ?> · <?= e($r['codigo']) ?></p>
     <h1><?= e($r['titulo'] ?: ($tipos ? implode(' · ', $tipos) : 'Sin título ni tipo cargado')) ?></h1>
     <div class="chips">
-      <?= $r['digitalizado'] ? '<span class="chip chip-ok">Digitalizado</span>' : '<span class="chip">Sin archivo</span>' ?>
+      <?= $r['digitalizado'] ? '<span class="chip chip-ok">Digitalizado</span>' : '<span class="chip">Sin digitalizar</span>' ?>
       <span class="chip <?= $r['acceso'] === 'publico' ? '' : 'chip-warn' ?>"><?= acceso_txt($r['acceso']) ?></span>
       <span class="chip"><?= $r['origen'] === 'backoffice' ? 'Cargado a mano' : 'Desde el Excel' ?></span>
       <?php if (!$r['publicado']): ?><span class="chip chip-warn">No publicado</span><?php endif ?>
@@ -42,7 +42,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
     <div><b>Cargado a mano.</b> La planilla no modifica este registro.</div>
     <?php if (App::puede('baja') && !$r['eliminado_en']): ?>
       <form method="post" action="<?= App::url('origen_excel', ['id' => $r['id']]) ?>"><?= App::campoToken() ?>
-        <button class="btn btn-chico" data-doble="El Excel va a poder actualizarlo. ¿Confirmar?">Pasar a origen Excel</button>
+        <button class="btn btn-chico btn-peligro-borde" data-doble="El Excel va a poder pisar lo cargado a mano. ¿Confirmar?">Pasar a origen Excel</button>
       </form>
     <?php endif ?>
   </div>
@@ -92,30 +92,33 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
       echo '<div class="dos">'; $campo('paginas'); $campo('isbn'); echo '</div>';
       $campo('resumen', 'area');
       ?>
+      <?php
+      $selector = function (string $nombre, string $titulo, array $lista, array $elegidos) use ($bloqueado, $puedeEditar) {
+          $k = $nombre === 'tipos' ? 'tipos' : 'descriptores';
+          echo '<div class="' . ($bloqueado($k) ? 'campo-bloqueado' : '') . '" style="margin-bottom:12px"><span style="font-size:.85rem;color:var(--ink-2)">' . e($titulo) . '</span>';
+          echo '<div class="selector-terminos"><div class="elegidos" aria-live="polite"></div>';
+          echo '<details' . ($puedeEditar ? '' : ' hidden') . '><summary>Agregar o quitar ' . mb_strtolower(e($titulo)) . ' (' . count($lista) . ')</summary>';
+          echo '<input type="search" class="buscar" placeholder="Buscar…" aria-label="Buscar en ' . e($titulo) . '"><div class="lista">';
+          foreach ($lista as $v) {
+              $on = in_array($v['nombre'], $elegidos, true);
+              echo '<label class="' . ($v['estado'] === 'propuesto' ? 'propuesto' : '') . '"><input type="checkbox" name="' . $nombre . '[]" value="' . e($v['nombre']) . '"'
+                 . ($on ? ' checked' : '') . ($puedeEditar ? '' : ' disabled') . '><span>' . e($v['nombre']) . '</span></label>';
+          }
+          echo '</div></details></div></div>';
+      };
+      ?>
       <div class="dos">
-        <label class="<?= $bloqueado('tipos') ? 'campo-bloqueado' : '' ?>">Tipo de documento
-          <select name="tipos[]" multiple <?= $puedeEditar ? '' : 'disabled' ?>>
-            <?php foreach ($vocab['tipo_documento'] as $v): ?>
-              <option value="<?= e($v['nombre']) ?>" <?= in_array($v['nombre'], $tipos, true) ? 'selected' : '' ?>><?= e($v['nombre']) ?><?= $v['estado'] === 'propuesto' ? ' (propuesto)' : '' ?></option>
-            <?php endforeach ?>
-          </select>
-        </label>
-        <label class="<?= $bloqueado('descriptores') ? 'campo-bloqueado' : '' ?>">Descriptores
-          <select name="descriptores[]" multiple <?= $puedeEditar ? '' : 'disabled' ?>>
-            <?php foreach ($vocab['descriptor'] as $v): ?>
-              <option value="<?= e($v['nombre']) ?>" <?= in_array($v['nombre'], $descriptores, true) ? 'selected' : '' ?>><?= e($v['nombre']) ?><?= $v['estado'] === 'propuesto' ? ' (propuesto)' : '' ?></option>
-            <?php endforeach ?>
-          </select>
-        </label>
+        <?php $selector('tipos', 'Tipo de documento', $vocab['tipo_documento'], $tipos); ?>
+        <?php $selector('descriptores', 'Descriptores', $vocab['descriptor'], $descriptores); ?>
       </div>
-      <p class="nota">Ctrl/Cmd + clic para elegir varios. Los términos «propuestos» todavía no fueron curados.</p>
+      <p class="nota">Los términos marcados «propuesto» todavía no fueron curados en Vocabularios.</p>
       <?php foreach (['tipos', 'descriptores'] as $k): if ($bloqueado($k)): ?>
         <div class="candado">✎ <?= $k === 'tipos' ? 'Tipos' : 'Descriptores' ?> editados a mano. La planilla ya no los actualiza.
           <button type="submit" form="desbloquear-<?= $k ?>" class="link" data-doble="La planilla va a reemplazarlos. ¿Confirmar?">Volver a tomarlos del Excel</button></div>
       <?php endif; endforeach ?>
       <?php $campo('obs_editorial', 'area'); $campo('edicion_catalogo', 'area'); $campo('obs_conservacion', 'area'); $campo('obs_digitalizacion', 'area'); ?>
 
-      <fieldset class="panel" style="background:var(--paper)">
+      <fieldset class="panel">
         <legend>Publicación</legend>
         <div class="dos">
           <label class="<?= $bloqueado('acceso') ? 'campo-bloqueado' : '' ?>">Acceso
@@ -132,7 +135,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
       </fieldset>
 
       <?php if ($puedeEditar): ?>
-        <div class="acciones">
+        <div class="acciones acciones-guardar">
           <button class="btn btn-primario">Guardar cambios</button>
           <?php if ($r['origen'] === 'excel'): ?><span class="nota">Los campos que cambies dejan de actualizarse desde el Excel.</span><?php endif ?>
         </div>
@@ -185,7 +188,11 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
     </section>
 
     <?php if (!$r['eliminado_en'] && App::puede('baja')): ?>
-      <p><a class="btn btn-chico btn-peligro-borde" href="<?= App::url('registro_baja', ['id' => $r['id']]) ?>">Dar de baja el registro…</a></p>
+      <section class="panel zona-riesgo">
+        <h2>Zona de riesgo</h2>
+        <p class="nota">El registro deja de mostrarse en el sitio. Se puede restaurar.</p>
+        <a class="btn btn-chico btn-peligro-borde" href="<?= App::url('registro_baja', ['id' => $r['id']]) ?>">Dar de baja el registro…</a>
+      </section>
     <?php endif ?>
   </aside>
 </div>

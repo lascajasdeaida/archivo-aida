@@ -1,4 +1,5 @@
 <?php use Aida\Web\App; ?>
+<?php if (!empty($migas)): ?><div class="migas"><?php foreach ($migas as [$txt, $url]): ?><?= $url ? '<a href="' . e($url) . '">' . e($txt) . '</a>' : e($txt) ?> / <?php endforeach ?>Confirmar</div><?php endif ?>
 <section class="panel confirmar">
   <h1><?= e($titulo) ?></h1>
   <p class="lede"><?= e($texto) ?></p>

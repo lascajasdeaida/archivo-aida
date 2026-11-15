@@ -275,6 +275,7 @@ final class Rutas
             'titulo' => "Dar de baja la Caja {$c['numero']}",
             'texto' => "Vas a dar de baja la Caja {$c['numero']} · {$c['nombre']}, con {$n['regs']} registros ({$n['digs']} digitalizados). "
                      . 'Dejan de mostrarse en el sitio y la importación del Excel no la vuelve a crear. Se puede restaurar.',
+            'migas' => [['Cajas', App::url('cajas')], ["Caja {$c['numero']}", App::url('caja', ['id' => $c['id']])]],
             'accion' => App::url('caja_baja', ['id' => $c['id']]),
             'boton' => 'Dar de baja',
             'volver' => App::url('caja', ['id' => $c['id']]),
@@ -435,10 +436,13 @@ final class Rutas
         $st = self::db()->prepare('SELECT COUNT(*) FROM archivo_digital WHERE registro_id = ? AND presente = 1 AND eliminado_en IS NULL');
         $st->execute([$r['id']]);
         $arch = (int)$st->fetchColumn();
+        $cj = self::cargarCaja((int)$r['caja_id']);
         App::render('confirmar', [
             'titulo' => "Dar de baja el registro {$r['codigo']}",
-            'texto' => "Vas a dar de baja el registro {$r['codigo']}" . ($arch ? " con $arch archivo(s) asociado(s), que se ocultan junto con el registro" : '')
+            'texto' => "Vas a dar de baja {$r['codigo']}" . ($r['titulo'] ? " · «{$r['titulo']}»" : '') . " (Caja {$cj['numero']} · {$cj['nombre']})"
+                     . ($arch ? ($arch === 1 ? ', con 1 archivo asociado que se oculta' : ", con $arch archivos asociados que se ocultan") . ' junto con el registro' : '')
                      . '. Deja de mostrarse en el sitio y la importación no lo vuelve a crear. Se puede restaurar.',
+            'migas' => [['Cajas', App::url('cajas')], ["Caja {$cj['numero']}", App::url('caja', ['id' => $cj['id']])], [$r['codigo'], App::url('registro', ['id' => $r['id']])]],
             'accion' => App::url('registro_baja', ['id' => $r['id']]),
             'boton' => 'Dar de baja',
             'volver' => App::url('registro', ['id' => $r['id']]),
@@ -571,7 +575,7 @@ final class Rutas
             LEFT JOIN usuario u ON u.id = i.resuelta_por
             LEFT JOIN caja c ON c.numero = i.caja
             LEFT JOIN registro r ON r.caja_id = c.id AND r.numero = i.registro
-            WHERE $w ORDER BY " . ($tab === 'resueltas' ? 'i.resuelta_en DESC' : 'i.caja, i.registro, i.codigo') . ' LIMIT 500');
+            WHERE $w ORDER BY " . ($tab === 'resueltas' ? 'i.codigo, i.resuelta_en DESC' : 'i.codigo, i.caja, i.registro') . ' LIMIT 500');
         $st->execute($p);
         $cont = self::db()->query('SELECT
               SUM(resuelta = 0 AND requiere_validacion = 1) pendientes,
@@ -644,6 +648,7 @@ final class Rutas
             'texto' => "Se van a deshacer " . ($det ? implode(', ', $det) : 'sus cambios') . " (del {$proc['fuente']}, " . fecha($proc['iniciado_en']) . '). '
                      . 'Las altas quedan dadas de baja y las modificaciones vuelven al valor anterior. '
                      . 'Si algún dato se modificó después, no se aplica nada y se muestran los conflictos.',
+            'migas' => [['Importaciones', App::url('procesos')]],
             'accion' => App::url('proceso_deshacer', ['id' => $id]),
             'boton' => 'Deshacer la importación',
             'volver' => App::url('procesos'),

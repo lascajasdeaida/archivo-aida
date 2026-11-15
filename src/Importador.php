@@ -31,7 +31,9 @@ final class Importador
     /** Nombres de campo legibles para los avisos. */
     private const ETIQUETAS = ['titulo' => 'Título', 'autor' => 'Autor', 'lugar' => 'Lugar', 'fecha_texto' => 'Fecha',
         'anio_texto' => 'Año', 'isbn' => 'ISBN', 'seleccion_digit' => 'Selección para digitalizar',
-        'excel_nomenclatura' => 'Nombre de archivo', 'excel_privado' => 'PRIVADO'];
+        'excel_nomenclatura' => 'Nombre de archivo', 'excel_privado' => 'PRIVADO', 'acceso' => 'Acceso', 'paginas' => 'Páginas',
+        'resumen' => 'Resumen', 'obs_editorial' => 'Observaciones/Editorial', 'edicion_catalogo' => 'Edición de catálogo',
+        'obs_conservacion' => 'Observaciones de conservación', 'obs_digitalizacion' => 'Observaciones de digitalización'];
 
     private const FIJAS = [
         0 => 'caja_excel', 1 => 'nombre_caja', 2 => 'numero',
@@ -67,6 +69,10 @@ final class Importador
     private Vocabulario $voc;
     /** @var array<string,array{codigo:string,detalle:string,registros:list<int>}> reglas de curaduría aplicadas en la caja actual */
     private array $reglas = [];
+    /** @var list<string> campos bloqueados que la planilla ya trae corregidos, en la caja actual («R2 Autor») */
+    private array $corregidos = [];
+    /** @var list<string> ídem para los campos de la caja (se juntan antes de procesar sus registros) */
+    private array $corregidosCaja = [];
 
     public function __construct(private readonly \PDO $db)
     {
@@ -192,6 +198,8 @@ final class Importador
         // Registros
         $nomenclaturas = [];
         $this->reglas = [];
+        $this->corregidos = $this->corregidosCaja;
+        $this->corregidosCaja = [];
         foreach ($filas as $num => $f) {
             $this->importarRegistro($cajaId, $numCaja, $num, $f, $nomenclaturas);
         }
@@ -203,6 +211,15 @@ final class Importador
             $this->rep->incidencia('info', $g['codigo'], $numCaja, $n === 1 ? $g['registros'][0] : null,
                 sprintf($g['detalle'], $n === 1 ? '1 registro' : "$n registros") . " ($lista)");
             $this->rep->sumar('reglas de curaduría aplicadas', $n);
+        }
+        // Campos corregidos a mano que el equipo ya corrigió en la planilla: una incidencia informativa por caja
+        if ($this->corregidos) {
+            $n = count($this->corregidos);
+            $lista = implode(', ', array_slice($this->corregidos, 0, 30)) . ($n > 30 ? ' …' : '');
+            $this->rep->incidencia('info', 'CORREGIDO_EN_PLANILLA', $numCaja, null, ($n === 1
+                ? 'El equipo corrigió en la planilla 1 campo que estaba corregido a mano; vuelve a tomarse del Excel'
+                : "El equipo corrigió en la planilla $n campos que estaban corregidos a mano; vuelven a tomarse del Excel") . " ($lista)");
+            $this->corregidos = [];
         }
         foreach ($nomenclaturas as $nom => $nums) {
             if (count($nums) > 1) {
@@ -299,7 +316,8 @@ final class Importador
         if ($c['eliminado_en'] !== null) {
             return null;
         }
-        $bloq = json_decode((string)$c['campos_bloqueados'], true) ?: [];
+        $bloq = $this->desbloquearCorregidos('caja', (int)$c['id'], $numero, null,
+            json_decode((string)$c['campos_bloqueados'], true) ?: [], ['nombre' => $nombre, 'resumen' => $resumen]);
         $sets = ['nombre_pestania = ?'];
         $vals = [$pestania];
         if (!in_array('nombre', $bloq, true)) {
@@ -408,7 +426,8 @@ final class Importador
             $antes = null;
         } else {
             $regId = (int)$r['id'];
-            $bloq = json_decode((string)$r['campos_bloqueados'], true) ?: [];
+            $bloq = $this->desbloquearCorregidos('registro', $regId, $numCaja, $num,
+                json_decode((string)$r['campos_bloqueados'], true) ?: [], $datos);
             if (in_array('anio_texto', $bloq, true)) {
                 // Año editado a mano: los campos derivados salen del texto que quedó en la base, no del Excel
                 $st = $this->db->prepare('SELECT anio_texto FROM registro WHERE id = ?');
@@ -456,6 +475,51 @@ final class Importador
         } else {
             $this->hist->registrar('registro', $regId, 'modificacion', $antes, $this->hist->leer('registro', $regId, array_keys($antes)));
         }
+    }
+
+    /**
+     * Cierra el circuito con la planilla: si un campo bloqueado (corregido a mano) ahora trae en el Excel
+     * el mismo valor que la base — sin contar espacios ni mayúsculas, sí las tildes —, el equipo ya lo corrigió
+     * en su planilla: se desbloquea (vía Historial, queda en esta importación y se deshace con ella) y vuelve a
+     * tomarse del Excel. Si el Excel trae otro valor, el bloqueo sigue.
+     * @param list<string> $bloq
+     * @param array<string,mixed> $datos lo que trae el Excel
+     * @return list<string> campos que siguen bloqueados
+     */
+    private function desbloquearCorregidos(string $entidad, int $id, int $numCaja, ?int $num, array $bloq, array $datos): array
+    {
+        $candidatos = array_values(array_intersect($bloq, array_keys($datos)));
+        if (!$candidatos) {
+            return $bloq;
+        }
+        // Los derivados del año siguen al texto: se comparan por anio_texto
+        $candidatos = array_values(array_diff($candidatos, ['anio', 'anio_hasta', 'anio_sin_confirmar']));
+        $base = $candidatos ? $this->hist->leer($entidad, $id, $candidatos) : [];
+        $libres = [];
+        foreach ($candidatos as $campo) {
+            if (Texto::comparable($datos[$campo]) === Texto::comparable($base[$campo] ?? null)) {
+                $libres[] = $campo;
+            }
+        }
+        if (!$libres) {
+            return $bloq;
+        }
+        if (in_array('anio_texto', $libres, true)) {
+            $libres = array_merge($libres, ['anio', 'anio_hasta', 'anio_sin_confirmar']);
+        }
+        $quedan = array_values(array_diff($bloq, $libres));
+        $this->hist->actualizar($entidad, $id, ['campos_bloqueados' => $quedan ? json_encode($quedan) : null], false);
+        $this->rep->sumar('campos corregidos en la planilla (se desbloquean)', count(array_intersect($candidatos, $libres)));
+        $etq = $entidad === 'caja' ? ['nombre' => 'Nombre de caja', 'resumen' => 'Resumen de la caja'] : self::ETIQUETAS;
+        foreach (array_intersect($candidatos, $libres) as $campo) {
+            $txt = ($num !== null ? "R$num " : '') . ($etq[$campo] ?? $campo);
+            if ($entidad === 'caja') {
+                $this->corregidosCaja[] = $txt;
+            } else {
+                $this->corregidos[] = $txt;
+            }
+        }
+        return $quedan;
     }
 
     /** @return array{0:string,1:?string} [acceso, valor crudo de PRIVADO] */

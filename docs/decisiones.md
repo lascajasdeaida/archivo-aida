@@ -50,6 +50,12 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 - Los campos editados a mano en el backoffice se anotan en `campos_bloqueados` (JSON) y el importador no los pisa.
   También se pueden bloquear `tipos` y `descriptores` como conjunto.
 - El escaneo marca `presente = 0` los archivos que ya no están, sin borrarlos de la base.
+- **Circuito con la planilla (15/11/2026, decisión del PM):** si un campo bloqueado trae ahora en el Excel **el mismo valor**
+  que la base (sin contar espacios ni mayúsculas; las tildes sí cuentan: «Aida» ≠ «Aída»), el equipo ya lo corrigió en su
+  planilla: se saca de `campos_bloqueados` (vía Historial, dentro de la importación, así que se deshace con ella), vuelve a
+  tomarse del Excel y se informa `CORREGIDO_EN_PLANILLA` (informativa, una por caja con la lista de campos). Vale para
+  registros y para nombre y resumen de caja; el Año arrastra sus campos derivados. Si el Excel trae otro valor, el bloqueo
+  sigue como siempre. Tipos y descriptores bloqueados no entran en esta regla.
 
 ## ABM desde el backoffice (14/11/2026)
 

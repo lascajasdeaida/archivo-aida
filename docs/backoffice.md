@@ -70,7 +70,8 @@ sugerida de cada una está en `src/Alertas.php`.
 **Informativas** (`requiere_validacion = 0`): pestaña aparte, sin contador. Sirven para pasarle correcciones
 al equipo de digitalización (por ejemplo, nomenclaturas mal tipeadas). Exportables a Excel. Incluyen las reglas de curaduría
 que aplicó la importación (`VOCAB_MOVIDO`, `VOCAB_FUSIONADO`, `VOCAB_RENOMBRADO`, `VOCAB_DESCARTADO`, una por término y caja,
-con los registros) y los años que no se pudieron leer (`ANIO_NO_INTERPRETADO`).
+con los registros), los años que no se pudieron leer (`ANIO_NO_INTERPRETADO`) y los campos corregidos a mano que el equipo
+ya corrigió en su planilla (`CORREGIDO_EN_PLANILLA`, una por caja: se desbloquearon y vuelven a tomarse del Excel).
 
 **Comportamiento**
 - Una alerta igual a otra abierta no se duplica.

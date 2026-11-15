@@ -19,7 +19,13 @@ $interno = false;
 if (isset($_COOKIE['aida_bo'])) {
     App::iniciarSesion();
     $interno = App::usuario() !== null && App::puede('ver');
-    session_write_close();
+    if (!$interno) {
+        // Cookie vieja o inventada: no dejar una sesión nueva ni mandar Set-Cookie al público.
+        session_destroy();
+        header_remove('Set-Cookie');
+    } else {
+        session_write_close();
+    }
 }
 
 $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -31,7 +37,8 @@ if (!in_array($metodo, ['GET', 'HEAD'], true)) {
 
 $cfg = aida_config();
 $entrega = new Entrega(aida_db(), (string)($cfg['archivos_raiz'] ?? ''));
-$a = $entrega->buscar((int)($_GET['id'] ?? 0));
+$id = is_string($_GET['id'] ?? null) ? filter_var($_GET['id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) : false;
+$a = $id === false ? null : $entrega->buscar($id);
 $decision = Entrega::decidir($a, $interno);
 $ruta = $decision === Entrega::SERVIR ? $entrega->rutaSegura($a) : null;
 

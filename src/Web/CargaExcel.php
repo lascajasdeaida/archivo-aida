@@ -178,16 +178,13 @@ final class CargaExcel
     }
 
     /**
-     * Corre el importador con un candado en la base para que no haya dos importaciones a la vez.
+     * Corre el importador (el candado contra importaciones simultáneas lo toma el propio Importador, así vale también para la consola).
      * Cierra la sesión mientras trabaja para no bloquear otras pestañas del mismo usuario.
      * @return array{0:Reporte,1:float} [reporte, segundos]
      */
     public static function correr(string $ruta, ?array $cajas, bool $simulacion, string $fuente): array
     {
         $db = aida_db();
-        if ((int)$db->query("SELECT GET_LOCK('aida_importacion', 0)")->fetchColumn() !== 1) {
-            throw new \RuntimeException('Hay otra importación corriendo en este momento. Esperá a que termine y probá de nuevo.', 409);
-        }
         @set_time_limit(900);
         $mem = (string)ini_get('memory_limit');
         if ($mem !== '-1' && self::iniBytes('memory_limit') < 512 * 1048576) {
@@ -198,7 +195,6 @@ final class CargaExcel
         try {
             $rep = (new Importador($db))->importar($ruta, $cajas, $simulacion, $fuente);
         } finally {
-            $db->query("SELECT RELEASE_LOCK('aida_importacion')");
             App::iniciarSesion();
         }
         return [$rep, round(microtime(true) - $t, 1)];

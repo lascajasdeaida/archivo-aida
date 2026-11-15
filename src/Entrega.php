@@ -163,7 +163,7 @@ final class Entrega
         header('Accept-Ranges: bytes');
         header('ETag: ' . $etag);
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $mtime) . ' GMT');
-        header('Cache-Control: ' . ($interno ? 'private, no-cache' : 'private, max-age=3600'));
+        header('Cache-Control: ' . ($interno ? 'private, no-store' : 'private, no-cache'));
         header('Referrer-Policy: same-origin');
         header('X-Frame-Options: SAMEORIGIN');
         header("Content-Security-Policy: frame-ancestors 'self'");

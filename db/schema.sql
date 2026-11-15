@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Archivo AIDA BORTNIK · Las cajas de Aída
 -- Esquema MySQL / MariaDB · InnoDB · utf8mb4
--- Versión 0.3 (14/11/2026) — ABM desde el backoffice: bajas lógicas, origen y auditoría
+-- Versión 0.4 (14/11/2026) — ABM, bajas lógicas e historial reversible
 -- =====================================================================
 
 SET NAMES utf8mb4;
@@ -208,17 +208,23 @@ CREATE TABLE IF NOT EXISTS usuario (
   UNIQUE KEY uq_usuario_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Historial de cambios hechos desde el backoffice (alta, modificación, baja, restauración)
+-- Historial de cambios con valor anterior y nuevo de cada campo. Permite volver atrás
+-- un cambio puntual o todo lo que hizo una importación (ver src/Historial.php).
 CREATE TABLE IF NOT EXISTS auditoria (
-  id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  usuario_id  INT UNSIGNED NULL,
-  entidad     ENUM('caja','registro','archivo_digital','vocabulario','periodo','usuario') NOT NULL,
-  entidad_id  INT UNSIGNED NOT NULL,
-  accion      ENUM('alta','modificacion','baja','restauracion') NOT NULL,
-  cambios     JSON NULL,                            -- {campo: [antes, después]}
-  creado_en   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  usuario_id   INT UNSIGNED NULL,
+  origen       ENUM('backoffice','importacion','escaneo','reversion') NOT NULL DEFAULT 'backoffice',
+  proceso_id   INT UNSIGNED NULL,                   -- si lo hizo una importación o un escaneo
+  entidad      ENUM('caja','registro','archivo_digital','vocabulario','periodo','usuario') NOT NULL,
+  entidad_id   INT UNSIGNED NOT NULL,
+  accion       ENUM('alta','modificacion','baja','restauracion','reversion') NOT NULL,
+  cambios      JSON NULL,                           -- {campo: [antes, después]}
+  revierte_id  BIGINT UNSIGNED NULL,                -- si este cambio deshace otro
+  revertido_en DATETIME NULL,                       -- si este cambio fue deshecho
+  creado_en    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_aud_entidad (entidad, entidad_id),
+  KEY idx_aud_proceso (proceso_id),
   KEY idx_aud_fecha (creado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

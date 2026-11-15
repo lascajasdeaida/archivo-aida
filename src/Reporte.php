@@ -44,14 +44,27 @@ final class Reporte
      * - Las incidencias abiertas del mismo tipo de proceso que ya no se repiten (dentro del alcance
      *   de esta corrida) se cierran solas, con la nota «Ya no ocurre».
      */
+    public ?int $procesoId = null;
+
+    /** Crea el proceso al empezar, para que los cambios del historial queden asociados a él. */
+    public function abrir(\PDO $db): int
+    {
+        $db->prepare('INSERT INTO proceso (tipo, fuente, simulacion, iniciado_en) VALUES (?,?,?,?)')
+           ->execute([$this->tipo, $this->fuente, (int)$this->simulacion, $this->iniciado]);
+        return $this->procesoId = (int)$db->lastInsertId();
+    }
+
     public function guardar(\PDO $db): ?int
     {
         if ($this->simulacion) {
             return null;
         }
-        $db->prepare('INSERT INTO proceso (tipo, fuente, simulacion, resumen, iniciado_en, terminado_en) VALUES (?,?,0,?,?,NOW())')
-           ->execute([$this->tipo, $this->fuente, json_encode($this->cuentas, JSON_UNESCAPED_UNICODE), $this->iniciado]);
-        $id = (int)$db->lastInsertId();
+        if ($this->procesoId === null) {
+            $this->abrir($db);
+        }
+        $id = $this->procesoId;
+        $db->prepare('UPDATE proceso SET resumen = ?, terminado_en = NOW() WHERE id = ?')
+           ->execute([json_encode($this->cuentas, JSON_UNESCAPED_UNICODE), $id]);
 
         $abiertas = $db->prepare('SELECT i.id, i.codigo, i.caja, i.registro, i.detalle FROM incidencia i
             JOIN proceso p ON p.id = i.proceso_id WHERE i.resuelta = 0 AND p.tipo = ?');

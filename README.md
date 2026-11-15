@@ -10,9 +10,10 @@ Extensiones de PHP necesarias: `pdo_mysql`, `zip`, `xmlreader`, `simplexml`, `mb
 
 | Pieza | Estado |
 |---|---|
-| Modelo de datos (`db/schema.sql`) | ✅ v0.3 (con ABM, bajas lógicas y auditoría) |
+| Modelo de datos (`db/schema.sql`) | ✅ v0.4 (ABM, bajas lógicas, historial reversible) |
 | Importador del Excel del catálogo (`bin/importar.php`) | ✅ probado con las 70 pestañas |
 | Escaneo de archivos digitalizados (`bin/escanear.php`) | ✅ probado con la muestra de 8 cajas |
+| Historial reversible (`src/Historial.php`, `bin/revertir.php`) | ✅ |
 | Backoffice | especificado en `docs/backoffice.md`; falta construir |
 | Front público | maqueta aprobada (v4); falta conectar |
 | Versiones livianas para web de los PDF pesados | pendiente |
@@ -41,6 +42,16 @@ php bin/escanear.php /ruta/a/los/archivos                 # carpetas C1/, C2/, �
 php bin/escanear.php --listado=datos/listado_drive_20261114.tsv   # si todavía están en Drive
 ```
 
+## Deshacer cambios
+
+```bash
+php bin/revertir.php --ver=registro:C14R3      # historial de un registro (cada cambio con su número)
+php bin/revertir.php --cambio=209              # deshace un cambio puntual
+php bin/revertir.php --proceso=2               # deshace todo lo que hizo una importación
+```
+
+Si un campo se modificó de nuevo después, no se aplica nada y se listan los conflictos (`--forzar` para aplicarlo igual).
+
 Cada corrida deja un registro en las tablas `proceso` e `incidencia` y muestra un resumen por consola
 con lo que hay que revisar (nomenclaturas mal tipeadas, archivos sin registro, PDF pendientes de subir, etc.).
 
@@ -58,7 +69,7 @@ src/        clases PHP (namespace Aida)
 ## Documentación
 
 - [`docs/decisiones.md`](docs/decisiones.md): reglas de importación y por qué son así. **Leer antes de tocar el importador.**
-- [`docs/backoffice.md`](docs/backoffice.md): ABM, leyendas, confirmaciones y panel de alertas para el operador.
+- [`docs/backoffice.md`](docs/backoffice.md): ABM, leyendas, confirmaciones, notificaciones de verificaciones pendientes e historial con deshacer.
 
 ## Equipo
 

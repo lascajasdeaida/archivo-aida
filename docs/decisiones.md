@@ -59,7 +59,9 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   aunque siga en el Excel o en la carpeta. Se reporta para que el operador confirme la baja o restaure.
 - Registros **creados en el backoffice** (`origen = 'backoffice'`): la importación no los modifica. Si el Excel trae uno
   con el mismo número, se reporta para que el operador decida cuál vale.
-- Todo cambio manual queda en `auditoria`.
+- Todo cambio queda en `auditoria` con el valor anterior y el nuevo de cada campo, tanto los del backoffice como los de
+  cada importación. Cualquier cambio, o una importación completa, **se puede deshacer** (`src/Historial.php`).
+  Si el mismo campo se modificó de nuevo después, la reversión no se aplica y se informa el conflicto.
 
 ## Alertas para el operador (14/11/2026)
 

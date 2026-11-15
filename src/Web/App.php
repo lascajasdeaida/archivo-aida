@@ -20,6 +20,7 @@ final class App
         'deshacer_todo'     => ['admin', 'editor'],
         'forzar'            => ['admin', 'editor'],
         'procesos'          => ['admin', 'editor'],
+        'correccion'        => ['admin', 'editor'],
         'usuarios'          => ['admin'],
         'migraciones'       => ['admin'],
         'ver'               => ['admin', 'editor', 'data_entry', 'qa'],

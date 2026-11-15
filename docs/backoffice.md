@@ -70,7 +70,8 @@ sugerida de cada una está en `src/Alertas.php`.
 **Informativas** (`requiere_validacion = 0`): pestaña aparte, sin contador. Sirven para pasarle correcciones
 al equipo de digitalización (por ejemplo, nomenclaturas mal tipeadas). Exportables a Excel. Incluyen las reglas de curaduría
 que aplicó la importación (`VOCAB_MOVIDO`, `VOCAB_FUSIONADO`, `VOCAB_RENOMBRADO`, `VOCAB_DESCARTADO`, una por término y caja,
-con los registros) y los años que no se pudieron leer (`ANIO_NO_INTERPRETADO`).
+con los registros), los años que no se pudieron leer (`ANIO_NO_INTERPRETADO`) y los campos corregidos a mano que el equipo
+ya corrigió en su planilla (`CORREGIDO_EN_PLANILLA`, una por caja: se desbloquearon y vuelven a tomarse del Excel).
 
 **Comportamiento**
 - Una alerta igual a otra abierta no se duplica.
@@ -114,6 +115,7 @@ modificaciones y bajas a través de esa clase.
 | Deshacer cambios de otros o importaciones completas | ✅ | ✅ | — | — |
 | Forzar una reversión con conflictos | ✅ | ✅ | — | — |
 | Importar Excel / correr escaneo | ✅ | ✅ | — | — |
+| Corrección masiva por planilla (incluye cambio masivo de acceso) | ✅ | ✅ | — | — |
 | Usuarios y borrado definitivo | ✅ | — | — | — |
 
 ## 7. Ver y entregar archivos (`public/archivo.php`)
@@ -181,7 +183,7 @@ muestra también fusionados, movidos y descartados. Cada término vigente tiene:
 |---|---|---|
 | Aprobar | verde | `propuesto` → `aprobado` (queda en el historial del término) |
 | Renombrar | naranja, en línea, motivo opcional | Cambia nombre y clave. La grafía anterior queda como alias («También reconoce…») |
-| Fusionar… | pantalla de confirmación | Pasa sus registros a otro término del mismo vocabulario |
+| Fusionar… | pantalla de confirmación | Pasa sus registros a otro término del mismo vocabulario. Si el destino estaba «propuesto», queda aprobado |
 | Mover a {otro vocabulario}… | pantalla de confirmación | Pasa sus registros al otro vocabulario: a un término equivalente (recomendado), a uno nuevo o a otro |
 | Descartar… | rojo, pantalla de confirmación | Lo quita de sus registros y lo esconde. Motivo obligatorio |
 | Restaurar | verde, `data-doble` (descartados) | Deshace el descarte: vuelve a la lista y a sus registros |
@@ -220,3 +222,48 @@ Las operaciones no aparecen en la lista de Importaciones (son procesos de tipo `
 | Versiones distintas: no unificar | 30, 31, 34 «(España)» / 35 «(Argentina)» | Solo unificar el título; cada caja conserva su aclaración (también la escrita sin paréntesis: «… España») |
 
 Ninguna caja viene tildada. Cada cambio queda en el historial de la caja (se puede deshacer) y bloquea el nombre para el Excel.
+
+## 13. Corrección masiva por planilla (15/11/2026)
+
+**Importaciones → Corrección masiva…** (también desde Cajas). Permiso `correccion`: admin y editor. Reglas en
+`docs/decisiones.md` («Corrección masiva por planilla»); lógica en `src/Correccion.php`.
+
+1. Se sube un **CSV** (coma, punto y coma o tabulación; UTF-8 o Windows-1252) o un **.xlsx** (primera hoja), hasta 5 MB.
+   Encabezados en la primera fila:
+
+| Encabezado | Obligatorio | Qué va |
+|---|---|---|
+| `registro` | sí | `C14R3` (se aceptan ceros: `C14R03`), o `Caja 5 (todas las filas)` para un dato de la caja |
+| `columna` | sí | Nombre de la columna del Excel: Autor, Título, Lugar, Fecha como dice el documento, Año, Páginas, Resumen, ISBN, Observaciones/Editorial, Edición de catálogo, Observaciones de conservación, Observaciones de digitalización, Selección para digitalización, Acceso / PRIVADO / Nivel de acceso, Nombre de caja (columna B), Resumen de la caja |
+| `valor_nuevo` | sí | El valor corregido. También vale `correccion_sugerida` (la lista `docs/datos/correcciones-planilla.csv` se sube tal cual). Vacío o «—»: se saltea |
+| `valor_actual` | no | Lo que se espera que haya hoy. Si no coincide con la base (sin contar espacios ni mayúsculas) → **conflicto**, no se aplica. Vacío: no se controla |
+| `accion` | no | «Revisar» → se saltea y se lista aparte |
+
+   Columnas rechazadas, con el motivo en la vista previa: Tipo y Descriptor (se curan en Vocabularios), Caja y N.º de registro
+   (son la clave), Digitalización (la define el archivo) y Nombre de archivo digital (control cruzado).
+2. **Vista previa** (no guarda nada): contadores y una tabla por estado — se aplican, conflictos, con error, se saltean, ya estaban
+   así — con fila del archivo, registro (link a la ficha), columna, valor en la base, valor nuevo y nota (en el Año, cómo queda
+   para el filtro; en el acceso, si la planilla lo marca PRIVADO). Dos filas que cambian el mismo campo con valores distintos
+   quedan las dos con error. La vista previa se recalcula cada vez que se muestra y vale 2 horas.
+3. **Aplicar N correcciones** (naranja, `data-doble`): vuelve a calcular el plan; si cambió algo desde la vista previa, no aplica
+   nada. Si no, aplica todo junto en un proceso `correccion` con `Historial::actualizar` (un cambio de historial por registro o
+   caja, campos bloqueados para el Excel; los registros cargados a mano no se bloquean porque la importación no los toca).
+4. Queda en **Importaciones** como «Corrección masiva», con **Deshacer…** completo (si algo se editó después, muestra los
+   conflictos). En el historial de cada ficha figura «corrección masiva #N». La planilla aplicada se guarda como
+   `var/importaciones/correccion-{proceso}-{fecha}.csv|xlsx`.
+
+**Cambio masivo de acceso:** el mismo circuito con la columna `Acceso` (o `PRIVADO`): Público, Restringido o A revisar
+(también VERDADERO = restringido, FALSO = público, VERLO = a revisar). Ejemplo:
+
+```
+registro;columna;valor_actual;valor_nuevo
+C2R2;Acceso;A revisar;Público
+C5R1;Acceso;Público;Restringido
+C6R5;PRIVADO;;VERLO
+```
+
+**Cerrar el circuito:** cuando el equipo corrige lo mismo en su planilla, la importación ve que el Excel trae el mismo valor que
+la base, desbloquea el campo y lo informa (`CORREGIDO_EN_PLANILLA`). Así base y Excel no quedan distintos.
+
+**Años de registros cargados a mano:** `php bin/recalcular-anios.php --simular` muestra qué cambia; sin `--simular` lo aplica
+como proceso `correccion` (se deshace desde Importaciones).

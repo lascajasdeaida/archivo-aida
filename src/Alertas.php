@@ -115,6 +115,13 @@ final class Alertas
             'accion'  => 'Pedirle al equipo que lo borre de la planilla o lo reemplace por el término que corresponda.',
             'valida'  => false,
         ],
+        'CORREGIDO_EN_PLANILLA' => [
+            'titulo'  => 'Corrección hecha también en la planilla',
+            'leyenda' => 'Había campos corregidos a mano en el backoffice (o con la corrección masiva) y la planilla ahora trae el mismo valor. '
+                       . 'Se desbloquearon: vuelven a tomarse del Excel. Base y planilla quedaron iguales.',
+            'accion'  => 'Ninguna. Si el equipo vuelve a cambiar ese dato en la planilla, la próxima importación lo toma.',
+            'valida'  => false,
+        ],
         'CAJA_VACIA'               =>['titulo' => 'Pestaña sin registros', 'leyenda' => 'La pestaña de la caja no tiene filas con datos.', 'accion' => 'Ninguna, salvo que la caja debería tener contenido.', 'valida' => false],
 
         // --- Escaneo de archivos ---

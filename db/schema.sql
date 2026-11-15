@@ -1,6 +1,7 @@
 -- =====================================================================
 -- Archivo AIDA BORTNIK · Las cajas de Aída
 -- Esquema MySQL / MariaDB · InnoDB · utf8mb4
+-- Versión 0.7 (15/11/2026) — corrección masiva por planilla (proceso 'correccion')
 -- Versión 0.6 (15/11/2026) — curaduría de vocabularios (mover, descartar, alias) y años con rango
 --
 -- Los cambios posteriores a una instalación van además como migración en
@@ -195,7 +196,7 @@ CREATE TABLE IF NOT EXISTS archivo_digital (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS proceso (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  tipo        ENUM('importacion','escaneo','acceso_masivo','curaduria') NOT NULL,
+  tipo        ENUM('importacion','escaneo','acceso_masivo','curaduria','correccion') NOT NULL, -- correccion: corrección masiva (backoffice)
   fuente      VARCHAR(512) NULL,
   simulacion  TINYINT(1)   NOT NULL DEFAULT 0,
   usuario_id  INT UNSIGNED NULL,                    -- quién lo hizo (curaduría desde el backoffice)
@@ -284,6 +285,7 @@ CREATE TABLE IF NOT EXISTS migracion (
 
 INSERT IGNORE INTO migracion (version, nombre) VALUES
   ('001', '001_busqueda_fulltext.sql'),
-  ('002', '002_curaduria_y_anios.sql');
+  ('002', '002_curaduria_y_anios.sql'),
+  ('003', '003_correccion_masiva.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

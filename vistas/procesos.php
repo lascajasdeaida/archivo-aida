@@ -1,15 +1,21 @@
 <?php use Aida\Web\App; $titulo = 'Importaciones';
 $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevos', 'registros actualizados' => 'actualizados',
+        'correcciones aplicadas' => 'celdas corregidas', 'registros corregidos' => 'registros', 'cajas corregidas' => 'cajas',
+        'campos corregidos en la planilla (se desbloquean)' => 'corregidos en la planilla',
+        'años recalculados' => 'años recalculados',
         'archivos nuevos' => 'archivos nuevos', 'archivos desaparecidos' => 'archivos que faltan', 'alertas que se cerraron solas' => 'alertas cerradas solas'];
 ?>
 <div class="cabecera">
   <div>
     <p class="eyebrow">Historial de cargas</p>
     <h1>Importaciones y escaneos</h1>
-    <p class="nota">Cada corrida del importador del Excel o del escaneo de archivos. Se puede deshacer completa.</p>
+    <p class="nota">Cada corrida del importador del Excel, del escaneo de archivos y cada corrección masiva. Se puede deshacer completa.</p>
   </div>
   <?php if (App::puede('procesos')): ?>
-    <div class="acciones"><a class="btn btn-crear" href="<?= App::url('importar') ?>">Subir Excel e importar…</a></div>
+    <div class="acciones">
+      <?php if (App::puede('correccion')): ?><a class="btn" href="<?= App::url('correccion') ?>">Corrección masiva…</a><?php endif ?>
+      <a class="btn btn-crear" href="<?= App::url('importar') ?>">Subir Excel e importar…</a>
+    </div>
   <?php endif ?>
 </div>
 <table>
@@ -18,7 +24,7 @@ $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevo
   <?php foreach ($procesos as $p): $res = json_decode((string)$p['resumen'], true) ?: []; $vivos = (int)$p['cambios'] - (int)$p['deshechos']; ?>
     <tr>
       <td class="num"><?= (int)$p['id'] ?></td>
-      <td><?= $p['tipo'] === 'importacion' ? 'Importación' : ($p['tipo'] === 'escaneo' ? 'Escaneo' : e($p['tipo'])) ?></td>
+      <td><?= ['importacion' => 'Importación', 'escaneo' => 'Escaneo', 'correccion' => 'Corrección masiva', 'acceso_masivo' => 'Cambio de acceso'][$p['tipo']] ?? e($p['tipo']) ?></td>
       <td><?= e($p['fuente']) ?></td>
       <td><?= fecha($p['iniciado_en']) ?></td>
       <td><div class="chips">

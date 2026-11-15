@@ -168,6 +168,21 @@ final class Texto
         return implode(' ', $palabras);
     }
 
+    /**
+     * Para comparar un valor corregido a mano con lo que trae la planilla: no cuentan los espacios ni las
+     * mayúsculas, sí las tildes («Aida Bortnik» ≠ «Aída Bortnik»). null y vacío son lo mismo.
+     */
+    public static function comparable(mixed $v): string
+    {
+        if ($v === null || is_bool($v)) {
+            return '';
+        }
+        if (is_float($v) && floor($v) === $v) {
+            $v = (int)$v;
+        }
+        return mb_strtolower(trim((string)preg_replace('/\s+/u', ' ', (string)$v)), 'UTF-8');
+    }
+
     /** Código canónico de un registro: C14R3 (sin ceros a la izquierda). */
     public static function codigo(int $caja, int $registro): string
     {

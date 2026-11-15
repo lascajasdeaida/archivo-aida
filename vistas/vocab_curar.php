@@ -48,7 +48,7 @@ $preferido = $equiv[0]['id'] ?? null;
         <?php foreach ($equiv as $d): ?>
           <label class="check"><input type="radio" name="destino" value="<?= (int)$d['id'] ?>" data-comparten="<?= (int)$d['comparten'] ?>" <?= $d['id'] === $preferido ? 'checked' : '' ?> required>
             <?= $op === 'mover' ? 'Fusionar en el ' . e(Vocabulario::NOMBRES[$tipoDest]) . ' existente' : 'En el término equivalente' ?> «<?= e($d['nombre']) ?>»
-            <span class="nota">(<?= (int)$d['usos'] ?> registros<?= $d['estado'] === 'propuesto' ? ', propuesto' : '' ?>) · recomendado</span></label>
+            <span class="nota">(<?= (int)$d['usos'] ?> registros<?= $d['estado'] === 'propuesto' ? ', propuesto: queda aprobado' : '' ?>) · recomendado</span></label>
         <?php endforeach ?>
         <?php if ($op === 'mover' && !$otroIgual): ?>
           <label class="check"><input type="radio" name="destino" value="nuevo" data-comparten="0" <?= $preferido ? '' : 'checked' ?> required>
@@ -57,8 +57,9 @@ $preferido = $equiv[0]['id'] ?? null;
         <label class="check"><input type="radio" name="destino" value="" id="destino-otro" data-comparten="" required> Otro término:</label>
         <select id="destino-lista" aria-label="Elegir otro término" style="max-width:100%">
           <option value="">Elegí…</option>
-          <?php foreach ($destinos as $d): ?><option value="<?= (int)$d['id'] ?>" data-comparten="<?= (int)$d['comparten'] ?>"><?= e($d['nombre']) ?> (<?= (int)$d['usos'] ?>)</option><?php endforeach ?>
+          <?php foreach ($destinos as $d): ?><option value="<?= (int)$d['id'] ?>" data-comparten="<?= (int)$d['comparten'] ?>"><?= e($d['nombre']) ?> (<?= (int)$d['usos'] ?><?= $d['estado'] === 'propuesto' ? ', propuesto' : '' ?>)</option><?php endforeach ?>
         </select>
+        <p class="nota">Si el destino está «propuesto», al fusionar o mover queda aprobado (elegirlo ya es curarlo). Se deshace con la operación.</p>
       </fieldset>
     <?php endif ?>
     <label>Motivo<?= $op === 'descartar' ? ' (obligatorio: queda en el informe que se le pasa al equipo)' : ' (opcional, queda en el informe)' ?>

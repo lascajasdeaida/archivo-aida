@@ -50,6 +50,12 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 - Los campos editados a mano en el backoffice se anotan en `campos_bloqueados` (JSON) y el importador no los pisa.
   También se pueden bloquear `tipos` y `descriptores` como conjunto.
 - El escaneo marca `presente = 0` los archivos que ya no están, sin borrarlos de la base.
+- **Circuito con la planilla (15/11/2026, decisión del PM):** si un campo bloqueado trae ahora en el Excel **el mismo valor**
+  que la base (sin contar espacios ni mayúsculas; las tildes sí cuentan: «Aida» ≠ «Aída»), el equipo ya lo corrigió en su
+  planilla: se saca de `campos_bloqueados` (vía Historial, dentro de la importación, así que se deshace con ella), vuelve a
+  tomarse del Excel y se informa `CORREGIDO_EN_PLANILLA` (informativa, una por caja con la lista de campos). Vale para
+  registros y para nombre y resumen de caja; el Año arrastra sus campos derivados. Si el Excel trae otro valor, el bloqueo
+  sigue como siempre. Tipos y descriptores bloqueados no entran en esta regla.
 
 ## ABM desde el backoffice (14/11/2026)
 
@@ -62,6 +68,28 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 - Todo cambio queda en `auditoria` con el valor anterior y el nuevo de cada campo, tanto los del backoffice como los de
   cada importación. Cualquier cambio, o una importación completa, **se puede deshacer** (`src/Historial.php`).
   Si el mismo campo se modificó de nuevo después, la reversión no se aplica y se informa el conflicto.
+
+## Corrección masiva por planilla (15/11/2026, decisión del PM)
+
+- Con los errores de la planilla del equipo (fechas al revés, grafías de «Aída Bortnik», nombres de cajas) se hacen
+  **las dos cosas**: se le pasa al equipo la lista (`docs/datos/correcciones-planilla.csv`) para que corrija su planilla,
+  y se corrige ya en la base desde el backoffice con esa misma lista (Importaciones o Cajas → **Corrección masiva…**).
+- El archivo (CSV o .xlsx) trae `registro` (C#R#, o «Caja N (todas las filas)» para el nombre de caja), `columna` con el
+  nombre de la columna del Excel y `valor_nuevo` (o `correccion_sugerida`). Opcionales: `valor_actual` (si no coincide con la
+  base hay **conflicto** y esa fila no se aplica) y `accion` («Revisar» se saltea). Tipos y descriptores no se corrigen así:
+  se curan en Vocabularios.
+- Siempre hay **vista previa**; al aplicar se recalcula y, si la base cambió en el medio, no se aplica nada.
+- Se aplica con `Historial::actualizar` en un proceso de tipo `correccion`: queda auditado, **bloquea** los campos (la próxima
+  importación no los pisa mientras la planilla siga con el error) y **se deshace completo** desde Importaciones.
+  Cuando el equipo corrige su planilla, la regla del circuito (arriba, «Carga incremental») los desbloquea sola.
+- Sirve para el **cambio masivo de acceso** (columna «Acceso» o «PRIVADO»: Público / Restringido / A revisar, o VERDADERO,
+  FALSO, VERLO). Un público sobre algo que la planilla marca PRIVADO se avisa en la vista previa.
+- Corregir el Año recalcula `anio`, `anio_hasta` y `anio_sin_confirmar` con `Texto::anio()`.
+- Prueba con la lista real (302 filas): 258 se aplican (240 Autor, 14 fechas, 4 nombres de caja), 44 se saltean («Revisar»:
+  25 Año, 18 Autor, 1 Descriptor), 0 conflictos. Deshecha completa, todo vuelve; aplicada de nuevo, la importación del Excel
+  actual (con los errores) no pisa ninguna.
+- **Registros cargados a mano:** `php bin/recalcular-anios.php [--simular]` les aplica `Texto::anio()` (los del Excel ya se
+  recalculan en cada importación). Queda como proceso `correccion`, reversible.
 
 ## Alertas para el operador (14/11/2026)
 
@@ -93,6 +121,8 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 - **Estado «descartado»** para términos basura («g», «s», «.», frases pegadas): deja de mostrarse y de asignarse, se quita de
   sus registros sin bloquear los demás tipos y descriptores, y la importación lo ignora. Motivo obligatorio, confirmación con doble
   validación. Se restaura deshaciendo el descarte.
+- **Fusionar o mover en un término «propuesto» lo aprueba** (15/11/2026, decisión del PM): elegirlo como destino ya es curarlo.
+  El cambio de estado queda en el historial dentro de la misma operación y se deshace con ella.
 - **Registro e informe:** cada movimiento, fusión, renombre y descarte es un `proceso` de tipo `curaduria` (quién, cuándo, motivo,
   registros afectados) con todos sus cambios en `auditoria` (términos, alias y la lista de cada registro). Se deshace completo
   desde Vocabularios → **Cambios de curaduría**, que también se copia como texto o se baja en CSV para el equipo de digitalización

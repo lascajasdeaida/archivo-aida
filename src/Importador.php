@@ -218,8 +218,8 @@ final class Importador
             $n = count($this->corregidos);
             $lista = implode(', ', array_slice($this->corregidos, 0, 30)) . ($n > 30 ? ' …' : '');
             $this->rep->incidencia('info', 'CORREGIDO_EN_PLANILLA', $numCaja, null, ($n === 1
-                ? 'El equipo corrigió en la planilla 1 campo que estaba corregido a mano; se desbloqueó'
-                : "El equipo corrigió en la planilla $n campos que estaban corregidos a mano; se desbloquearon") . " ($lista)");
+                ? 'El equipo corrigió en la planilla 1 campo que estaba corregido a mano'
+                : "El equipo corrigió en la planilla $n campos que estaban corregidos a mano") . ": $lista");
             $this->corregidos = [];
         }
         foreach ($nomenclaturas as $nom => $nums) {
@@ -486,13 +486,13 @@ final class Importador
 
     /**
      * Cierra el circuito con la planilla: si un campo bloqueado (corregido a mano) ahora trae en el Excel
-     * el mismo valor que la base — sin contar espacios ni mayúsculas, sí las tildes —, el equipo ya lo corrigió
-     * en su planilla: se desbloquea (vía Historial, queda en esta importación y se deshace con ella). Si el valor
-     * es idéntico, vuelve a tomarse del Excel; si solo coincide ignorando mayúsculas y espacios («aída  BORTNIK»
-     * vs «Aída Bortnik»), se conserva el de la base: se reemplaza en $datos (decisión del PM, 15/11/2026).
-     * Si el Excel trae otro valor, el bloqueo sigue.
+     * exactamente el mismo valor que la base, el equipo ya lo corrigió en su planilla: se desbloquea (vía Historial,
+     * queda en esta importación y se deshace con ella) y vuelve a tomarse del Excel.
+     * Si coincide solo ignorando mayúsculas y espacios («aída  BORTNIK» vs «Aída Bortnik»), se conserva la versión
+     * de la base y el campo SIGUE bloqueado, para que la importación siguiente tampoco la pise; se informa igual
+     * (decisión del PM, 15/11/2026). Si el Excel trae otro valor, el bloqueo sigue sin aviso.
      * @param list<string> $bloq
-     * @param array<string,mixed> $datos lo que trae el Excel; vuelve con el valor de la base en los conservados
+     * @param array<string,mixed> $datos lo que trae el Excel
      * @return list<string> campos que siguen bloqueados
      */
     private function desbloquearCorregidos(string $entidad, int $id, int $numCaja, ?int $num, array $bloq, array &$datos): array
@@ -505,10 +505,28 @@ final class Importador
         $candidatos = array_values(array_diff($candidatos, ['anio', 'anio_hasta', 'anio_sin_confirmar']));
         $base = $candidatos ? $this->hist->leer($entidad, $id, $candidatos) : [];
         $libres = [];
+        $parecidos = [];
         foreach ($candidatos as $campo) {
-            if (Texto::comparable($datos[$campo]) === Texto::comparable($base[$campo] ?? null)) {
-                $libres[] = $campo;
+            if (Texto::comparable($datos[$campo]) !== Texto::comparable($base[$campo] ?? null)) {
+                continue;
             }
+            if ((string)$datos[$campo] === (string)($base[$campo] ?? '')) {
+                $libres[] = $campo;
+            } else {
+                $parecidos[] = $campo;
+            }
+        }
+        $etq = $entidad === 'caja' ? ['nombre' => 'Nombre de caja', 'resumen' => 'Resumen de la caja'] : self::ETIQUETAS;
+        $anotar = function (string $txt) use ($entidad): void {
+            if ($entidad === 'caja') {
+                $this->corregidosCaja[] = $txt;
+            } else {
+                $this->corregidos[] = $txt;
+            }
+        };
+        foreach ($parecidos as $campo) {
+            $anotar(($num !== null ? "R$num " : '') . ($etq[$campo] ?? $campo) . ' (difiere solo en mayúsculas o espacios: se conserva la versión de la base)');
+            $this->rep->sumar('campos corregidos en la planilla con otra grafía (se conserva la base)');
         }
         if (!$libres) {
             return $bloq;
@@ -519,20 +537,8 @@ final class Importador
         $quedan = array_values(array_diff($bloq, $libres));
         $this->hist->actualizar($entidad, $id, ['campos_bloqueados' => $quedan ? json_encode($quedan) : null], false);
         $this->rep->sumar('campos corregidos en la planilla (se desbloquean)', count(array_intersect($candidatos, $libres)));
-        $etq = $entidad === 'caja' ? ['nombre' => 'Nombre de caja', 'resumen' => 'Resumen de la caja'] : self::ETIQUETAS;
         foreach (array_intersect($candidatos, $libres) as $campo) {
-            $conservado = (string)$datos[$campo] !== (string)($base[$campo] ?? '');
-            if ($conservado) {
-                // Coincide solo sin mayúsculas ni espacios: queda nuestra versión
-                $datos[$campo] = $base[$campo];
-                $this->rep->sumar('campos desbloqueados conservando la versión de la base');
-            }
-            $txt = ($num !== null ? "R$num " : '') . ($etq[$campo] ?? $campo) . ($conservado ? ' (se conservó la versión de la base)' : '');
-            if ($entidad === 'caja') {
-                $this->corregidosCaja[] = $txt;
-            } else {
-                $this->corregidos[] = $txt;
-            }
+            $anotar(($num !== null ? "R$num " : '') . ($etq[$campo] ?? $campo));
         }
         return $quedan;
     }

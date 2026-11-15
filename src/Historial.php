@@ -148,9 +148,15 @@ final class Historial
         $entidad = $c['entidad'];
         $id = (int)$c['entidad_id'];
         $cambios = json_decode((string)$c['cambios'], true) ?: [];
+        $nombre = $this->etiqueta($entidad, $id);
 
         if ($c['accion'] === 'alta') {
-            // Deshacer un alta = baja lógica (no se borra nada)
+            // Deshacer un alta = baja lógica (no se borra nada).
+            // No se aplica si después alguien trabajó sobre lo que se creó.
+            $conflictos = $this->trabajoPosterior($entidad, $id, $idCambio, $c['proceso_id'] !== null ? (int)$c['proceso_id'] : null);
+            if ($conflictos && !$forzar) {
+                return ['ok' => false, 'mensaje' => 'Se trabajó sobre esto después del alta; no se aplicó nada', 'conflictos' => $conflictos];
+            }
             $antes = $this->leer($entidad, $id, ['eliminado_en']);
             $this->escribir($entidad, $id, ['eliminado_en' => date('Y-m-d H:i:s'), 'eliminado_por' => $this->usuarioId]);
             $this->registrar($entidad, $id, 'reversion', $antes, $this->leer($entidad, $id, ['eliminado_en']), $idCambio);
@@ -162,8 +168,8 @@ final class Historial
         $conflictos = [];
         foreach ($cambios as $campo => [$antes, $despues]) {
             if (!self::igual($actual[$campo] ?? null, $despues)) {
-                $conflictos[] = "$campo: después de ese cambio se modificó de nuevo (hoy vale «" . self::mostrar($actual[$campo] ?? null)
-                              . "», el cambio lo había dejado en «" . self::mostrar($despues) . "»)";
+                $conflictos[] = "$nombre, campo «{$campo}»: se modificó de nuevo después (hoy vale «" . self::mostrar($actual[$campo] ?? null)
+                              . "»; el cambio lo había dejado en «" . self::mostrar($despues) . "»)";
             }
         }
         if ($conflictos && !$forzar) {
@@ -202,7 +208,7 @@ final class Historial
             $r = $this->revertir((int)$idCambio, $forzar);
             if (!$r['ok']) {
                 foreach ($r['conflictos'] ?: [$r['mensaje']] as $x) {
-                    $conflictos[] = "cambio $idCambio: $x";
+                    $conflictos[] = $x;
                 }
                 continue;
             }
@@ -281,6 +287,53 @@ final class Historial
             }
             $ins->execute([$registroId, $vid, ++$orden]);
         }
+    }
+
+    /**
+     * Cambios hechos después de un alta sobre lo que se creó (o, si es una caja, sobre sus registros)
+     * que no pertenecen al mismo proceso. Si hay, deshacer el alta pisaría ese trabajo.
+     * @return list<string>
+     */
+    private function trabajoPosterior(string $entidad, int $id, int $idCambio, ?int $procesoId): array
+    {
+        $out = [];
+        $nombre = $this->etiqueta($entidad, $id);
+        $acc = ['modificacion' => 'se editó', 'baja' => 'se dio de baja', 'restauracion' => 'se restauró', 'alta' => 'se volvió a crear'];
+        $org = ['backoffice' => 'en el backoffice', 'importacion' => 'en otra importación', 'escaneo' => 'en un escaneo'];
+        $st = $this->db->prepare("SELECT id, origen, accion, creado_en FROM auditoria WHERE entidad = ? AND entidad_id = ? AND id > ?
+            AND revertido_en IS NULL AND accion <> 'reversion' AND (proceso_id IS NULL OR proceso_id <> ?)");
+        $st->execute([$entidad, $id, $idCambio, $procesoId ?? 0]);
+        foreach ($st->fetchAll() as $a) {
+            $out[] = "$nombre: " . ($acc[$a['accion']] ?? $a['accion']) . ' ' . ($org[$a['origen']] ?? '') . ' el '
+                   . date('d/m/Y H:i', strtotime((string)$a['creado_en'])) . " (cambio #{$a['id']})";
+        }
+        if ($entidad === 'caja') {
+            // Registros de la caja creados por otra vía (a mano o en otra importación)
+            $st = $this->db->prepare("SELECT r.codigo FROM registro r
+                WHERE r.caja_id = ? AND r.eliminado_en IS NULL AND NOT EXISTS (
+                  SELECT 1 FROM auditoria a WHERE a.entidad = 'registro' AND a.entidad_id = r.id AND a.accion = 'alta' AND a.proceso_id = ?)");
+            $st->execute([$id, $procesoId ?? 0]);
+            foreach ($st->fetchAll(\PDO::FETCH_COLUMN) as $cod) {
+                $out[] = "$nombre: tiene el registro $cod, que se cargó después por otra vía";
+            }
+        }
+        return $out;
+    }
+
+    private function etiqueta(string $entidad, int $id): string
+    {
+        $sql = match ($entidad) {
+            'registro' => 'SELECT codigo FROM registro WHERE id = ?',
+            'caja' => "SELECT CONCAT('Caja ', numero) FROM caja WHERE id = ?",
+            'archivo_digital' => 'SELECT nombre_archivo FROM archivo_digital WHERE id = ?',
+            default => null,
+        };
+        if ($sql === null) {
+            return "$entidad $id";
+        }
+        $st = $this->db->prepare($sql);
+        $st->execute([$id]);
+        return (string)($st->fetchColumn() ?: "$entidad $id");
     }
 
     private function marcarRevertido(int $idCambio): void

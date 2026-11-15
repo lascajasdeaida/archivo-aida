@@ -14,7 +14,7 @@ Extensiones de PHP necesarias: `pdo_mysql`, `zip`, `xmlreader`, `simplexml`, `mb
 | Importador del Excel del catálogo (`bin/importar.php`) | ✅ probado con las 70 pestañas |
 | Escaneo de archivos digitalizados (`bin/escanear.php`) | ✅ probado con la muestra de 8 cajas |
 | Historial reversible (`src/Historial.php`, `bin/revertir.php`) | ✅ |
-| Backoffice | especificado en `docs/backoffice.md`; falta construir |
+| Backoffice (`public/admin/`) | ✅ primera versión: cajas, fichas, ABM, historial con deshacer, verificaciones, importaciones, vocabularios |
 | Front público | maqueta aprobada (v4); falta conectar |
 | Versiones livianas para web de los PDF pesados | pendiente |
 
@@ -25,6 +25,16 @@ cp config/config.example.php config/config.php     # completar base y carpeta de
 mysql -u root -p -e "CREATE DATABASE aida CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 mysql -u root -p aida < db/schema.sql
 ```
+
+## Backoffice
+
+```bash
+php bin/crear-usuario.php andres@p3design.com "Andy" admin     # pide la contraseña
+php -S 127.0.0.1:8090 -t public/admin                          # para probar en local
+```
+
+En el servidor, el sitio tiene que apuntar a `public/` (nada fuera de esa carpeta debe quedar accesible desde la web).
+Perfiles: `admin`, `editor`, `data_entry`, `qa` (permisos en `src/Web/App.php` y `docs/backoffice.md`).
 
 ## Carga de datos
 
@@ -58,12 +68,14 @@ con lo que hay que revisar (nomenclaturas mal tipeadas, archivos sin registro, P
 ## Estructura
 
 ```
-bin/        scripts de línea de comandos (importar, escanear)
+bin/        scripts de línea de comandos (importar, escanear, revertir, crear-usuario)
+public/     lo único expuesto a la web (public/admin = backoffice)
 config/     configuración (config.php no se versiona)
 datos/      listados de referencia (no van los Excel ni los PDF)
 db/         esquema SQL
 docs/       decisiones y reglas de negocio
-src/        clases PHP (namespace Aida)
+src/        clases PHP (namespace Aida; src/Web = controladores del backoffice)
+vistas/     plantillas PHP del backoffice
 ```
 
 ## Documentación

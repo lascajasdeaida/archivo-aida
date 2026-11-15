@@ -1,0 +1,62 @@
+<?php
+// Parcial: lista de cambios con botón Deshacer. Recibe $historial y $volver.
+use Aida\Web\App;
+
+$etiquetas = \Aida\Web\Rutas::CAMPOS_REGISTRO + [
+    'acceso' => 'Acceso', 'publicado' => 'Publicado', 'publicada' => 'Publicada', 'nombre' => 'Nombre', 'tipos' => 'Tipos',
+    'descriptores' => 'Descriptores', 'eliminado_en' => 'Dado de baja', 'eliminado_por' => 'Baja por',
+    'campos_bloqueados' => 'Campos editados a mano', 'origen' => 'Origen', 'anio' => 'Año (filtro)',
+    'excel_digitalizado' => 'Digitalizado según Excel', 'excel_nomenclatura' => 'Nomenclatura en Excel',
+    'excel_privado' => 'PRIVADO en Excel', 'codigo' => 'Código', 'numero' => 'Número', 'caja_id' => 'Caja',
+];
+$acciones = ['alta' => 'Alta', 'modificacion' => 'Modificación', 'baja' => 'Baja', 'restauracion' => 'Restauración', 'reversion' => 'Deshacer'];
+$origenes = ['backoffice' => 'backoffice', 'importacion' => 'importación del Excel', 'escaneo' => 'escaneo', 'reversion' => 'deshacer'];
+$mostrar = function ($v) {
+    if ($v === null || $v === '' || $v === []) return '—';
+    if (is_array($v)) return implode(', ', $v);
+    $s = (string)$v;
+    return mb_strlen($s) > 140 ? mb_substr($s, 0, 140) . '…' : $s;
+};
+?>
+<?php if (!$historial): ?>
+  <p class="nota">Sin cambios registrados.</p>
+<?php else: ?>
+<ul class="historial">
+<?php foreach ($historial as $a):
+    $propio = $a['usuario_id'] !== null && (int)$a['usuario_id'] === App::usuarioId();
+    $puede = App::puede($propio ? 'deshacer_propio' : 'deshacer_todo');
+    $campos = $a['cambios'];
+    if ($a['accion'] === 'alta') { $campos = array_intersect_key($campos, array_flip(['titulo', 'nombre', 'numero', 'codigo', 'acceso'])); }
+?>
+  <li class="<?= $a['revertido_en'] ? 'deshecho' : '' ?>">
+    <div class="meta">
+      <b><?= e($acciones[$a['accion']] ?? $a['accion']) ?></b>
+      <span>#<?= (int)$a['id'] ?></span>
+      <span><?= fecha($a['creado_en']) ?></span>
+      <span>· <?= e($a['usuario_nombre'] ?: $a['usuario_email'] ?: ($origenes[$a['origen']] ?? $a['origen'])) ?></span>
+      <?php if ($a['proceso_id']): ?><span>· proceso #<?= (int)$a['proceso_id'] ?></span><?php endif ?>
+      <?php if ($a['revierte_id']): ?><span class="chip">deshace #<?= (int)$a['revierte_id'] ?></span><?php endif ?>
+      <?php if ($a['revertido_en']): ?><span class="chip chip-stop">deshecho <?= fecha($a['revertido_en']) ?></span>
+      <?php elseif ($puede): ?>
+        <form method="post" action="<?= App::url('deshacer') ?>">
+          <?= App::campoToken() ?>
+          <input type="hidden" name="cambio" value="<?= (int)$a['id'] ?>">
+          <input type="hidden" name="volver" value="<?= e($volver) ?>">
+          <button class="btn btn-chico" title="<?= $a['accion'] === 'alta' ? 'Deshacer el alta lo deja dado de baja' : 'Vuelve cada campo al valor anterior' ?>">Deshacer</button>
+        </form>
+      <?php endif ?>
+    </div>
+    <?php if ($campos): ?>
+    <table>
+      <?php foreach ($campos as $campo => [$antes, $despues]): ?>
+        <tr>
+          <td style="width:28%"><?= e($etiquetas[$campo] ?? $campo) ?></td>
+          <td><?php if ($a['accion'] !== 'alta'): ?><span class="antes"><?= e($mostrar($antes)) ?></span> → <?php endif ?><span class="despues"><?= e($mostrar($despues)) ?></span></td>
+        </tr>
+      <?php endforeach ?>
+    </table>
+    <?php endif ?>
+  </li>
+<?php endforeach ?>
+</ul>
+<?php endif ?>

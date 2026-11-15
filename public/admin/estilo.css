@@ -319,3 +319,15 @@ form:has(> .lote){padding-bottom:12px}
 details.leyenda summary{cursor:pointer}
 .tabla-chica{font-size:.85rem;margin:4px 0}
 .tabla-chica td{padding:3px 8px;vertical-align:top}
+
+/* Años (docs/decisiones.md «Años»): dato dudoso en rojo, en la ficha y en la lista de la caja */
+.anio-dudoso{color:var(--stop)}
+td.anio-dudoso{font-weight:700}
+.anio-filtro{margin:-6px 0 12px}
+
+/* Curaduría de vocabularios */
+fieldset.destinos{border:1px solid var(--line);border-radius:var(--radio);padding:10px 14px;margin:0 0 12px}
+fieldset.destinos legend{font-weight:700;padding:0 4px}
+fieldset.destinos label.check{display:flex;gap:8px;align-items:baseline;margin:4px 0}
+.unificar-grupo .evidencia{font-size:.85rem;color:var(--ink-2)}
+[hidden]{display:none !important}

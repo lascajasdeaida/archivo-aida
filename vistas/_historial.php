@@ -8,12 +8,13 @@ $etiquetas = \Aida\Web\Rutas::CAMPOS_REGISTRO + [
     'campos_bloqueados' => 'Campos editados a mano', 'origen' => 'Origen', 'anio' => 'Año (filtro)',
     'excel_digitalizado' => 'Digitalizado según Excel', 'excel_nomenclatura' => 'Nomenclatura en Excel',
     'excel_privado' => 'PRIVADO en Excel', 'codigo' => 'Código', 'numero' => 'Número', 'caja_id' => 'Caja',
+    'anio_hasta' => 'Año hasta (filtro)', 'anio_sin_confirmar' => 'Año sin confirmar',
 ];
 $acciones = ['alta' => 'Alta', 'modificacion' => 'Modificación', 'baja' => 'Baja', 'restauracion' => 'Restauración', 'reversion' => 'Deshacer'];
 $origenes = ['backoffice' => 'backoffice', 'importacion' => 'importación del Excel', 'escaneo' => 'escaneo', 'reversion' => 'deshacer'];
 $mostrar = function ($v, string $campo = '') {
     if ($campo === 'acceso' && is_string($v) && $v !== '') return acceso_txt($v);
-    if (in_array($campo, ['publicado', 'publicada', 'excel_digitalizado'], true) && ($v === 0 || $v === 1 || $v === '0' || $v === '1' || is_bool($v))) return $v ? 'Sí' : 'No';
+    if (in_array($campo, ['publicado', 'publicada', 'excel_digitalizado', 'anio_sin_confirmar'], true) && ($v === 0 || $v === 1 || $v === '0' || $v === '1' || is_bool($v))) return $v ? 'Sí' : 'No';
     if ($v === null || $v === '' || $v === []) return '—';
     if (is_array($v)) return implode(', ', $v);
     $s = (string)$v;
@@ -36,9 +37,13 @@ $mostrar = function ($v, string $campo = '') {
       <span>#<?= (int)$a['id'] ?></span>
       <span><?= fecha($a['creado_en']) ?></span>
       <span>· <?= e($a['usuario_nombre'] ?: $a['usuario_email'] ?: ($origenes[$a['origen']] ?? $a['origen'])) ?></span>
-      <?php if ($a['proceso_id']): ?><span>· proceso #<?= (int)$a['proceso_id'] ?></span><?php endif ?>
+      <?php $curaduria = ($a['proceso_tipo'] ?? '') === 'curaduria'; ?>
+      <?php if ($curaduria): ?><span>· <a href="<?= App::url('vocab_informe') ?>">curaduría #<?= (int)$a['proceso_id'] ?></a>: <?= e($a['proceso_fuente']) ?></span>
+      <?php elseif ($a['proceso_id']): ?><span>· proceso #<?= (int)$a['proceso_id'] ?></span><?php endif ?>
       <?php if ($a['revierte_id']): ?><span class="chip">deshace #<?= (int)$a['revierte_id'] ?></span><?php endif ?>
       <?php if ($a['revertido_en']): ?><span class="chip chip-stop">deshecho <?= fecha($a['revertido_en']) ?></span>
+      <?php elseif ($curaduria): ?>
+        <a class="link" href="<?= App::url('vocab_informe') ?>" title="Un cambio de curaduría se deshace completo, para todos sus registros">Se deshace desde Cambios de curaduría</a>
       <?php elseif ($a['accion'] === 'alta' && in_array($a['entidad'], ['registro', 'caja'], true)):
           $ent = $a['entidad'] === 'registro' ? ($r ?? null) : ($caja ?? null);
           if ($puede && App::puede('baja') && $ent && !$ent['eliminado_en']): ?>

@@ -4,8 +4,10 @@ declare(strict_types=1);
 namespace Aida\Web;
 
 use Aida\Alertas;
+use Aida\Curaduria;
 use Aida\Historial;
 use Aida\Texto;
+use Aida\Vocabulario;
 
 /**
  * Controladores del backoffice. Cada método público es una ruta (?r=nombre).
@@ -84,9 +86,12 @@ final class Rutas
                   (SELECT COUNT(*) FROM registro r WHERE r.caja_id = c.id AND r.eliminado_en IS NULL AND r.acceso <> \'publico\') no_publicos,
                   (SELECT COUNT(*) FROM incidencia i WHERE i.caja = c.numero AND i.resuelta = 0 AND i.requiere_validacion = 1) alertas
                 FROM caja c ' . ($verBajas ? '' : 'WHERE c.eliminado_en IS NULL ') . 'ORDER BY c.numero';
-        $todas = self::db()->query('SELECT id, numero, nombre FROM caja WHERE eliminado_en IS NULL')->fetchAll();
+        $todas = self::db()->query('SELECT id, numero, nombre, resumen FROM caja WHERE eliminado_en IS NULL ORDER BY numero')->fetchAll();
+        // Cuentan los grupos donde hay algo para corregir (no los de partes o versiones que ya están bien escritos)
+        $paraRevisar = array_filter(self::gruposParecidos($todas), fn($g) => in_array($g['clase'], ['grafia', 'resumen'], true)
+            || array_filter($g['cajas'], fn($c) => $c['propuesto'] !== $c['nombre']));
         App::render('cajas', ['cajas' => self::db()->query($sql)->fetchAll(), 'verBajas' => $verBajas,
-                              'parecidos' => count(self::gruposParecidos($todas))]);
+                              'parecidos' => count($paraRevisar)]);
     }
 
     public static function caja(): void
@@ -134,29 +139,51 @@ final class Rutas
     }
 
     /**
-     * Sugiere grupos de cajas con nombres casi iguales (tildes, mayúsculas, comillas, errores de tipeo)
-     * y permite unificarlos. Cada cambio pasa por el historial (se puede deshacer y bloquea el campo para el Excel).
+     * Sugiere grupos de cajas con nombres parecidos y permite unificarlos. Cada cambio pasa por el historial
+     * (se puede deshacer y bloquea el campo para el Excel). Clases de grupo (docs/backoffice.md §10):
+     *  - grafia:     mismo nombre salvo tildes, mayúsculas, comillas o un error de tipeo → unificar.
+     *  - parte:      misma obra en varias cajas numeradas («Cenizas del Paraíso» / «… II») → no unificar;
+     *                a lo sumo unificar el título conservando el numeral de cada caja.
+     *  - aclaracion: mismo título con distinta aclaración («(España)» / «(Argentina)») → versiones distintas;
+     *                a lo sumo unificar el título conservando la aclaración de cada caja.
+     *  - resumen:    nombres distintos que el resumen de una caja presenta juntos («Cajas 8 y 12») → revisar.
      */
     public static function cajas_unificar(): void
     {
         App::exigir('editar');
-        $cajas = self::db()->query('SELECT id, numero, nombre, campos_bloqueados FROM caja WHERE eliminado_en IS NULL ORDER BY numero')->fetchAll();
+        $cajas = self::db()->query('SELECT id, numero, nombre, resumen, campos_bloqueados FROM caja WHERE eliminado_en IS NULL ORDER BY numero')->fetchAll();
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             App::verificarPost();
-            $nombre = trim((string)($_POST['nombre'] ?? ''));
+            $modo = ($_POST['modo'] ?? '') === 'conservar' ? 'conservar' : 'unico';
+            $nombre = trim((string)preg_replace('/\s+/u', ' ', (string)($_POST['nombre'] ?? '')));
             $ids = array_map('intval', (array)($_POST['cajas'] ?? []));
             if ($nombre === '' || count($ids) < 1) {
-                App::aviso('error', 'Elegí al menos una caja y escribí cómo tiene que quedar el nombre.');
+                App::aviso('error', $modo === 'conservar' ? 'Elegí al menos una caja y escribí cómo tiene que quedar el título.'
+                                                          : 'Elegí al menos una caja y escribí cómo tiene que quedar el nombre.');
             } else {
+                $partes = [];
+                foreach (self::gruposParecidos($cajas) as $g) {
+                    foreach ($g['cajas'] as $c) {
+                        $partes[(int)$c['id']] = $c;
+                    }
+                }
                 $h = self::historial();
                 $n = 0;
+                $nuevos = [];
                 foreach ($cajas as $c) {
-                    if (in_array((int)$c['id'], $ids, true) && $c['nombre'] !== $nombre) {
-                        $h->actualizar('caja', (int)$c['id'], ['nombre' => $nombre], true);
+                    if (!in_array((int)$c['id'], $ids, true)) {
+                        continue;
+                    }
+                    $nuevo = $modo === 'conservar' && isset($partes[(int)$c['id']])
+                        ? self::componerNombre($nombre, $partes[(int)$c['id']]['parte'], $partes[(int)$c['id']]['aclaracion'])
+                        : $nombre;
+                    if ($c['nombre'] !== $nuevo) {
+                        $h->actualizar('caja', (int)$c['id'], ['nombre' => $nuevo], true);
+                        $nuevos[] = "{$c['numero']} «{$nuevo}»";
                         $n++;
                     }
                 }
-                App::aviso('ok', $n ? "Nombre unificado en $n caja" . ($n === 1 ? '' : 's') . ": «{$nombre}». Se puede deshacer desde el historial de cada caja."
+                App::aviso('ok', $n ? 'Nombre corregido en ' . ($n === 1 ? '1 caja' : "$n cajas") . ': ' . implode(', ', $nuevos) . '. Se puede deshacer desde el historial de cada caja.'
                                     : 'Esas cajas ya tenían ese nombre.');
             }
             App::redirigir('cajas_unificar');
@@ -164,57 +191,186 @@ final class Rutas
         App::render('cajas_unificar', ['grupos' => self::gruposParecidos($cajas)]);
     }
 
-    /** @return list<array{cajas:list<array>, sugerido:string}> */
+    private static function componerNombre(string $titulo, string $parte, ?string $aclaracion): string
+    {
+        return $titulo . ($parte !== '' ? " $parte" : '') . ($aclaracion !== null && $aclaracion !== '' ? " ($aclaracion)" : '');
+    }
+
+    /**
+     * Separa un nombre de caja en título, parte final (numeral: «II», «2», «91/92/93») y aclaración final entre paréntesis.
+     * @return array{titulo:string, parte:string, aclaracion:?string}
+     */
+    private static function partesNombre(string $nombre): array
+    {
+        $n = trim((string)preg_replace(['/["“”«»]/u', '/\s+/u'], ['', ' '], $nombre));
+        $acl = null;
+        if (preg_match('/^(.+?)\s*\(([^()]*)\)\s*$/u', $n, $m)) {
+            [$n, $acl] = [trim($m[1]), trim($m[2])];
+        }
+        $tokens = explode(' ', $n);
+        $parte = [];
+        while (count($tokens) > 1 && preg_match('~^(i{1,3}|iv|vi{0,3}|ix|x|\d+[a-z]?(?:[/\-.]\d+)*)$~u', Texto::clave(end($tokens)))) {
+            array_unshift($parte, array_pop($tokens));
+        }
+        return ['titulo' => implode(' ', $tokens), 'parte' => implode(' ', $parte), 'aclaracion' => $acl];
+    }
+
+    /** @return list<array{clase:string, cajas:list<array>, sugerido:string, titulo:string, evidencia:list<string>}> */
     private static function gruposParecidos(array $cajas): array
     {
-        $base = function (string $s): string {
-            $s = Texto::clave($s);
+        $base = function (?string $s): string {
+            $s = Texto::clave((string)$s);
             $s = (string)preg_replace('/[^\p{L}\p{N} ]+/u', ' ', $s);
             return trim((string)preg_replace('/\s+/', ' ', $s));
         };
-        $sinParentesis = fn(string $s) => trim((string)preg_replace('/\([^)]*\)/u', '', $s));
+        $cajas = array_values($cajas);
         $n = count($cajas);
-        $padre = range(0, $n - 1);
+        $p = array_map(fn($c) => self::partesNombre((string)$c['nombre']), $cajas);
+        // Aclaración escrita sin paréntesis: «Eramos tan jóvenes España» frente a «Éramos tan jóvenes (España)»
+        for ($i = 0; $i < $n; $i++) {
+            if ($p[$i]['aclaracion'] !== null) {
+                continue;
+            }
+            for ($j = 0; $j < $n; $j++) {
+                $acl = $p[$j]['aclaracion'];
+                if ($j === $i || $acl === null || $base($acl) === '') {
+                    continue;
+                }
+                $palabras = count(explode(' ', $acl));
+                $tok = explode(' ', $p[$i]['titulo']);
+                if (count($tok) > $palabras && $base($p[$i]['titulo']) === $base($p[$j]['titulo']) . ' ' . $base($acl)) {
+                    $p[$i]['aclaracion'] = implode(' ', array_splice($tok, -$palabras));
+                    $p[$i]['titulo'] = implode(' ', $tok);
+                    break;
+                }
+            }
+        }
+        $kt = array_map(fn($x) => $base($x['titulo']), $p);
+        $ka = array_map(fn($x) => $base($x['aclaracion']), $p);
+        $kp = array_map(fn($x) => $base($x['parte']), $p);
+
+        // Cajas que un resumen presenta juntas: «Cajas 8 y 12», «3 CAJAS, las: 17, 29 y 32»
+        $porNumero = [];
+        foreach ($cajas as $i => $c) {
+            $porNumero[(int)$c['numero']] = $i;
+        }
+        $vinculos = [];
+        foreach ($cajas as $c) {
+            if (preg_match_all('/cajas?[^.\d]{0,15}((?:\d+\s*,\s*)*\d+\s+y\s+\d+)/iu', (string)$c['resumen'], $mm, PREG_SET_ORDER)) {
+                foreach ($mm as $m) {
+                    preg_match_all('/\d+/', $m[1], $nums);
+                    $nums = array_values(array_unique(array_filter(array_map('intval', $nums[0]), fn($x) => isset($porNumero[$x]))));
+                    foreach ($nums as $a) {
+                        foreach ($nums as $b) {
+                            if ($a < $b) {
+                                $vinculos["$a-$b"][] = 'El resumen de la caja ' . $c['numero'] . ' dice «' . trim(mb_substr($m[0], 0, 60)) . '»';
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $padre = range(0, max(0, $n - 1));
         $raiz = function (int $i) use (&$padre, &$raiz): int { return $padre[$i] === $i ? $i : ($padre[$i] = $raiz($padre[$i])); };
-        $bases = array_map(fn($c) => $base($c['nombre']), $cajas);
-        $cortas = array_map(fn($c) => $base($sinParentesis($c['nombre'])), $cajas);
+        $clases = [];
         for ($i = 0; $i < $n; $i++) {
             for ($j = $i + 1; $j < $n; $j++) {
-                $a = $bases[$i]; $b = $bases[$j];
-                if ($a === '' || $b === '') continue;
-                $parecido = $a === $b || ($cortas[$i] !== '' && $cortas[$i] === $cortas[$j]);
-                if (!$parecido && strlen($a) >= 6 && strlen($b) >= 6 && strlen($a) < 255 && strlen($b) < 255) {
-                    $parecido = levenshtein($a, $b) / max(strlen($a), strlen($b)) <= 0.15;
+                $clase = null;
+                $parecido = $kt[$i] !== '' && ($kt[$i] === $kt[$j] || (strlen($kt[$i]) >= 6 && strlen($kt[$j]) >= 6
+                    && strlen($kt[$i]) < 255 && strlen($kt[$j]) < 255 && levenshtein($kt[$i], $kt[$j]) / max(strlen($kt[$i]), strlen($kt[$j])) <= 0.15));
+                if ($cajas[$i]['nombre'] === $cajas[$j]['nombre']) {
+                    $clase = 'igual';
+                } elseif ($parecido) {
+                    $clase = $ka[$i] !== $ka[$j] ? 'aclaracion' : ($kp[$i] !== $kp[$j] ? 'parte' : 'grafia');
                 }
-                if ($parecido) {
+                $a = min((int)$cajas[$i]['numero'], (int)$cajas[$j]['numero']);
+                $b = max((int)$cajas[$i]['numero'], (int)$cajas[$j]['numero']);
+                if ($clase === null && isset($vinculos["$a-$b"])) {
+                    $clase = 'resumen';
+                }
+                if ($clase !== null) {
                     $padre[$raiz($i)] = $raiz($j);
+                    $clases[] = [$i, $j, $clase];
                 }
             }
         }
         $grupos = [];
         foreach ($cajas as $i => $c) {
-            $grupos[$raiz($i)][] = $c;
+            $grupos[$raiz($i)][] = $i;
         }
+        $prioridad = ['aclaracion', 'parte', 'grafia', 'resumen'];
+        $puntaje = function (string $nom): float {
+            $letras = max(1, preg_match_all('/\p{L}/u', $nom));
+            $mayus = preg_match_all('/\p{Lu}/u', $nom);
+            return preg_match_all('/[áéíóúÁÉÍÓÚñÑü]/u', $nom) * 10 + (1 - $mayus / $letras) * 9 + mb_strlen($nom) / 1000;
+        };
         $out = [];
-        foreach ($grupos as $g) {
-            if (count(array_unique(array_column($g, 'nombre'))) < 2) {
+        foreach ($grupos as $r => $miembros) {
+            if (count($miembros) < 2 || count(array_unique(array_map(fn($i) => $cajas[$i]['nombre'], $miembros))) < 2) {
                 continue; // mismos nombres exactos: no hay nada que unificar
             }
-            // Sugerencia: la variante con más tildes; a igualdad, la que no está toda en mayúsculas
-            $mejor = null;
-            $puntaje = -1;
-            foreach ($g as $c) {
-                $nom = trim((string)preg_replace(['/["“”«»]/u', '/\s+/u'], ['', ' '], $c['nombre']));
-                $letras = max(1, preg_match_all('/\p{L}/u', $nom));
-                $mayus = preg_match_all('/\p{Lu}/u', $nom);
-                $p = preg_match_all('/[áéíóúÁÉÍÓÚñÑü]/u', $nom) * 10 + (1 - $mayus / $letras) * 9;
-                if ($p > $puntaje) {
-                    $puntaje = $p;
-                    $mejor = $nom;
+            $presentes = [];
+            $evid = [];
+            foreach ($clases as [$i, $j, $cl]) {
+                if ($raiz($i) === $r) {
+                    $presentes[$cl] = true;
                 }
             }
-            $out[] = ['cajas' => $g, 'sugerido' => (string)$mejor];
+            foreach ($miembros as $i) {
+                foreach ($miembros as $j) {
+                    $k = $cajas[$i]['numero'] . '-' . $cajas[$j]['numero'];
+                    foreach ($vinculos[$k] ?? [] as $e) {
+                        $evid[$e] = true;
+                    }
+                }
+            }
+            $clase = 'resumen';
+            foreach ($prioridad as $cl) {
+                if (isset($presentes[$cl])) {
+                    $clase = $cl;
+                    break;
+                }
+            }
+            // Título sugerido: la variante con más tildes; a igualdad, la que no está toda en mayúsculas, y la más larga
+            $titulo = '';
+            $mejor = -1;
+            $nombreMejor = '';
+            $mejorN = -1;
+            foreach ($miembros as $i) {
+                if (($x = $puntaje($p[$i]['titulo'])) > $mejor) {
+                    [$mejor, $titulo] = [$x, $p[$i]['titulo']];
+                }
+                $completo = self::componerNombre($p[$i]['titulo'], $p[$i]['parte'], $p[$i]['aclaracion']);
+                if (($x = $puntaje($completo)) > $mejorN) {
+                    [$mejorN, $nombreMejor] = [$x, $completo];
+                }
+            }
+            $sugerido = $nombreMejor;
+            if ($clase === 'resumen') {
+                // Solo si un nombre contiene al otro («Azucena» / «Azucena Villaflor»); si no, que lo escriba el operador
+                $sugerido = '';
+                foreach ($miembros as $i) {
+                    $contiene = true;
+                    foreach ($miembros as $j) {
+                        if ($i !== $j && !str_contains($kt[$i], $kt[$j])) {
+                            $contiene = false;
+                        }
+                    }
+                    if ($contiene) {
+                        $sugerido = $p[$i]['titulo'];
+                    }
+                }
+            }
+            $lista = [];
+            foreach ($miembros as $i) {
+                $lista[] = $cajas[$i] + $p[$i] + ['propuesto' => self::componerNombre($titulo, $p[$i]['parte'], $p[$i]['aclaracion'])];
+            }
+            usort($lista, fn($a, $b) => $a['numero'] <=> $b['numero']);
+            $out[] = ['clase' => $clase, 'cajas' => $lista, 'sugerido' => $sugerido, 'titulo' => $titulo, 'evidencia' => array_keys($evid)];
         }
+        usort($out, fn($a, $b) => [array_search($a['clase'], ['grafia', 'resumen', 'parte', 'aclaracion'], true), $a['cajas'][0]['numero']]
+                                 <=> [array_search($b['clase'], ['grafia', 'resumen', 'parte', 'aclaracion'], true), $b['cajas'][0]['numero']]);
         return $out;
     }
 
@@ -358,8 +514,11 @@ final class Rutas
         }
         $cambios = self::soloCambios($r, $nuevos);
         if (array_key_exists('anio_texto', $cambios)) {
-            $a = Texto::entero($cambios['anio_texto']);
-            $cambios['anio'] = ($a !== null && $a >= 1900 && $a <= 2100) ? $a : null;
+            // Mismas reglas que la importación: año, rango («1981/82») o con duda («1972?»)
+            $an = Texto::anio($cambios['anio_texto']);
+            $cambios['anio'] = $an['desde'];
+            $cambios['anio_hasta'] = $an['hasta'];
+            $cambios['anio_sin_confirmar'] = (int)$an['sin_confirmar'];
         }
 
         // Tipos y descriptores (listas)
@@ -623,7 +782,7 @@ final class Rutas
               (SELECT COUNT(*) FROM auditoria a WHERE a.proceso_id = p.id AND a.accion <> 'reversion') cambios,
               (SELECT COUNT(*) FROM auditoria a WHERE a.proceso_id = p.id AND a.accion <> 'reversion' AND a.revertido_en IS NOT NULL) deshechos,
               (SELECT COUNT(*) FROM incidencia i WHERE i.proceso_id = p.id AND i.resuelta = 0 AND i.requiere_validacion = 1) pendientes
-            FROM proceso p WHERE p.simulacion = 0 ORDER BY p.id DESC LIMIT 200")->fetchAll();
+            FROM proceso p WHERE p.simulacion = 0 AND p.tipo <> 'curaduria' ORDER BY p.id DESC LIMIT 200")->fetchAll();
         App::render('procesos', ['procesos' => $rows]);
     }
 
@@ -757,6 +916,9 @@ final class Rutas
         $p = self::db()->prepare('SELECT * FROM proceso WHERE id = ?');
         $p->execute([$id]);
         $proc = $p->fetch() ?: App::redirigir('procesos');
+        if ($proc['tipo'] === 'curaduria') {
+            App::redirigir('curaduria_deshacer', ['id' => $id]);
+        }
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             App::verificarPost();
             $res = self::historial()->revertirProceso($id, !empty($_POST['forzar']) && App::puede('forzar'));
@@ -790,15 +952,20 @@ final class Rutas
     {
         App::exigir('ver');
         $tipo = ($_GET['tipo'] ?? '') === 'descriptor' ? 'descriptor' : 'tipo_documento';
-        $st = self::db()->prepare('SELECT v.*, d.nombre fusion_nombre,
+        $st = self::db()->prepare('SELECT v.*, d.nombre fusion_nombre, d.tipo fusion_tipo,
               (SELECT COUNT(*) FROM registro_vocabulario rv JOIN registro r ON r.id = rv.registro_id
-               WHERE rv.vocabulario_id = v.id AND r.eliminado_en IS NULL) usos
+               WHERE rv.vocabulario_id = v.id AND r.eliminado_en IS NULL) usos,
+              (SELECT GROUP_CONCAT(a.nombre ORDER BY a.nombre SEPARATOR \'», «\') FROM vocabulario_alias a
+               WHERE a.vocabulario_id = v.id AND a.eliminado_en IS NULL) alias
             FROM vocabulario v LEFT JOIN vocabulario d ON d.id = v.fusionado_en
-            WHERE v.tipo = ? ORDER BY v.fusionado_en IS NOT NULL, v.estado DESC, v.nombre');
+            WHERE v.tipo = ? AND v.eliminado_en IS NULL
+            ORDER BY v.fusionado_en IS NOT NULL, v.estado = \'descartado\', v.estado DESC, v.nombre');
         $st->execute([$tipo]);
-        App::render('vocabularios', ['tipo' => $tipo, 'terminos' => $st->fetchAll()]);
+        $cambios = (int)self::db()->query("SELECT COUNT(*) FROM proceso WHERE tipo = 'curaduria'")->fetchColumn();
+        App::render('vocabularios', ['tipo' => $tipo, 'terminos' => $st->fetchAll(), 'cambiosCuraduria' => $cambios]);
     }
 
+    /** Acciones simples sobre términos: nuevo, aprobar, renombrar, restaurar. Todas quedan en el historial. */
     public static function vocab_accion(): void
     {
         App::exigir('vocabularios');
@@ -807,43 +974,49 @@ final class Rutas
         $tipo = ($_POST['tipo'] ?? '') === 'descriptor' ? 'descriptor' : 'tipo_documento';
         $acc = (string)($_POST['accion'] ?? '');
         $id = self::int('id');
+        $h = self::historial();
         try {
             switch ($acc) {
                 case 'nuevo':
-                    $n = trim((string)($_POST['nombre'] ?? ''));
-                    if ($n === '') {
-                        throw new \RuntimeException('Falta el nombre del término.');
+                    $n = trim((string)preg_replace('/\s+/u', ' ', (string)($_POST['nombre'] ?? '')));
+                    if ($n === '' || mb_strlen($n) > 120) {
+                        throw new \RuntimeException('El nombre del término tiene que tener entre 1 y 120 caracteres.');
                     }
-                    $db->prepare("INSERT INTO vocabulario (tipo, nombre, clave, estado) VALUES (?,?,?,'aprobado')")
-                       ->execute([$tipo, $n, Texto::clave($n)]);
+                    if ($r = (new Vocabulario($db))->resolver($tipo, $n)) {
+                        if ($r['via'] !== 'eliminado') {
+                            throw new \RuntimeException("«{$n}» ya se reconoce como «{$r['final']['nombre']}» ("
+                                . Vocabulario::NOMBRES[$r['final']['tipo']] . ($r['final']['estado'] === 'descartado' ? ', descartado' : '') . ').');
+                        }
+                    }
+                    $h->crear('vocabulario', ['tipo' => $tipo, 'nombre' => $n, 'clave' => Texto::clave($n), 'estado' => 'aprobado']);
                     App::aviso('ok', "Término «{$n}» agregado.");
                     break;
                 case 'aprobar_todos':
-                    $st = $db->prepare("UPDATE vocabulario SET estado = 'aprobado' WHERE tipo = ? AND estado = 'propuesto' AND fusionado_en IS NULL");
+                    $st = $db->prepare("SELECT id FROM vocabulario WHERE tipo = ? AND estado = 'propuesto' AND fusionado_en IS NULL AND eliminado_en IS NULL");
                     $st->execute([$tipo]);
-                    App::aviso('ok', $st->rowCount() . ' términos aprobados.');
+                    $ids = $st->fetchAll(\PDO::FETCH_COLUMN);
+                    $db->beginTransaction();
+                    foreach ($ids as $v) {
+                        $h->actualizar('vocabulario', (int)$v, ['estado' => 'aprobado'], false);
+                    }
+                    $db->commit();
+                    App::aviso('ok', count($ids) . ' términos aprobados. Se puede deshacer uno por uno desde el historial de cada término.');
                     break;
                 case 'aprobar':
-                    $db->prepare("UPDATE vocabulario SET estado = 'aprobado' WHERE id = ?")->execute([$id]);
+                    $h->actualizar('vocabulario', $id, ['estado' => 'aprobado'], false);
                     App::aviso('ok', 'Término aprobado.');
                     break;
                 case 'renombrar':
-                    $n = trim((string)($_POST['nombre'] ?? ''));
-                    $db->prepare('UPDATE vocabulario SET nombre = ? WHERE id = ?')->execute([$n, $id]);
-                    App::aviso('ok', 'Término renombrado. Se ve así en todos los registros que lo usan.');
+                    $r = (new Curaduria($db, App::usuarioId()))->renombrar($id, (string)($_POST['nombre'] ?? ''), (string)($_POST['motivo'] ?? ''));
+                    App::aviso('ok', 'Término renombrado: se ve así en ' . ($r['registros'] === 1 ? 'el registro que lo usa' : "los {$r['registros']} registros que lo usan")
+                        . '. Si la planilla trae la grafía anterior, la importación carga este término.');
                     break;
-                case 'fusionar':
-                    $destino = (int)($_POST['destino'] ?? 0);
-                    if ($destino === $id || $destino === 0) {
-                        throw new \RuntimeException('Elegí otro término como destino de la fusión.');
+                case 'restaurar':
+                    $r = (new Curaduria($db, App::usuarioId()))->restaurar($id, !empty($_POST['forzar']) && App::puede('forzar'));
+                    if (!$r['ok'] && $r['conflictos']) {
+                        $_SESSION['conflicto'] = ['curaduria' => $r['proceso'] ?? 0, 'conflictos' => array_slice($r['conflictos'], 0, 50)];
                     }
-                    $db->beginTransaction();
-                    // Los registros que ya tenían el destino no lo duplican
-                    $db->prepare('UPDATE IGNORE registro_vocabulario SET vocabulario_id = ? WHERE vocabulario_id = ?')->execute([$destino, $id]);
-                    $db->prepare('DELETE FROM registro_vocabulario WHERE vocabulario_id = ?')->execute([$id]);
-                    $db->prepare('UPDATE vocabulario SET fusionado_en = ? WHERE id = ?')->execute([$destino, $id]);
-                    $db->commit();
-                    App::aviso('ok', 'Términos fusionados. Las próximas importaciones usan el término destino.');
+                    App::aviso($r['ok'] ? 'ok' : 'error', $r['ok'] ? 'Término restaurado: vuelve a sus registros y a la lista.' : $r['mensaje']);
                     break;
                 default:
                     throw new \RuntimeException('Acción desconocida.');
@@ -852,11 +1025,132 @@ final class Rutas
             if ($db->inTransaction()) {
                 $db->rollBack();
             }
+            error_log('[aida-bo] vocabulario: ' . $e->getMessage());
             App::aviso('error', str_contains($e->getMessage(), 'Duplicate') ? 'Ya existe un término con ese nombre.' : 'No se pudo guardar.');
         } catch (\RuntimeException $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             App::aviso('error', $e->getMessage());
         }
         App::redirigir('vocabularios', ['tipo' => $tipo]);
+    }
+
+    /**
+     * Mover al otro vocabulario, fusionar o descartar: pantalla de confirmación (GET) y ejecución (POST).
+     * Muestra cuántos registros cambian, cuáles quedan sin tipo/descriptor y los destinos equivalentes.
+     */
+    public static function vocab_curar(): void
+    {
+        App::exigir('vocabularios');
+        $db = self::db();
+        $op = in_array($_REQUEST['op'] ?? '', ['mover', 'fusionar', 'descartar'], true) ? $_REQUEST['op'] : 'mover';
+        $id = self::int('id');
+        $cur = new Curaduria($db, App::usuarioId());
+        try {
+            $imp = $cur->impacto($id);
+        } catch (\RuntimeException $e) {
+            App::aviso('error', $e->getMessage());
+            App::redirigir('vocabularios');
+        }
+        $t = $imp['termino'];
+        $tipoDest = $op === 'mover' ? Vocabulario::otro($t['tipo']) : $t['tipo'];
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::verificarPost();
+            $motivo = (string)($_POST['motivo'] ?? '');
+            try {
+                if ($op === 'descartar') {
+                    $r = $cur->descartar($id, $motivo);
+                    App::aviso('ok', "«{$t['nombre']}» descartado y quitado de " . ($r['registros'] === 1 ? '1 registro' : "{$r['registros']} registros")
+                        . '. Los demás tipos y descriptores no se tocaron. Se puede restaurar.');
+                } else {
+                    $dest = (string)($_POST['destino'] ?? '');
+                    $destId = $dest === 'nuevo' ? null : (int)$dest;
+                    if ($op === 'fusionar' || $destId !== null) {
+                        if (!$destId) {
+                            throw new \RuntimeException('Elegí el término destino.');
+                        }
+                    }
+                    $r = $op === 'mover' ? $cur->mover($id, $destId, $motivo) : $cur->fusionar($id, (int)$destId, $motivo);
+                    App::aviso('ok', ($op === 'mover' ? "«{$t['nombre']}» se movió a " . Vocabulario::PLURALES[$tipoDest] . " como «{$r['destino']['nombre']}»"
+                                                      : "«{$t['nombre']}» se fusionó en «{$r['destino']['nombre']}»")
+                        . ': ' . ($r['registros'] === 1 ? '1 registro' : "{$r['registros']} registros")
+                        . '. La importación ya lo carga así. Se puede deshacer desde Cambios de curaduría.');
+                }
+                App::redirigir('vocab_informe');
+            } catch (\RuntimeException $e) {
+                App::aviso('error', $e->getMessage());
+                App::redirigir('vocab_curar', ['op' => $op, 'id' => $id]);
+            }
+        }
+        App::render('vocab_curar', [
+            'op' => $op, 't' => $t, 'imp' => $imp, 'tipoDest' => $tipoDest,
+            'destinos' => $op === 'descartar' ? [] : $cur->destinos($id, $tipoDest),
+            'otroIgual' => self::terminoIgual($tipoDest, $t),
+        ]);
+    }
+
+    /** ¿Hay en $tipo un término con la misma clave que $t? (no se puede crear otro igual). */
+    private static function terminoIgual(string $tipo, array $t): bool
+    {
+        $st = self::db()->prepare('SELECT 1 FROM vocabulario WHERE tipo = ? AND clave = ? AND id <> ? AND eliminado_en IS NULL');
+        $st->execute([$tipo, $t['clave'], $t['id']]);
+        return (bool)$st->fetchColumn();
+    }
+
+    /** Informe de curaduría: movimientos, fusiones, renombres y descartes. ?formato=csv | texto */
+    public static function vocab_informe(): void
+    {
+        App::exigir('ver');
+        $cur = new Curaduria(self::db(), App::usuarioId());
+        $formato = (string)($_GET['formato'] ?? '');
+        if ($formato === 'csv') {
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="cambios-curaduria-' . date('Ymd') . '.csv"');
+            header('Cache-Control: no-store');
+            echo $cur->csv();
+            exit;
+        }
+        App::render('vocab_informe', ['items' => $cur->informe(), 'texto' => $cur->texto()]);
+    }
+
+    /** Deshace una operación de curaduría completa (con confirmación). */
+    public static function curaduria_deshacer(): void
+    {
+        App::exigir('vocabularios');
+        $id = self::int('id');
+        $item = null;
+        foreach ((new Curaduria(self::db(), App::usuarioId()))->informe() as $x) {
+            if ($x['id'] === $id) {
+                $item = $x;
+            }
+        }
+        if (!$item || $item['deshecho']) {
+            App::aviso('error', $item ? 'Ese cambio ya se deshizo.' : 'No existe ese cambio de curaduría.');
+            App::redirigir('vocab_informe');
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::verificarPost();
+            $res = (new Curaduria(self::db(), App::usuarioId()))->deshacer($id, !empty($_POST['forzar']) && App::puede('forzar'));
+            if (!$res['ok'] && $res['conflictos']) {
+                $_SESSION['conflicto'] = ['curaduria' => $id, 'conflictos' => array_slice($res['conflictos'], 0, 50)];
+            }
+            App::aviso($res['ok'] ? 'ok' : 'error', $res['mensaje']);
+            App::redirigir('vocab_informe');
+        }
+        $n = $item['registros'];
+        App::render('confirmar', [
+            'titulo' => 'Deshacer: ' . $item['descripcion'],
+            'texto' => 'Vuelve todo a como estaba antes del ' . fecha($item['fecha']) . ' (' . $item['usuario'] . ')'
+                . ($item['accion'] === 'renombrar' ? ': el término recupera su nombre anterior.'
+                    : ': ' . ($n === 1 ? '1 registro recupera' : "$n registros recuperan") . ' sus tipos y descriptores de ese momento.')
+                . ' Si alguno cambió después, no se aplica nada y se muestran los conflictos. El deshacer también queda en el informe.',
+            'migas' => [['Vocabularios', App::url('vocabularios')], ['Cambios de curaduría', App::url('vocab_informe')]],
+            'accion' => App::url('curaduria_deshacer', ['id' => $id]),
+            'boton' => 'Deshacer el cambio',
+            'volver' => App::url('vocab_informe'),
+            'peligro' => true,
+        ]);
     }
 
     // ------------------------------------------------------------------
@@ -934,8 +1228,9 @@ final class Rutas
     /** @return list<array<string,mixed>> */
     private static function historialDe(string $entidad, int $id): array
     {
-        $st = self::db()->prepare('SELECT a.*, u.nombre usuario_nombre, u.email usuario_email FROM auditoria a
-            LEFT JOIN usuario u ON u.id = a.usuario_id WHERE a.entidad = ? AND a.entidad_id = ? ORDER BY a.id DESC');
+        $st = self::db()->prepare('SELECT a.*, u.nombre usuario_nombre, u.email usuario_email, p.tipo proceso_tipo, p.fuente proceso_fuente
+            FROM auditoria a LEFT JOIN usuario u ON u.id = a.usuario_id LEFT JOIN proceso p ON p.id = a.proceso_id
+            WHERE a.entidad = ? AND a.entidad_id = ? ORDER BY a.id DESC');
         $st->execute([$entidad, $id]);
         return array_map(function ($a) {
             $a['cambios'] = json_decode((string)$a['cambios'], true) ?: [];
@@ -946,7 +1241,8 @@ final class Rutas
     /** @return array{tipo_documento:list<array>, descriptor:list<array>} */
     private static function vocabularioParaSelect(): array
     {
-        $rows = self::db()->query('SELECT tipo, nombre, estado FROM vocabulario WHERE fusionado_en IS NULL ORDER BY nombre')->fetchAll();
+        $rows = self::db()->query("SELECT tipo, nombre, estado FROM vocabulario WHERE fusionado_en IS NULL AND eliminado_en IS NULL
+            AND estado <> 'descartado' ORDER BY nombre")->fetchAll();
         $out = ['tipo_documento' => [], 'descriptor' => []];
         foreach ($rows as $r) {
             $out[$r['tipo']][] = $r;

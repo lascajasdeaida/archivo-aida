@@ -13,7 +13,7 @@
   <a class="marca" href="<?= App::url('cajas') ?>"><span class="sello">Archivo</span> Las cajas de Aída</a>
   <nav>
     <a href="<?= App::url('cajas') ?>" class="<?= in_array($sec, ['cajas', 'caja', 'registro', 'caja_nueva', 'registro_nuevo'], true) ? 'activo' : '' ?>">Cajas</a>
-    <a href="<?= App::url('vocabularios') ?>" class="<?= $sec === 'vocabularios' ? 'activo' : '' ?>">Vocabularios</a>
+    <a href="<?= App::url('vocabularios') ?>" class="<?= in_array($sec, ['vocabularios', 'vocab_curar', 'vocab_informe', 'curaduria_deshacer'], true) ? 'activo' : '' ?>">Vocabularios</a>
     <a href="<?= App::url('procesos') ?>" class="<?= in_array($sec, ['procesos', 'importar', 'proceso_deshacer'], true) ? 'activo' : '' ?>">Importaciones</a>
     <a href="<?= App::url('notificaciones') ?>" class="campana <?= $sec === 'notificaciones' ? 'activo' : '' ?>" title="Verificaciones pendientes">
       🔔 <span>Verificaciones</span><?php if ($pend): ?> <b class="contador"><?= $pend ?></b><?php endif ?>
@@ -37,7 +37,7 @@
       <b>No se aplicó: hay cambios posteriores sobre los mismos datos.</b>
       <ul><?php foreach ($cf['conflictos'] as $c): ?><li><?= e($c) ?></li><?php endforeach ?></ul>
       <?php if (App::puede('forzar')): ?>
-        <form method="post" action="<?= isset($cf['proceso']) ? App::url('proceso_deshacer', ['id' => $cf['proceso']]) : App::url('deshacer') ?>">
+        <form method="post" action="<?= isset($cf['curaduria']) ? App::url('curaduria_deshacer', ['id' => $cf['curaduria']]) : (isset($cf['proceso']) ? App::url('proceso_deshacer', ['id' => $cf['proceso']]) : App::url('deshacer')) ?>">
           <?= App::campoToken() ?>
           <?php if (isset($cf['cambio'])): ?><input type="hidden" name="cambio" value="<?= (int)$cf['cambio'] ?>"><?php endif ?>
           <input type="hidden" name="forzar" value="1">

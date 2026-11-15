@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Archivo AIDA BORTNIK · Las cajas de Aída
 -- Esquema MySQL / MariaDB · InnoDB · utf8mb4
--- Versión 0.5 (15/11/2026) — búsqueda FULLTEXT y control de migraciones
+-- Versión 0.6 (15/11/2026) — curaduría de vocabularios (mover, descartar, alias) y años con rango
 --
 -- Los cambios posteriores a una instalación van además como migración en
 -- db/migraciones/NNN_*.sql (se aplican con php bin/migrar.php).
@@ -69,7 +69,9 @@ CREATE TABLE IF NOT EXISTS registro (
   autor                VARCHAR(500) NULL,              -- col. G
   lugar                VARCHAR(500) NULL,              -- col. I
   fecha_texto          VARCHAR(500) NULL,              -- col. J "Fecha como dice el doc" (solo se muestra)
-  anio                 SMALLINT     NULL,              -- col. K cuando es un año limpio (filtrable)
+  anio                 SMALLINT     NULL,              -- col. K: año, o primer año del rango (filtrable; ver Texto::anio)
+  anio_hasta           SMALLINT     NULL,              -- último año del rango (= anio si es un año solo)
+  anio_sin_confirmar   TINYINT(1)   NOT NULL DEFAULT 0, -- 1 = la planilla lo trae con duda («1972?»)
   anio_texto           VARCHAR(60)  NULL,              -- col. K tal cual ("1972?", "1982 /1986")
   paginas              INT UNSIGNED NULL,              -- col. L
   resumen              TEXT         NULL,              -- col. M
@@ -104,6 +106,7 @@ CREATE TABLE IF NOT EXISTS registro (
   UNIQUE KEY uq_registro_caja_numero (caja_id, numero),
   UNIQUE KEY uq_registro_codigo (codigo),
   KEY idx_registro_anio (anio),
+  KEY idx_registro_anio_rango (anio, anio_hasta),
   KEY idx_registro_acceso (acceso, publicado),
   -- Búsqueda (src/Buscador.php, docs/busqueda.md). Tildes y mayúsculas: las ignora la colación.
   FULLTEXT KEY ft_registro_publico (codigo, titulo, autor, lugar, fecha_texto, anio_texto, resumen, isbn, obs_editorial, edicion_catalogo),
@@ -122,12 +125,32 @@ CREATE TABLE IF NOT EXISTS vocabulario (
   tipo       ENUM('tipo_documento','descriptor') NOT NULL,
   nombre     VARCHAR(120) NOT NULL,
   clave      VARCHAR(120) NOT NULL,                 -- nombre normalizado (sin tildes, minúscula) para deduplicar
-  estado     ENUM('aprobado','propuesto') NOT NULL DEFAULT 'propuesto',
-  fusionado_en SMALLINT UNSIGNED NULL,              -- si se fusionó con otro término
+  estado     ENUM('aprobado','propuesto','descartado') NOT NULL DEFAULT 'propuesto', -- descartado: basura, la importación lo ignora
+  fusionado_en SMALLINT UNSIGNED NULL,              -- si se fusionó con otro término o se movió al otro vocabulario
+  regla      ENUM('fusion','movido') NULL,          -- por qué apunta a fusionado_en
+  motivo     VARCHAR(500) NULL,                     -- motivo del último cambio de curaduría
+  eliminado_en  DATETIME NULL,                      -- se deshizo su alta (la importación lo revive si vuelve a venir)
+  eliminado_por INT UNSIGNED NULL,
   creado_en  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_vocab (tipo, clave),
   CONSTRAINT fk_vocab_fusion FOREIGN KEY (fusionado_en) REFERENCES vocabulario(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Grafías anteriores de términos renombrados: la importación las resuelve al término vigente.
+CREATE TABLE IF NOT EXISTS vocabulario_alias (
+  id             SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tipo           ENUM('tipo_documento','descriptor') NOT NULL,
+  clave          VARCHAR(120) NOT NULL,
+  nombre         VARCHAR(120) NOT NULL,
+  vocabulario_id SMALLINT UNSIGNED NOT NULL,
+  eliminado_en   DATETIME NULL,
+  eliminado_por  INT UNSIGNED NULL,
+  creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_alias (tipo, clave),
+  KEY idx_alias_vocab (vocabulario_id),
+  CONSTRAINT fk_alias_vocab FOREIGN KEY (vocabulario_id) REFERENCES vocabulario(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS registro_vocabulario (
@@ -172,9 +195,10 @@ CREATE TABLE IF NOT EXISTS archivo_digital (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS proceso (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  tipo        ENUM('importacion','escaneo','acceso_masivo') NOT NULL,
+  tipo        ENUM('importacion','escaneo','acceso_masivo','curaduria') NOT NULL,
   fuente      VARCHAR(512) NULL,
   simulacion  TINYINT(1)   NOT NULL DEFAULT 0,
+  usuario_id  INT UNSIGNED NULL,                    -- quién lo hizo (curaduría desde el backoffice)
   resumen     JSON         NULL,
   iniciado_en DATETIME     NOT NULL,
   terminado_en DATETIME    NULL,
@@ -222,7 +246,7 @@ CREATE TABLE IF NOT EXISTS auditoria (
   usuario_id   INT UNSIGNED NULL,
   origen       ENUM('backoffice','importacion','escaneo','reversion') NOT NULL DEFAULT 'backoffice',
   proceso_id   INT UNSIGNED NULL,                   -- si lo hizo una importación o un escaneo
-  entidad      ENUM('caja','registro','archivo_digital','vocabulario','periodo','usuario') NOT NULL,
+  entidad      ENUM('caja','registro','archivo_digital','vocabulario','vocabulario_alias','periodo','usuario') NOT NULL,
   entidad_id   INT UNSIGNED NOT NULL,
   accion       ENUM('alta','modificacion','baja','restauracion','reversion') NOT NULL,
   cambios      JSON NULL,                           -- {campo: [antes, después]}
@@ -259,6 +283,7 @@ CREATE TABLE IF NOT EXISTS migracion (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO migracion (version, nombre) VALUES
-  ('001', '001_busqueda_fulltext.sql');
+  ('001', '001_busqueda_fulltext.sql'),
+  ('002', '002_curaduria_y_anios.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

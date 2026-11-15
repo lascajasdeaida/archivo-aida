@@ -45,10 +45,11 @@ $registros = $q('SELECT r.id, r.caja_id, r.numero, r.codigo, r.titulo, r.autor, 
                  WHERE r.eliminado_en IS NULL AND c.eliminado_en IS NULL
                  ORDER BY c.numero, r.numero');
 
-$vocab = $q('SELECT v.id, v.tipo, v.nombre, v.clave, v.estado, v.fusionado_en, d.tipo destino_tipo,
+$vocab = $q('SELECT v.id, v.tipo, v.nombre, v.clave, v.estado, v.fusionado_en, v.regla, d.tipo destino_tipo,
                     (SELECT COUNT(*) FROM registro_vocabulario rv JOIN registro r ON r.id = rv.registro_id
                      WHERE rv.vocabulario_id = v.id AND r.eliminado_en IS NULL) usos
              FROM vocabulario v LEFT JOIN vocabulario d ON d.id = v.fusionado_en
+             WHERE v.eliminado_en IS NULL
              ORDER BY v.tipo, v.clave');
 
 $usosPorRegistro = [];
@@ -330,7 +331,7 @@ $resumen['Títulos con grafías dispares en la misma caja'] = count($filas);
 // 3. Años y fechas
 // =====================================================================
 $h('3. Años y fechas');
-$p('`anio` solo se completa cuando la columna Año trae un año limpio (es el que filtra el sitio). El resto queda en `anio_texto`.');
+$p('`anio` (y `anio_hasta`) se completan con la columna Año cuando es un año, un rango, un año con duda o una fecha (Texto::anio; ver docs/decisiones.md). El resto queda solo en `anio_texto`.');
 $cat = [
     'Año único con duda («1972?», «¿1984?», «1989???»)' => [],
     'Rango o varios años («1981/82», «2004/ 2005», «Entre 1983 y 1986»)' => [],
@@ -468,14 +469,15 @@ $tabla(['Autor', 'Registros'], $filas);
 // 5. Vocabularios
 // =====================================================================
 $h('5. Vocabularios');
-$activos = array_filter($vocab, fn($v) => $v['fusionado_en'] === null);
+$activos = array_filter($vocab, fn($v) => $v['fusionado_en'] === null && $v['estado'] !== 'descartado');
 $propuestos = array_filter($activos, fn($v) => $v['estado'] === 'propuesto');
 $p(sprintf('Términos activos: %d (%d tipos, %d descriptores). Propuestos sin curar: %d. Fusionados: %d.',
     count($activos),
     count(array_filter($activos, fn($v) => $v['tipo'] === 'tipo_documento')),
     count(array_filter($activos, fn($v) => $v['tipo'] === 'descriptor')),
     count($propuestos),
-    count($vocab) - count($activos)));
+    count(array_filter($vocab, fn($v) => $v['fusionado_en'] !== null))) . sprintf(' Descartados: %d.',
+    count(array_filter($vocab, fn($v) => $v['estado'] === 'descartado' && $v['fusionado_en'] === null))));
 $resumen['Términos propuestos sin curar'] = count($propuestos);
 $etq = fn(string $t) => $t === 'descriptor' ? 'Descriptor' : 'Tipo';
 
@@ -549,7 +551,8 @@ $tabla(['Término', 'Como tipo', 'Como descriptor', 'Ambos', 'Solo como descript
 $h('5.d Fusiones con destino en el otro vocabulario', 3);
 $filas = [];
 foreach ($vocab as $v) {
-    if ($v['fusionado_en'] !== null && $v['destino_tipo'] !== $v['tipo']) {
+    // Los movidos con «Mover a…» (regla = movido) son intencionales y la importación los resuelve bien
+    if ($v['fusionado_en'] !== null && $v['destino_tipo'] !== $v['tipo'] && $v['regla'] !== 'movido') {
         $filas[] = ["«{$v['nombre']}» (#{$v['id']}, {$etq($v['tipo'])})", "#{$v['fusionado_en']} ({$etq((string)$v['destino_tipo'])})"];
     }
 }

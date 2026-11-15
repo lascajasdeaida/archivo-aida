@@ -24,12 +24,15 @@ final class Historial
     public const CAMPOS = [
         'caja' => ['numero', 'nombre', 'resumen', 'anio_desde', 'anio_hasta', 'publicada', 'eliminado_en', 'eliminado_por', 'campos_bloqueados'],
         'registro' => [
-            'caja_id', 'numero', 'codigo', 'titulo', 'autor', 'lugar', 'fecha_texto', 'anio', 'anio_texto', 'paginas',
+            'caja_id', 'numero', 'codigo', 'titulo', 'autor', 'lugar', 'fecha_texto', 'anio', 'anio_hasta', 'anio_sin_confirmar', 'anio_texto', 'paginas',
             'resumen', 'isbn', 'obs_editorial', 'edicion_catalogo', 'obs_conservacion', 'obs_digitalizacion',
             'seleccion_digit', 'excel_digitalizado', 'excel_nomenclatura', 'excel_privado', 'acceso', 'publicado',
             'origen', 'eliminado_en', 'eliminado_por', 'campos_bloqueados', 'tipos', 'descriptores',
         ],
         'archivo_digital' => ['registro_id', 'parte', 'eliminado_en', 'eliminado_por'],
+        // Curaduría de vocabularios (src/Curaduria.php): mover, fusionar, renombrar, descartar
+        'vocabulario' => ['tipo', 'nombre', 'clave', 'estado', 'fusionado_en', 'regla', 'motivo', 'eliminado_en', 'eliminado_por'],
+        'vocabulario_alias' => ['tipo', 'clave', 'nombre', 'vocabulario_id', 'eliminado_en', 'eliminado_por'],
     ];
 
     private const LISTAS = ['tipos' => 'tipo_documento', 'descriptores' => 'descriptor'];
@@ -166,7 +169,22 @@ final class Historial
 
         $actual = $this->leer($entidad, $id, array_keys($cambios));
         $conflictos = [];
+        $voc = new Vocabulario($this->db);
         foreach ($cambios as $campo => [$antes, $despues]) {
+            if (isset(self::LISTAS[$campo])) {
+                // Las listas se comparan por término vigente: un renombre o una fusión posterior no es un conflicto
+                $tipo = self::LISTAS[$campo];
+                if ($this->idsLista($tipo, (array)($actual[$campo] ?? [])) === $this->idsLista($tipo, (array)$despues)) {
+                    $actual[$campo] = $despues;
+                }
+                foreach ((array)$antes as $n) {
+                    if ($voc->idParaLista($tipo, (string)$n) === null) {
+                        $conflictos[] = "$nombre: " . $voc->motivoNoAsignable($tipo, (string)$n)
+                                      . '. Para recuperarlo, deshacé primero ese cambio de curaduría (Vocabularios → Cambios de curaduría)'
+                                      . ($forzar ? '; se omite.' : '.');
+                    }
+                }
+            }
             if (!self::igual($actual[$campo] ?? null, $despues)) {
                 $conflictos[] = "$nombre, campo «{$campo}»: se modificó de nuevo después (hoy vale «" . self::mostrar($actual[$campo] ?? null)
                               . "»; el cambio lo había dejado en «" . self::mostrar($despues) . "»)";
@@ -179,7 +197,7 @@ final class Historial
         foreach ($cambios as $campo => [$antes, $despues]) {
             $volver[$campo] = $antes;
         }
-        $this->escribir($entidad, $id, $volver);
+        $this->escribir($entidad, $id, $volver, $forzar);
         $this->registrar($entidad, $id, 'reversion', $actual, $this->leer($entidad, $id, array_keys($cambios)), $idCambio);
         $this->marcarRevertido($idCambio);
         return ['ok' => true, 'mensaje' => 'Cambio revertido (' . count($cambios) . ' campos)', 'conflictos' => $conflictos];
@@ -248,7 +266,7 @@ final class Historial
     }
 
     /** @param array<string,mixed> $datos */
-    private function escribir(string $entidad, int $id, array $datos): void
+    private function escribir(string $entidad, int $id, array $datos, bool $omitirInvalidos = false): void
     {
         $this->validarCampos($entidad, array_keys($datos));
         $simples = array_diff_key($datos, self::LISTAS);
@@ -257,8 +275,15 @@ final class Historial
             $this->db->prepare("UPDATE $entidad SET $set WHERE id = ?")->execute(array_merge(array_values($simples), [$id]));
         }
         foreach (array_intersect_key($datos, self::LISTAS) as $campo => $nombres) {
-            $this->escribirLista($id, $campo, (array)$nombres);
+            $this->escribirLista($id, $campo, (array)$nombres, $omitirInvalidos);
         }
+    }
+
+    /** @return list<int> ids de término vigente de una lista de nombres (los que no se resuelven, como 0) */
+    private function idsLista(string $tipo, array $nombres): array
+    {
+        $voc = new Vocabulario($this->db);
+        return array_map(fn($n) => $voc->idParaLista($tipo, (string)$n) ?? 0, array_values($nombres));
     }
 
     /** @return list<string> */
@@ -271,21 +296,32 @@ final class Historial
     }
 
     /** @param list<string> $nombres */
-    private function escribirLista(int $registroId, string $campo, array $nombres): void
+    /**
+     * Reemplaza la lista de términos de un registro. Cada nombre se resuelve al término vigente del mismo
+     * vocabulario (sigue fusiones y grafías anteriores). Un término movido al otro vocabulario o descartado
+     * no se asigna: error, o se omite si $omitirInvalidos (reversión forzada).
+     * @param list<string> $nombres
+     */
+    private function escribirLista(int $registroId, string $campo, array $nombres, bool $omitirInvalidos = false): void
     {
         $tipo = self::LISTAS[$campo];
+        $voc = new Vocabulario($this->db);
+        $ids = [];
+        foreach ($nombres as $n) {
+            $vid = $voc->idParaLista($tipo, (string)$n);
+            if ($vid === null) {
+                if ($omitirInvalidos) {
+                    continue;
+                }
+                throw new \RuntimeException($voc->motivoNoAsignable($tipo, (string)$n));
+            }
+            $ids[$vid] ??= count($ids) + 1;
+        }
         $this->db->prepare('DELETE rv FROM registro_vocabulario rv JOIN vocabulario v ON v.id = rv.vocabulario_id
                             WHERE rv.registro_id = ? AND v.tipo = ?')->execute([$registroId, $tipo]);
-        $buscar = $this->db->prepare('SELECT COALESCE(fusionado_en, id) FROM vocabulario WHERE tipo = ? AND clave = ?');
         $ins = $this->db->prepare('INSERT IGNORE INTO registro_vocabulario (registro_id, vocabulario_id, orden) VALUES (?,?,?)');
-        $orden = 0;
-        foreach ($nombres as $n) {
-            $buscar->execute([$tipo, Texto::clave($n)]);
-            $vid = $buscar->fetchColumn();
-            if ($vid === false) {
-                throw new \RuntimeException("El término «{$n}» no existe en el vocabulario ($tipo)");
-            }
-            $ins->execute([$registroId, $vid, ++$orden]);
+        foreach ($ids as $vid => $orden) {
+            $ins->execute([$registroId, $vid, $orden]);
         }
     }
 
@@ -326,6 +362,8 @@ final class Historial
             'registro' => 'SELECT codigo FROM registro WHERE id = ?',
             'caja' => "SELECT CONCAT('Caja ', numero) FROM caja WHERE id = ?",
             'archivo_digital' => 'SELECT nombre_archivo FROM archivo_digital WHERE id = ?',
+            'vocabulario' => "SELECT CONCAT('«', nombre, '» (', IF(tipo = 'descriptor', 'descriptor', 'tipo de documento'), ')') FROM vocabulario WHERE id = ?",
+            'vocabulario_alias' => "SELECT CONCAT('grafía «', nombre, '»') FROM vocabulario_alias WHERE id = ?",
             default => null,
         };
         if ($sql === null) {

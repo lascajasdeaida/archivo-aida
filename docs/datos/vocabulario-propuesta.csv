@@ -1,0 +1,109 @@
+tipo,id,termino_actual,accion,destino_o_nuevo_nombre,registros_afectados,motivo
+tipo_documento,70,Adaptación,revisar,Quitar; sugerido reemplazar por Entrevista (#40),1,"C9R1 son las entrevistas VII y VIII a los hijos de Azucena Villaflor; «adaptación» describe el proceso, no el documento."
+tipo_documento,18,Archivo de audio,aprobar,,19,"Soportes físicos: cintas, casetes."
+tipo_documento,57,Archivo digital de audio,aprobar,,1,"Archivo digital (distinto de Archivo de audio, que es el soporte físico)."
+tipo_documento,56,Archivo digital de imagen,aprobar,,7,
+tipo_documento,52,Archivo digital de texto,aprobar,,9,
+tipo_documento,82,Asistencia a la producción,aprobar,,44,
+tipo_documento,73,Asistencia a la producción.,fusionar,Asistencia a la producción (#82),68,Mismo término con punto final.
+tipo_documento,101,"Aída Bortnik/ Sergio Renán (sobre ""Alrededor de la jaula"" de Haroldo Conti)",revisar,Quitar (C39R7 ya tiene el tipo Guion),1,Es el texto de la columna Autor pegado en Tipo 2.
+tipo_documento,50,Borderaux,fusionar,Bordereau (#20),3,Error de tipeo de «Bordereaux».
+tipo_documento,20,Bordereaux,renombrar,Bordereau,1,"Forma singular, como el resto de los tipos. Destino de la fusión de «Borderaux»."
+tipo_documento,74,Cable de Agencia,fusionar,Cable de agencia de noticias (#90),4,Mismo término abreviado y con mayúscula.
+tipo_documento,90,Cable de agencia de noticias,aprobar,,11,
+tipo_documento,25,Canción,aprobar,,10,
+tipo_documento,13,Carta,aprobar,,99,
+tipo_documento,9,Carta con tarjeta,fusionar,Carta (#13),2,"Variante de Carta; si interesa la tarjeta, sumar también el tipo Tarjeta a mano."
+tipo_documento,16,Clipping de prensa,aprobar,,30,
+tipo_documento,24,Comunicado de prensa,aprobar,,9,
+tipo_documento,54,Contrato de locación de servicios,fusionar,Contrato/Acuerdo (#46),2,Caso particular de contrato; 2 registros de la caja 4.
+tipo_documento,46,Contratos/Acuerdos,renombrar,Contrato/Acuerdo,20,"Singular, como el resto. Destino de «Contrato de locación de servicios»."
+tipo_documento,68,Cuento,aprobar,,25,
+tipo_documento,99,Cuento?,fusionar,Cuento (#68),1,"Variante con «?». La duda del catalogador está en el resumen de C37R8 («CUENTO?, PELICULA?, TEATRO?»)."
+tipo_documento,14,Curriculum,renombrar,Currículum,17,"RAE: currículum, con tilde."
+tipo_documento,49,Descripción de personajes,aprobar,,78,
+tipo_documento,40,Entrevista,aprobar,,35,
+tipo_documento,105,Escenas,fusionar,Guion (#33),1,Escenas sueltas de un guion; C53R7 ya tiene Guion.
+tipo_documento,38,Fotografía,aprobar,,15,
+tipo_documento,33,Guion,aprobar,,545,
+tipo_documento,1,Investigación de proyecto,aprobar,,138,
+tipo_documento,106,Largometraje,revisar,Quitar (C53R7 ya tiene el descriptor Película),1,"Es un formato de película, no un tipo de documento."
+tipo_documento,51,Mail,renombrar,Correo electrónico,10,RAE recomienda «correo electrónico» en lugar de «mail».
+tipo_documento,17,Nota,fusionar,Nota/Manuscrito (#23),8,Solo aparece en las cajas 1 a 3: es la forma vieja de «Nota/Manuscrito». Mirar C2R4 (fotocopia de reseña de revista: podría ser Reseña).
+tipo_documento,72,Nota de prensa,aprobar,,83,
+tipo_documento,23,Nota/Manuscrito,aprobar,,103,
+tipo_documento,76,Novela,aprobar,,8,
+tipo_documento,75,Novela.,fusionar,Novela (#76),1,Mismo término con punto final.
+tipo_documento,22,Objeto,aprobar,,3,
+tipo_documento,2,Obra de teatro,aprobar,,96,
+tipo_documento,103,Periódico,aprobar,,1,
+tipo_documento,102,Poesía,aprobar,,1,
+tipo_documento,28,Prensa,revisar,"Quitar en los 40 registros que ya tienen un tipo de prensa específico; en los 24 restantes asignar Nota de prensa, Clipping de prensa, Revista o Periódico según el resumen",64,"Genérico: se superpone con Nota de prensa (22), Clipping de prensa (13) y Revista (7). «Prensa» queda como grupo en el front, no como tipo."
+tipo_documento,7,Programa,aprobar,,59,Programa de mano o de sala.
+tipo_documento,59,Referencia de época,fusionar,Referencia de época (#58),2,Singular/plural del mismo término.
+tipo_documento,58,Referencias de época,renombrar,Referencia de época,9,"Singular, como el resto. Destino de #59."
+tipo_documento,77,Registro/Certificado,aprobar,,3,
+tipo_documento,30,Reseña,aprobar,,1,Destino de «Reseña/Revista» y «ReseñaRevista».
+tipo_documento,48,Reseña/Revista,fusionar,Reseña (#30),2,Mezcla tipo y soporte; el soporte ya está en el tipo Revista.
+tipo_documento,96,ReseñaRevista,fusionar,Reseña (#30),1,«Reseña/Revista» sin la barra.
+tipo_documento,29,Revista,aprobar,,74,
+tipo_documento,98,Serie de TV,revisar,Mover a un descriptor nuevo «Serie de televisión» y quitar el tipo,33,"Es un formato, no un tipo de documento. Los 33 registros (cajas 34 y 35) ya tienen el tipo Guion."
+tipo_documento,104,Sinopsis argumental,aprobar,,1,
+tipo_documento,10,Sobre,aprobar,,26,
+tipo_documento,32,Tarjeta,aprobar,,7,
+tipo_documento,61,Televisión,revisar,"Mover al descriptor Televisión (#63): sumar el descriptor en los 142 registros que no lo tienen y quitar el tipo. C15R8, C26R39 y C26R43 se quedan sin tipo: sugerido Guion / Sinopsis argumental / Nota/Manuscrito",146,"Es un medio, no un tipo de documento. Ya existe el descriptor Televisión y conviven Cine/Teatro como descriptores."
+tipo_documento,107,testeo,revisar,Renombrar a «Encuesta de público» (o quitar: C53R13 ya tiene Investigación de proyecto),1,C53R13: 30 tests de público sobre «Caballos salvajes».
+tipo_documento,12,Texto en verso,aprobar,,3,
+tipo_documento,31,Ticket,fusionar,Ticket/Comprobante (#95),2,Variante.
+tipo_documento,95,Ticket/Comprobante,aprobar,,3,
+descriptor,97,.,revisar,Quitar (se va solo en la próxima importación: el importador ya ignora celdas con solo signos),2,"Solo un punto (C33R4, C38R1)."
+descriptor,41,Actualidades cinematográficas,aprobar,,33,
+descriptor,5,Artes escénicas,aprobar,,48,
+descriptor,43,Asistencia al cine,aprobar,,118,Confirmar con el equipo qué quieren decir (118 usos).
+descriptor,11,Carta,revisar,Mover al tipo Carta (#13): sumar el tipo en los 19 registros que no lo tienen y quitar el descriptor,65,"Es un tipo de documento, no un tema. 46 de 65 ya tienen el tipo."
+descriptor,35,Cine,aprobar,,314,
+descriptor,67,Cinta con registro sonoro,revisar,Quitar (los 3 registros ya tienen el tipo Archivo de audio),3,"Es el soporte, no un tema."
+descriptor,89,Cliping de Prensa,revisar,Quitar (C20R21 y C20R22 ya tienen el tipo Clipping de prensa),2,Es un tipo de documento y está mal escrito («Cliping»).
+descriptor,92,Comedia Musical,renombrar,Comedia musical,1,Minúscula en la segunda palabra.
+descriptor,60,Compañía teatral,aprobar,,4,
+descriptor,27,Comunicado de prensa,revisar,Mover al tipo Comunicado de prensa (#24): sumar el tipo en los 20 registros que no lo tienen y quitar el descriptor,26,Es un tipo de documento.
+descriptor,66,Cuentos,renombrar,Literatura,24,"Pasa a ser el descriptor del área (como Cine, Teatro, Televisión, Música). El género ya está en el tipo Cuento (21 de 24 lo tienen)."
+descriptor,100,Cuentos?,fusionar,Literatura (#66),1,Variante con «?» de «Cuentos».
+descriptor,88,Danza,aprobar,,1,
+descriptor,108,Dibujo animado,aprobar,,2,
+descriptor,55,Documental,aprobar,,23,
+descriptor,78,Estilo musical,fusionar,Música (#19),1,Granularidad de tesauro con 1 uso: no sirve como filtro. El registro ya tiene Música.
+descriptor,44,Festival del cine,renombrar,Festival de cine,17,Grafía.
+descriptor,71,Filmación,aprobar,,25,
+descriptor,83,Forma musical,fusionar,Música (#19),2,Igual que Estilo musical.
+descriptor,39,Fotografía,revisar,"Mover al tipo Fotografía (#38): sumar el tipo en C66R2, C66R6, C66R8 y quitar el descriptor",15,"Es un tipo de documento; 12 de 15 ya lo tienen como tipo. Mirar C66R2 antes: el resumen habla de recortes, no de fotos."
+descriptor,64,g,revisar,Quitar,1,"Letra suelta (C6R10, Descriptor 3). No se deduce qué querían poner; el registro ya tiene Actualidades cinematográficas y Cine."
+descriptor,26,Gestión de teatros,renombrar,Gestión teatral,3,Paralelo a «Producción teatral».
+descriptor,93,guio,fusionar,Guion (#47),1,«Guion» cortado (C26R20).
+descriptor,47,Guion,aprobar,,485,Como tema (escritura de guion). Convive con el tipo Guion: el front los muestra en grupos distintos.
+descriptor,36,Guión del cine,fusionar,Guion (#47),6,«Guion de cine» = Guion + Cine; 5 de los 6 ya tienen Cine (falta en C4R6).
+descriptor,79,Himno nacional,aprobar,,2,
+descriptor,42,Historia de cine,renombrar,Historia del cine,4,Grafía.
+descriptor,37,Industria cinematográfica,aprobar,,154,
+descriptor,85,Instrumento musical,fusionar,Música (#19),1,Igual que Estilo musical.
+descriptor,80,Interpretación musical,fusionar,Música (#19),1,Igual que Estilo musical.
+descriptor,21,Monólogo,aprobar,,4,
+descriptor,19,Música,aprobar,,3,Destino de los descriptores musicales sueltos.
+descriptor,69,Novelas. Noticias.,revisar,"Dividir: Literatura en 11 registros, «Periodismo» (descriptor nuevo) en 16 y revisar 7 a mano (ver .md)",34,Junta dos temas distintos; el texto parece dos términos pegados.
+descriptor,4,Obra de teatro,fusionar,Teatro (#15),90,Duplica el tipo «Obra de teatro» (77 de 90 registros lo tienen) y el descriptor Teatro; 43 registros suman Teatro.
+descriptor,86,Orquesta,fusionar,Música (#19),1,Igual que Estilo musical.
+descriptor,34,Película,aprobar,,184,
+descriptor,62,Película de televisión,aprobar,,131,
+descriptor,91,Película de televisión?????,fusionar,Película de televisión (#62),1,Variante con «?????».
+descriptor,81,Película histórica,aprobar,,20,
+descriptor,45,Premios/Nominaciones/Menciones,aprobar,,31,
+descriptor,8,Producción teatral,aprobar,,14,
+descriptor,94,propuesta,revisar,Quitar; sugerido Periodismo,1,C26R41 es una propuesta de notas para prensa; «propuesta» no es un tema.
+descriptor,53,Referencia de época,revisar,Quitar y sumar el tipo Referencia de época (#58) en C3R7 y C3R8,2,Ya existe como tipo de documento.
+descriptor,65,s,revisar,Quitar,1,"Letra suelta (C6R10, Descriptor 4). Igual que «g»."
+descriptor,15,Teatro,aprobar,,92,Destino de «Obra de teatro» (descriptor).
+descriptor,3,Teatro contemporáneo,aprobar,,3,
+descriptor,6,Teatro itinerante,aprobar,,1,
+descriptor,87,Teatro nacional,aprobar,,1,
+descriptor,84,Teatro popular,aprobar,,3,
+descriptor,63,Televisión,aprobar,,4,Destino del tipo Televisión.

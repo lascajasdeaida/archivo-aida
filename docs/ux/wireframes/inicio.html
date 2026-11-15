@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inicio · Las cajas de Aída (wireframe)</title>
+<link rel="stylesheet" href="wf.css">
+</head>
+<body>
+<main id="contenido" tabindex="-1">
+  <section class="portada"><div class="contenedor">
+    <h1>Las cajas de Aída</h1>
+    <p>El archivo personal de Aída Bortnik, guionista y escritora: guiones, obras de teatro, cartas, notas y recortes guardados en más de 70 cajas.</p>
+    <form class="buscador" id="form-inicio" action="explorar.html" role="search" aria-label="Buscar en el archivo">
+      <label class="solo-lector" for="q-inicio">Buscar en el archivo</label>
+      <input type="search" id="q-inicio" name="q" placeholder="Buscá una obra, una persona, un tipo de documento…" autocomplete="off">
+      <button class="boton">Buscar</button>
+    </form>
+    <p class="meta" style="margin-top:8px">Por ejemplo: <a href="explorar.html?q=historia%20oficial">La historia oficial</a> · <a href="explorar.html?q=tango%20feroz">Tango feroz</a> · <a href="explorar.html?tipo=carta">Cartas</a> · <a href="explorar.html?q=puenzo">Puenzo</a></p>
+    <ul class="cifras" id="cifras"></ul>
+  </div></section>
+
+  <div class="contenedor">
+    <section class="seccion" aria-labelledby="h-tipo">
+      <div class="seccion-cabeza"><h2 id="h-tipo">Explorá por tipo de documento</h2></div>
+      <ul class="accesos" id="por-tipo"></ul>
+    </section>
+    <section class="seccion" aria-labelledby="h-decada">
+      <div class="seccion-cabeza"><h2 id="h-decada">Por época</h2></div>
+      <ul class="accesos" id="por-decada"></ul>
+      <p class="wf-nota">Si se definen las «etapas» de la obra (D2), este bloque pasa a mostrar etapas en lugar de décadas.</p>
+    </section>
+    <section class="seccion" aria-labelledby="h-digit">
+      <div class="seccion-cabeza"><h2 id="h-digit">Ya podés leerlos</h2><a href="explorar.html?disponible=digital">Ver todos los documentos digitalizados</a></div>
+      <ul class="carrusel lista-resultados" id="digitalizados"></ul>
+    </section>
+    <section class="seccion" aria-labelledby="h-cajas">
+      <div class="seccion-cabeza"><h2 id="h-cajas">Las cajas</h2><a href="cajas.html">Ver las 70 cajas</a></div>
+      <p>Cada caja reúne el material de una obra o un proyecto, tal como Aída lo guardó.</p>
+      <ul class="grilla-cajas" id="cajas-destacadas"></ul>
+    </section>
+    <section class="seccion" aria-labelledby="h-sobre">
+      <h2 id="h-sobre">Sobre el archivo</h2>
+      <div class="wf-caja" style="height:120px">Imagen / texto institucional (Diseño web)</div>
+      <p style="margin-top:8px"><a href="sobre.html">Cómo se armó el archivo y cómo consultarlo</a></p>
+    </section>
+  </div>
+</main>
+<script src="datos.js"></script>
+<script src="wf.js"></script>
+<script>WF.inicio();</script>
+</body>
+</html>

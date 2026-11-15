@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframes del sitio público · Las cajas de Aída</title>
+<link rel="stylesheet" href="wf.css">
+</head>
+<body>
+<main id="contenido" class="contenedor" style="max-width:820px;padding-bottom:40px">
+  <h1 style="margin-top:24px">Wireframes del sitio público</h1>
+  <p>Las cajas de Aída · UX/UI · noviembre de 2026. Estructura y comportamiento, sin estilo final (grises).
+    Mobile first: probalos a 390&nbsp;px y en escritorio. Datos reales: extracto de la base <code>aida</code> en <code>datos.js</code>
+    (se regenera con <code>php docs/ux/wireframes/generar-datos.php ruta/config.php</code>).</p>
+  <p>Documento con el criterio de cada pantalla: <a href="../sitio-publico.md">docs/ux/sitio-publico.md</a>.</p>
+  <ol class="lista-resultados">
+    <li class="tarjeta-caja"><a href="inicio.html">1. Inicio</a> <span class="meta">— <code>/</code>. Buscador, cifras, accesos por tipo, época y caja.</span></li>
+    <li class="tarjeta-caja"><a href="explorar.html">2. Explorar / resultados con filtros</a> <span class="meta">— <code>/explorar?…</code>. Facetas combinables con conteos, chips, orden, «Mostrar más». En celular, panel de filtros a pantalla completa.</span></li>
+    <li class="tarjeta-caja"><a href="explorar.html?tipo=carta&amp;disponible=digital">2b. Explorar con filtros aplicados</a> <span class="meta">— cartas digitalizadas.</span></li>
+    <li class="tarjeta-caja"><a href="explorar.html?panel=abierto">2c. Panel de filtros abierto (celular)</a></li>
+    <li class="tarjeta-caja"><a href="explorar.html?tipo=carta&amp;decada=1940">2d. Sin resultados, con sugerencias</a></li>
+    <li class="tarjeta-caja"><a href="cajas.html">3. Las 70 cajas</a> <span class="meta">— <code>/cajas</code>.</span></li>
+    <li class="tarjeta-caja"><a href="caja.html?n=2">4. Caja</a> <span class="meta">— <code>/caja/2-la-historia-oficial</code>. Otras: <a href="caja.html?n=43">43</a>, <a href="caja.html?n=57">57</a>, <a href="caja.html?n=17">17</a>.</span></li>
+    <li class="tarjeta-caja"><a href="ficha.html?c=C14R3">5. Ficha + visor (digitalizado)</a> <span class="meta">— <code>/registro/C14R3</code>.</span></li>
+    <li class="tarjeta-caja"><a href="ficha.html?c=C2R11">5b. Ficha restringida (a pedido, sin título)</a></li>
+    <li class="tarjeta-caja"><a href="ficha.html?c=C14R12">5c. Ficha sin título y sin digitalizar</a></li>
+    <li class="tarjeta-caja"><a href="consulta.html?c=C2R11">6. Consulta a pedido</a> <span class="meta">— <code>/consulta/C2R11</code>. Validación y confirmación.</span></li>
+    <li class="tarjeta-caja"><a href="sobre.html">7. Sobre el archivo</a> <span class="meta">— <code>/sobre-el-archivo</code> (esqueleto).</span></li>
+  </ol>
+  <p class="wf-nota">Abajo a la derecha de cada pantalla, «Eventos GA4» muestra lo que se mandaría a Estadísticas en cada acción.</p>
+</main>
+</body>
+</html>

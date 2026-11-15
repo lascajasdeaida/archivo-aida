@@ -1075,6 +1075,7 @@ final class Rutas
                     App::aviso('ok', ($op === 'mover' ? "«{$t['nombre']}» se movió a " . Vocabulario::PLURALES[$tipoDest] . " como «{$r['destino']['nombre']}»"
                                                       : "«{$t['nombre']}» se fusionó en «{$r['destino']['nombre']}»")
                         . ': ' . ($r['registros'] === 1 ? '1 registro' : "{$r['registros']} registros")
+                        . (!empty($r['aprobado']) ? ". «{$r['destino']['nombre']}» estaba propuesto y quedó aprobado" : '')
                         . '. La importación ya lo carga así. Se puede deshacer desde Cambios de curaduría.');
                 }
                 App::redirigir('vocab_informe');

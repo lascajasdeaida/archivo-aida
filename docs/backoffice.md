@@ -181,7 +181,7 @@ muestra también fusionados, movidos y descartados. Cada término vigente tiene:
 |---|---|---|
 | Aprobar | verde | `propuesto` → `aprobado` (queda en el historial del término) |
 | Renombrar | naranja, en línea, motivo opcional | Cambia nombre y clave. La grafía anterior queda como alias («También reconoce…») |
-| Fusionar… | pantalla de confirmación | Pasa sus registros a otro término del mismo vocabulario |
+| Fusionar… | pantalla de confirmación | Pasa sus registros a otro término del mismo vocabulario. Si el destino estaba «propuesto», queda aprobado |
 | Mover a {otro vocabulario}… | pantalla de confirmación | Pasa sus registros al otro vocabulario: a un término equivalente (recomendado), a uno nuevo o a otro |
 | Descartar… | rojo, pantalla de confirmación | Lo quita de sus registros y lo esconde. Motivo obligatorio |
 | Restaurar | verde, `data-doble` (descartados) | Deshace el descarte: vuelve a la lista y a sus registros |

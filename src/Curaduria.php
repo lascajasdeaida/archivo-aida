@@ -136,8 +136,9 @@ final class Curaduria
                 $h->registrar('vocabulario', (int)$d['id'], 'restauracion', $revivido, $this->leer((int)$d['id']));
             }
             $h->registrar('vocabulario', (int)$o['id'], 'modificacion', $antesO, $this->leer((int)$o['id']));
-            $this->cerrar($pid, $o, $d, $motivo, $regs, ['solo_este' => $imp['solo_este'], 'creado' => $creado]);
-            return ['proceso' => $pid, 'registros' => count($regs), 'destino' => $d];
+            $aprobado = !$creado && $revivido === null && $this->aprobarDestino($h, $d);
+            $this->cerrar($pid, $o, $d, $motivo, $regs, ['solo_este' => $imp['solo_este'], 'creado' => $creado, 'destino_aprobado' => $aprobado]);
+            return ['proceso' => $pid, 'registros' => count($regs), 'destino' => $d, 'aprobado' => $aprobado];
         });
     }
 
@@ -161,8 +162,9 @@ final class Curaduria
                      ->execute([$d['id'], $this->motivo($motivo), $o['id']]);
             $this->registrarRegistros($h, $regs);
             $h->registrar('vocabulario', (int)$o['id'], 'modificacion', $antesO, $this->leer((int)$o['id']));
-            $this->cerrar($pid, $o, $d, $motivo, $regs);
-            return ['proceso' => $pid, 'registros' => count($regs), 'destino' => $d];
+            $aprobado = $this->aprobarDestino($h, $d);
+            $this->cerrar($pid, $o, $d, $motivo, $regs, ['destino_aprobado' => $aprobado]);
+            return ['proceso' => $pid, 'registros' => count($regs), 'destino' => $d, 'aprobado' => $aprobado];
         });
     }
 
@@ -459,6 +461,21 @@ final class Curaduria
         }
         $this->db->prepare('DELETE FROM registro_vocabulario WHERE vocabulario_id = ?')->execute([$origen]);
         return $out;
+    }
+
+    /**
+     * Decisión del PM (15/11/2026): fusionar o mover en un término «propuesto» lo aprueba, porque elegirlo como
+     * destino ya es curarlo. Queda en el historial dentro del mismo proceso (se deshace con la operación).
+     */
+    private function aprobarDestino(Historial $h, array $d): bool
+    {
+        $st = $this->db->prepare('SELECT estado FROM vocabulario WHERE id = ?');
+        $st->execute([$d['id']]);
+        if ($st->fetchColumn() !== 'propuesto') {
+            return false;
+        }
+        $h->actualizar('vocabulario', (int)$d['id'], ['estado' => 'aprobado'], false);
+        return true;
     }
 
     /** @param list<array{id:int,codigo:string,antes:array}> $regs */

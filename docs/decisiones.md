@@ -93,6 +93,8 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 - **Estado «descartado»** para términos basura («g», «s», «.», frases pegadas): deja de mostrarse y de asignarse, se quita de
   sus registros sin bloquear los demás tipos y descriptores, y la importación lo ignora. Motivo obligatorio, confirmación con doble
   validación. Se restaura deshaciendo el descarte.
+- **Fusionar o mover en un término «propuesto» lo aprueba** (15/11/2026, decisión del PM): elegirlo como destino ya es curarlo.
+  El cambio de estado queda en el historial dentro de la misma operación y se deshace con ella.
 - **Registro e informe:** cada movimiento, fusión, renombre y descarte es un `proceso` de tipo `curaduria` (quién, cuándo, motivo,
   registros afectados) con todos sus cambios en `auditoria` (términos, alias y la lista de cada registro). Se deshace completo
   desde Vocabularios → **Cambios de curaduría**, que también se copia como texto o se baja en CSV para el equipo de digitalización

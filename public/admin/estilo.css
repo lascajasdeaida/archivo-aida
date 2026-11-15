@@ -314,3 +314,8 @@ form:has(> .lote){padding-bottom:12px}
 /* Vista previa de PDF en la ficha del registro (panel a todo el ancho, debajo de la ficha) */
 #vista-previa{scroll-margin-top:80px}
 #vista-previa iframe{display:block;width:100%;height:85vh;min-height:480px;border:1px solid var(--line);border-radius:var(--radio);background:#fff}
+
+/* Resumen de la simulación / importación del Excel */
+details.leyenda summary{cursor:pointer}
+.tabla-chica{font-size:.85rem;margin:4px 0}
+.tabla-chica td{padding:3px 8px;vertical-align:top}

@@ -3,3 +3,4 @@ config/config.php
 *.pdf
 /archivos/
 .DS_Store
+/var/

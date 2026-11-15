@@ -11,4 +11,8 @@ return [
     ],
     // Carpeta raíz donde están las carpetas de cajas (C1/, C2/, …) con los PDF
     'archivos_raiz' => '/var/www/aida-archivos',
+    // Excel subidos desde el backoffice (Importaciones). Fuera de public/. Por defecto: var/importaciones del repo.
+    // 'importaciones_dir' => '/var/www/aida-privado/importaciones',
+    // Tamaño máximo del Excel que se puede subir, en MB (también lo limitan upload_max_filesize y post_max_size de PHP).
+    // 'importar_max_mb' => 40,
 ];

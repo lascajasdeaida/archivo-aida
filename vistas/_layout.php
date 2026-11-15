@@ -14,7 +14,7 @@
   <nav>
     <a href="<?= App::url('cajas') ?>" class="<?= in_array($sec, ['cajas', 'caja', 'registro', 'caja_nueva', 'registro_nuevo'], true) ? 'activo' : '' ?>">Cajas</a>
     <a href="<?= App::url('vocabularios') ?>" class="<?= $sec === 'vocabularios' ? 'activo' : '' ?>">Vocabularios</a>
-    <a href="<?= App::url('procesos') ?>" class="<?= $sec === 'procesos' ? 'activo' : '' ?>">Importaciones</a>
+    <a href="<?= App::url('procesos') ?>" class="<?= in_array($sec, ['procesos', 'importar', 'proceso_deshacer'], true) ? 'activo' : '' ?>">Importaciones</a>
     <a href="<?= App::url('notificaciones') ?>" class="campana <?= $sec === 'notificaciones' ? 'activo' : '' ?>" title="Verificaciones pendientes">
       🔔 <span>Verificaciones</span><?php if ($pend): ?> <b class="contador"><?= $pend ?></b><?php endif ?>
     </a>

@@ -8,6 +8,9 @@ $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevo
     <h1>Importaciones y escaneos</h1>
     <p class="nota">Cada corrida del importador del Excel o del escaneo de archivos. Se puede deshacer completa.</p>
   </div>
+  <?php if (App::puede('procesos')): ?>
+    <div class="acciones"><a class="btn btn-crear" href="<?= App::url('importar') ?>">Subir Excel e importar…</a></div>
+  <?php endif ?>
 </div>
 <table>
   <thead><tr><th>#</th><th>Tipo</th><th>Fuente</th><th>Fecha</th><th>Resultado</th><th>Verificaciones</th><th>Acciones</th></tr></thead>
@@ -29,4 +32,4 @@ $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevo
   <?php if (!$procesos): ?><tr><td colspan="7" class="nota">Todavía no se corrió ninguna importación.</td></tr><?php endif ?>
   </tbody>
 </table>
-<p class="nota">Por ahora la importación y el escaneo los corre el equipo técnico en el servidor.</p>
+<p class="nota">El Excel se importa desde «Subir Excel e importar» (administración y edición). El escaneo de archivos lo corre por ahora el equipo técnico en el servidor.</p>

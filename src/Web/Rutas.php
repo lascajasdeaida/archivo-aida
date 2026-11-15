@@ -624,6 +624,129 @@ final class Rutas
         App::render('procesos', ['procesos' => $rows]);
     }
 
+    /**
+     * Subir el Excel y simular. La importación real se habilita recién después de ver la simulación
+     * y usa el mismo archivo (ver importar_confirmar).
+     */
+    public static function importar(): void
+    {
+        App::exigir('procesos');
+        if (CargaExcel::postDemasiadoGrande()) {
+            App::aviso('error', 'El archivo supera el máximo permitido (' . number_format(CargaExcel::maxBytes() / 1048576, 0, ',', '.') . ' MB).');
+            App::redirigir('importar');
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::verificarPost();
+            $f = $_FILES['excel'] ?? null;
+            $cajas = CargaExcel::cajas((string)($_POST['cajas'] ?? ''));
+            $err = CargaExcel::validar($f) ?? ($cajas === false ? 'Las cajas se indican con números separados por comas o rangos, por ejemplo: 1, 2, 10-14.' : null);
+            if ($err) {
+                App::aviso('error', $err);
+                App::redirigir('importar');
+            }
+            $dir = CargaExcel::directorio();
+            CargaExcel::limpiarViejas($dir);
+            self::descartarSimulacion();
+            $nombre = 'sim-' . bin2hex(random_bytes(12)) . '.xlsx';
+            if (!move_uploaded_file($f['tmp_name'], "$dir/$nombre")) {
+                App::aviso('error', 'No se pudo guardar el archivo en el servidor. Avisá al equipo técnico.');
+                App::redirigir('importar');
+            }
+            @chmod("$dir/$nombre", 0640);
+            $original = CargaExcel::nombreOriginal((string)$f['name']);
+            try {
+                [$rep, $seg] = CargaExcel::correr("$dir/$nombre", $cajas, true, $original);
+            } catch (\Throwable $e) {
+                @unlink("$dir/$nombre");
+                if (!$e instanceof \RuntimeException || $e->getCode() !== 409) {
+                    error_log('[aida-bo] simulación: ' . $e);
+                }
+                App::aviso('error', $e instanceof \RuntimeException && $e->getCode() === 409 ? $e->getMessage()
+                    : 'No se pudo leer el Excel. Revisá que sea el catálogo (una pestaña por caja) y que no esté dañado.');
+                App::redirigir('importar');
+            }
+            $_SESSION['importacion'] = CargaExcel::resumen($rep) + [
+                'token' => bin2hex(random_bytes(16)), 'archivo' => $nombre, 'original' => $original,
+                'sha1' => sha1_file("$dir/$nombre"), 'bytes' => (int)filesize("$dir/$nombre"),
+                'cajas' => $cajas, 'en' => time(), 'segundos' => $seg, 'usuario' => App::usuarioId(),
+            ];
+            unset($_SESSION['importacion_hecha']);
+            App::redirigir('importar');
+        }
+        $sim = self::simulacionVigente();
+        App::render('importar', [
+            'sim' => $sim,
+            'hecha' => $sim ? null : ($_SESSION['importacion_hecha'] ?? null),
+            'maxBytes' => CargaExcel::maxBytes(),
+        ]);
+    }
+
+    /** Importación real del archivo que se acaba de simular. */
+    public static function importar_confirmar(): void
+    {
+        App::exigir('procesos');
+        App::verificarPost();
+        $sim = self::simulacionVigente();
+        if (!$sim || !hash_equals($sim['token'], (string)($_POST['simulacion'] ?? ''))) {
+            App::aviso('error', 'La simulación venció o ya se usó. Subí el Excel de nuevo para simular antes de importar.');
+            App::redirigir('importar');
+        }
+        $dir = CargaExcel::directorio();
+        $ruta = "$dir/{$sim['archivo']}";
+        try {
+            [$rep, $seg] = CargaExcel::correr($ruta, $sim['cajas'], false, $sim['original']);
+        } catch (\Throwable $e) {
+            $ocupado = $e instanceof \RuntimeException && $e->getCode() === 409;
+            if (!$ocupado) {
+                error_log('[aida-bo] importación: ' . $e);
+            }
+            App::aviso('error', $ocupado ? $e->getMessage() : 'La importación falló y no se guardó nada. Ya quedó registrado; avisá al equipo técnico.');
+            App::redirigir('importar');
+        }
+        // Se conserva el Excel importado, con el número de proceso, para saber qué planilla generó cada cambio.
+        @rename($ruta, sprintf('%s/importacion-%d-%s.xlsx', $dir, (int)$rep->procesoId, date('Ymd-His')));
+        unset($_SESSION['importacion']);
+        $_SESSION['importacion_hecha'] = CargaExcel::resumen($rep) + [
+            'proceso' => $rep->procesoId, 'original' => $sim['original'], 'cajas' => $sim['cajas'], 'segundos' => $seg,
+        ];
+        App::aviso('ok', "Importación #{$rep->procesoId} terminada en " . number_format($seg, 1, ',', '.') . ' s. Se puede deshacer completa desde la lista.');
+        App::redirigir('importar');
+    }
+
+    public static function importar_descartar(): void
+    {
+        App::exigir('procesos');
+        App::verificarPost();
+        self::descartarSimulacion();
+        unset($_SESSION['importacion_hecha']);
+        App::aviso('info', 'Simulación descartada. No se importó nada.');
+        App::redirigir('importar');
+    }
+
+    /** La simulación guardada en la sesión, si el archivo sigue igual y no venció. */
+    private static function simulacionVigente(): ?array
+    {
+        $s = $_SESSION['importacion'] ?? null;
+        if (!$s) {
+            return null;
+        }
+        $ruta = CargaExcel::directorio() . '/' . basename((string)$s['archivo']);
+        if (time() - (int)$s['en'] > CargaExcel::VIGENCIA || !is_file($ruta) || sha1_file($ruta) !== $s['sha1']) {
+            self::descartarSimulacion();
+            return null;
+        }
+        return $s;
+    }
+
+    private static function descartarSimulacion(): void
+    {
+        $s = $_SESSION['importacion'] ?? null;
+        if ($s && preg_match('/^sim-[0-9a-f]{24}\.xlsx$/', (string)$s['archivo'])) {
+            @unlink(CargaExcel::directorio() . '/' . $s['archivo']);
+        }
+        unset($_SESSION['importacion']);
+    }
+
     public static function proceso_deshacer(): void
     {
         App::exigir('deshacer_todo');

@@ -1,7 +1,6 @@
 # Backoffice — ABM y alertas para el operador
 
-Requisitos funcionales del backoffice. El modelo de datos y el importador ya los soportan (esquema v0.3);
-falta construir las pantallas.
+Requisitos funcionales del backoffice. El modelo de datos y el importador ya los soportan (esquema v0.4).
 
 ## 1. ABM directo
 
@@ -106,3 +105,57 @@ modificaciones y bajas a través de esa clase.
 | Forzar una reversión con conflictos | ✅ | ✅ | — | — |
 | Importar Excel / correr escaneo | ✅ | ✅ | — | — |
 | Usuarios y borrado definitivo | ✅ | — | — | — |
+
+## 7. Ver y entregar archivos (`public/archivo.php`)
+
+Un solo punto de entrega para el sitio y el backoffice: `/archivo.php?id={id de archivo_digital}` (`&descargar=1` para bajarlo).
+Nunca recibe una ruta: la saca de la base y la resuelve con `realpath` dentro de `archivos_raiz`. La lógica está en
+`src/Entrega.php` (`buscar()`, `decidir()`, `rutaSegura()`, `enviar()`), lista para que el sitio público la reuse.
+
+| Situación | Público | Usuario del backoffice |
+|---|---|---|
+| Archivo quitado, no presente en el último escaneo, o registro/caja dados de baja | 404 «Documento no disponible» | 404 |
+| Registro no publicado | 404 | Lo ve |
+| Acceso `restringido` | 403 «Documento de consulta a pedido» (con código, título y caja) | Lo ve |
+| Acceso `a_revisar` | 403 «Documento de consulta a pedido» (sin datos del registro) | Lo ve |
+| Público y publicado | Lo ve | Lo ve |
+
+- Formatos que se entregan: PDF, imágenes, audio y video (lista en `Entrega::MIME`). Otro formato → 404.
+- Encabezados: `Content-Type`, `Content-Disposition: inline` (o `attachment` con `descargar=1`), `Accept-Ranges`,
+  `X-Content-Type-Options: nosniff`, `ETag`/`Last-Modified` (responde 304), `Cache-Control: private` (`no-cache` para el backoffice),
+  `X-Frame-Options: SAMEORIGIN`. Soporta `Range` de un tramo (206 / 416) e `If-Range`: el visor del navegador pide
+  los PDF pesados de a partes.
+- Usuario del backoffice = cookie de sesión `aida_bo` con un usuario con permiso `ver`. Al público no se le crea sesión.
+  La sesión se cierra antes de transmitir, así un PDF grande no bloquea el resto del backoffice.
+- **Métricas:** cada apertura suma una fila en `evento_uso` (`vista` o `descarga`) con registro, archivo y fecha. Sin IP,
+  usuario ni datos del navegador. Se cuenta solo el primer pedido (sin `Range`), no cada tramo del visor, y **no se cuentan
+  las consultas del equipo** desde el backoffice.
+- **En la ficha del registro**, cada archivo presente tiene «Ver PDF ↗» (pestaña nueva, visor del navegador), «Descargar» y
+  «Vista previa ↓» (panel a todo el ancho debajo de la ficha; el iframe se crea recién al pedirlo). Si el registro no se puede
+  ver en el sitio, lo aclara.
+
+## 8. Importar el Excel desde el backoffice
+
+**Importaciones → Subir Excel e importar…** (permiso `procesos`: admin y editor).
+
+1. Se sube el .xlsx (opcionalmente solo algunas cajas: `1, 2, 10-14`). Se valida extensión, tamaño (`importar_max_mb`,
+   40 MB por defecto, y los topes de PHP), que sea un zip con `xl/workbook.xml` y que no se infle a más de 400 MB al descomprimir.
+2. Se **simula siempre** primero: el importador corre entero y se deshace. Se ven contadores y avisos agrupados
+   (con cuáles van a quedar para validar). Nada se guarda.
+3. **Importar de verdad** (naranja, guardar, con doble validación `data-doble`) importa **el mismo archivo** que se simuló.
+   La simulación vale 2 horas y es de la sesión de quien la hizo. «Descartar» la borra.
+4. Al terminar se muestra el resultado y queda en la lista de importaciones, desde donde se puede **deshacer completa**.
+
+- El Excel se guarda fuera de `public/` (`importaciones_dir`, por defecto `var/importaciones/`, no versionado) con nombre
+  generado. Las simulaciones sin confirmar de más de 4 horas se borran al subir otro Excel. El importado queda como
+  `importacion-{proceso}-{fecha}.xlsx` para saber qué planilla generó cada cambio. En la bitácora figura el nombre original.
+- Un candado en la base (`GET_LOCK('aida_importacion')`) impide dos importaciones al mismo tiempo (también contra la consola).
+- Reusa `Aida\Importador` (mismas reglas). `php bin/importar.php` sigue igual.
+- Tiempo medido con el catálogo completo (70 pestañas, ~1.100 registros): **5–7 s** la simulación y otro tanto la importación,
+  memoria máxima baja (lee con XMLReader). El servidor necesita `upload_max_filesize` y `post_max_size` mayores que el Excel.
+
+## 9. Colores de los botones
+
+Por intención (`public/admin/estilo.css`): **verde** crear o agregar (`btn-crear`), **naranja** guardar o aplicar (`btn-primario`),
+**rojo** quitar o dar de baja (`btn-peligro`, `btn-peligro-borde`). Lo que cambia muchos datos de una vez lleva `data-doble`
+(primer clic arma, segundo confirma) aunque se pueda deshacer.

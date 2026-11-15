@@ -16,6 +16,8 @@ namespace Aida;
  * Siempre primero el plan (vista previa); aplicar vuelve a calcularlo y exige que no haya cambiado.
  * Se aplica con Historial::actualizar (auditado, bloquea los campos para que el Excel no los pise)
  * dentro de un proceso de tipo `correccion`, que se deshace completo desde Importaciones.
+ * Pasar a público un registro que la planilla marca PRIVADO (privado_publico) pide una confirmación aparte:
+ * sin ella, esas filas no se aplican (decisión del PM, 15/11/2026; igual que en la ficha).
  */
 final class Correccion
 {
@@ -207,7 +209,8 @@ final class Correccion
         $anular = [];
         foreach ($filas as $i => $f) {
             $p = $f + ['destino' => $f['registro'], 'entidad' => null, 'id' => null, 'campo' => null, 'etiqueta' => $f['columna'],
-                       'actual' => null, 'nuevo' => null, 'estado' => 'aplicar', 'nota' => '', 'url' => null, 'bloquear' => true, '_i' => $i];
+                       'actual' => null, 'nuevo' => null, 'estado' => 'aplicar', 'nota' => '', 'url' => null, 'bloquear' => true,
+                       'privado_publico' => false, '_i' => $i];
             $out[] = $this->planFila($p, $vistos, $anular);
         }
         // Dos filas que cambian el mismo campo con valores distintos: no se aplica ninguna
@@ -217,9 +220,12 @@ final class Correccion
                 $out[$i]['nota'] = "La fila $filaOtra cambia el mismo campo con otro valor. Dejá una sola.";
             }
         }
-        $cuentas = array_fill_keys(array_keys(self::ESTADOS), 0);
+        $cuentas = array_fill_keys(array_keys(self::ESTADOS), 0) + ['privado_publico' => 0];
         foreach ($out as $p) {
             $cuentas[$p['estado']]++;
+            if ($p['estado'] === 'aplicar' && $p['privado_publico']) {
+                $cuentas['privado_publico']++;
+            }
         }
         return ['filas' => $out, 'cuentas' => $cuentas, 'firma' => self::firma($out)];
     }
@@ -303,7 +309,8 @@ final class Correccion
                     . '(también VERDADERO = restringido, FALSO = público, VERLO = a revisar).'] + $p;
             }
             if ($nuevo === 'publico' && $fila['excel_privado'] === 'VERDADERO') {
-                $p['nota'] = 'La planilla lo marca PRIVADO: queda público igual.';
+                $p['nota'] = 'La planilla lo marca PRIVADO: pasa a público solo con la confirmación aparte.';
+                $p['privado_publico'] = true;
             }
         } elseif ($campo === 'paginas') {
             $nuevo = Texto::entero($nuevoTxt);
@@ -380,9 +387,11 @@ final class Correccion
     /**
      * Aplica las filas «aplicar» en un proceso de tipo `correccion`. Recalcula el plan dentro de la transacción
      * y, si no coincide con la vista previa que vio el operador ($firma), no aplica nada.
-     * @return array{proceso:int, aplicadas:int, registros:int, cajas:int, cuentas:array<string,int>}
+     * Las que pasan a público un registro que la planilla marca PRIVADO se aplican solo con $confirmaPrivados;
+     * si no, se omiten y se cuentan en 'omitidas_privado'.
+     * @return array{proceso:int, aplicadas:int, registros:int, cajas:int, omitidas_privado:int, cuentas:array<string,int>}
      */
-    public function aplicar(array $filas, string $fuente, ?string $firma = null): array
+    public function aplicar(array $filas, string $fuente, ?string $firma = null, bool $confirmaPrivados = false): array
     {
         $propia = !$this->db->inTransaction();
         if ($propia) {
@@ -395,8 +404,13 @@ final class Correccion
                     . 'Volvé a subir el archivo para ver la vista previa actualizada.');
             }
             $porDestino = [];
+            $omitidas = 0;
             foreach ($plan['filas'] as $p) {
                 if ($p['estado'] !== 'aplicar') {
+                    continue;
+                }
+                if ($p['privado_publico'] && !$confirmaPrivados) {
+                    $omitidas++;
                     continue;
                 }
                 $k = "{$p['entidad']}|{$p['id']}";
@@ -416,7 +430,8 @@ final class Correccion
                 $n[$d['entidad']]++;
             }
             $resumen = array_filter([
-                'correcciones aplicadas' => $plan['cuentas']['aplicar'],
+                'correcciones aplicadas' => $plan['cuentas']['aplicar'] - $omitidas,
+                'PRIVADO a público sin confirmar (no se aplicaron)' => $omitidas,
                 'registros corregidos' => $n['registro'],
                 'cajas corregidas' => $n['caja'],
                 'ya estaban así' => $plan['cuentas']['sin_cambio'],
@@ -428,8 +443,8 @@ final class Correccion
             if ($propia) {
                 $this->db->commit();
             }
-            return ['proceso' => $pid, 'aplicadas' => $plan['cuentas']['aplicar'], 'registros' => $n['registro'], 'cajas' => $n['caja'],
-                    'cuentas' => $plan['cuentas']];
+            return ['proceso' => $pid, 'aplicadas' => $plan['cuentas']['aplicar'] - $omitidas, 'registros' => $n['registro'], 'cajas' => $n['caja'],
+                    'omitidas_privado' => $omitidas, 'cuentas' => $plan['cuentas']];
         } catch (\Throwable $e) {
             if ($propia && $this->db->inTransaction()) {
                 $this->db->rollBack();

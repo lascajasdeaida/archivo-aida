@@ -195,7 +195,7 @@ fieldset.panel{background:var(--surface-2)!important}
 /* Acciones destructivas en rojo, con doble validación */
 .btn-peligro{background:var(--stop);border-color:var(--stop);color:#fff}
 .btn-peligro:hover{background:#73291F;border-color:#73291F}
-.btn-peligro:disabled{opacity:.45;cursor:not-allowed}
+.btn-peligro:disabled,.btn-primario:disabled{opacity:.45;cursor:not-allowed}
 .btn-peligro-borde{border-color:var(--stop);color:var(--stop);background:#fff}
 .btn-peligro-borde:hover{background:var(--stop-soft)}
 button.link[data-doble]{color:var(--stop)}

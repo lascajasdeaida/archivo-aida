@@ -118,7 +118,8 @@ final class Alertas
         'CORREGIDO_EN_PLANILLA' => [
             'titulo'  => 'Corrección hecha también en la planilla',
             'leyenda' => 'Había campos corregidos a mano en el backoffice (o con la corrección masiva) y la planilla ahora trae el mismo valor. '
-                       . 'Se desbloquearon: vuelven a tomarse del Excel. Base y planilla quedaron iguales.',
+                       . 'Se desbloquearon. Si el valor es idéntico, vuelve a tomarse del Excel; si solo cambian mayúsculas o espacios, '
+                       . 'se conservó la versión de la base (lo indica la lista).',
             'accion'  => 'Ninguna. Si el equipo vuelve a cambiar ese dato en la planilla, la próxima importación lo toma.',
             'valida'  => false,
         ],

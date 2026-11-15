@@ -56,6 +56,13 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   tomarse del Excel y se informa `CORREGIDO_EN_PLANILLA` (informativa, una por caja con la lista de campos). Vale para
   registros y para nombre y resumen de caja; el Año arrastra sus campos derivados. Si el Excel trae otro valor, el bloqueo
   sigue como siempre. Tipos y descriptores bloqueados no entran en esta regla.
+- **Desbloqueo conservando nuestra versión (15/11/2026, decisión del PM):** si el Excel coincide con lo corregido a mano **solo
+  ignorando mayúsculas y espacios** («aída  BORTNIK» vs «Aída Bortnik»), el campo se desbloquea igual pero **queda el valor de la
+  base**, no el del Excel. Si coincide exacto, como antes (es el mismo valor). El desbloqueo queda en el historial dentro de la
+  importación; en `CORREGIDO_EN_PLANILLA` esos campos llevan «(se conservó la versión de la base)».
+  *Pendiente:* como el campo queda libre, la **importación siguiente** sí toma la grafía del Excel. Ver la pregunta al PM en la
+  entrega (opciones: dejarlo bloqueado hasta que coincida exacto, o que el importador nunca pise un campo libre por una diferencia
+  solo de mayúsculas y espacios).
 
 ## ABM desde el backoffice (14/11/2026)
 
@@ -83,7 +90,11 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   importación no los pisa mientras la planilla siga con el error) y **se deshace completo** desde Importaciones.
   Cuando el equipo corrige su planilla, la regla del circuito (arriba, «Carga incremental») los desbloquea sola.
 - Sirve para el **cambio masivo de acceso** (columna «Acceso» o «PRIVADO»: Público / Restringido / A revisar, o VERDADERO,
-  FALSO, VERLO). Un público sobre algo que la planilla marca PRIVADO se avisa en la vista previa.
+  FALSO, VERLO).
+- **PRIVADO a público pide confirmación aparte (15/11/2026, decisión del PM):** las filas que pasan a público un registro que la
+  planilla marca PRIVADO (`excel_privado = VERDADERO`) se listan destacadas en la vista previa y «Aplicar» queda deshabilitado
+  hasta tildar «Confirmo que estos N registros que la planilla marca PRIVADO pasan a público». Se valida también en el servidor:
+  sin la casilla, esas filas no se aplican (el resto sí) y se informa en el aviso y en el resumen del proceso. Igual que la ficha.
 - Corregir el Año recalcula `anio`, `anio_hasta` y `anio_sin_confirmar` con `Texto::anio()`.
 - Prueba con la lista real (302 filas): 258 se aplican (240 Autor, 14 fechas, 4 nombres de caja), 44 se saltean («Revisar»:
   25 Año, 18 Autor, 1 Descriptor), 0 conflictos. Deshecha completa, todo vuelve; aplicada de nuevo, la importación del Excel

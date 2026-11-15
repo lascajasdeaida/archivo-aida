@@ -1,7 +1,7 @@
 # Componentes del sitio público
 
 Diseño web · 15/11/2026. HTML de referencia para que Programación lo integre en las vistas PHP.
-Estilos en [`maquetas/estilo.css`](maquetas/estilo.css) (usa solo [`tokens.css`](tokens.css)). Catálogo vivo: [`maquetas/componentes.html`](maquetas/componentes.html).
+Estilos en [`public/sitio/estilo.css`](../../public/sitio/estilo.css) (usa solo [`tokens.css`](../../public/sitio/tokens.css); el sitio y las maquetas usan el mismo archivo). Catálogo vivo: [`maquetas/componentes.html`](maquetas/componentes.html).
 Las plantillas JS equivalentes están en [`maquetas/maqueta.js`](maquetas/maqueta.js) (`tarjeta`, `tarjetaCaja`, `etiquetas`, `anioHTML`…).
 
 Convenciones:

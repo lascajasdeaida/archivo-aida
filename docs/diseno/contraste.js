@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Mide los contrastes de docs/diseno/sistema.md §2 a partir de tokens.css. Uso: node docs/diseno/contraste.js */
-const fs=require('fs');const t=fs.readFileSync(require('path').join(__dirname, 'tokens.css'),'utf8');
+const fs=require('fs');const t=fs.readFileSync(require('path').join(__dirname, '../../public/sitio/tokens.css'),'utf8');
 const C={};for(const m of t.matchAll(/--c-([\w-]+):\s*(#[0-9A-Fa-f]{6})/g))C[m[1]]=m[2].toUpperCase();
 C['gris-visor']='#A8957E';
 const lum=h=>{const c=h.match(/\w\w/g).map(x=>parseInt(x,16)/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2];};

@@ -1,7 +1,7 @@
-/* Las cajas de Aída — hoja de componentes del sitio público (maquetas).
-   Usa solo los tokens de ../tokens.css. Mobile first; escritorio desde 900 px.
+/* Las cajas de Aída — hoja de componentes del sitio público (sitio y maquetas: docs/diseno/maquetas la enlaza desde acá).
+   Usa solo los tokens de tokens.css. Mobile first; escritorio desde 900 px.
    Cada bloque lleva el nombre del componente de docs/diseno/componentes.md. */
-@import url("../tokens.css");
+@import url("tokens.css");
 
 /* =========================================================
    Base
@@ -252,6 +252,7 @@ fieldset.campo { border: 0; padding: 0; margin: 0 0 var(--e-5); }
 .avance { display: flex; align-items: center; gap: var(--e-3); font-size: var(--t-chico); color: var(--c-tinta-2); }
 .avance__barra { flex: 1; height: 8px; border-radius: var(--r-pill); background: var(--c-blanco); border: 1px solid var(--c-borde); overflow: hidden; }
 .avance__barra i { display: block; height: 100%; background: var(--c-digital); }
+.avance--caja { max-width: 440px; margin: 0 0 var(--e-5); } /* barra de digitalización en la página de la caja */
 
 /* =========================================================
    Índice de etapas (inicio) y línea de tiempo

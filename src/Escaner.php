@@ -76,12 +76,14 @@ final class Escaner
     private function procesar(array $archivos, string $fuente, bool $simulacion): Reporte
     {
         $this->rep = Reporte::iniciar('escaneo', $fuente, $simulacion);
+        $this->rep->alcanceTotal = true;
         $this->db->beginTransaction();
         try {
             $vistos = [];
-            $buscar = $this->db->prepare('SELECT r.id, r.excel_digitalizado FROM registro r JOIN caja c ON c.id = r.caja_id
+            $buscar = $this->db->prepare('SELECT r.id, r.excel_digitalizado, COALESCE(r.eliminado_en, c.eliminado_en) baja
+                                          FROM registro r JOIN caja c ON c.id = r.caja_id
                                           WHERE c.numero = ? AND r.numero = ?');
-            $existe = $this->db->prepare('SELECT id, registro_id, peso_bytes, presente FROM archivo_digital WHERE ruta = ?');
+            $existe = $this->db->prepare('SELECT id, registro_id, peso_bytes, presente, eliminado_en FROM archivo_digital WHERE ruta = ?');
             $insert = $this->db->prepare('INSERT INTO archivo_digital
                 (registro_id, ruta, nombre_archivo, parte, formato, tipo_medio, peso_bytes, modificado_en, presente, visto_en)
                 VALUES (?,?,?,?,?,?,?,?,1,NOW())');
@@ -118,8 +120,18 @@ final class Escaner
                     continue;
                 }
 
+                if ($r['baja'] !== null) {
+                    $this->rep->incidencia('info', 'ARCHIVO_DE_UNA_BAJA', $caja, $reg,
+                        "{$a['ruta']}: el registro o la caja fueron dados de baja desde el backoffice; no se asoció");
+                    continue;
+                }
+
                 $existe->execute([$a['ruta']]);
                 $prev = $existe->fetch();
+                if ($prev && $prev['eliminado_en'] !== null) {
+                    $this->rep->sumar('archivos quitados desde el backoffice (se respetan)');
+                    continue;
+                }
                 $medio = self::MEDIOS[$ext];
                 if (!$prev) {
                     $insert->execute([$r['id'], $a['ruta'], $nombre, $parte, $ext, $medio, $a['bytes'], $a['mtime']]);
@@ -135,7 +147,8 @@ final class Escaner
 
             // Lo que no se vio en este escaneo deja de estar presente
             $presentes = $this->db->query('SELECT a.id, a.ruta, c.numero caja, r.numero reg FROM archivo_digital a
-                JOIN registro r ON r.id = a.registro_id JOIN caja c ON c.id = r.caja_id WHERE a.presente = 1')->fetchAll();
+                JOIN registro r ON r.id = a.registro_id JOIN caja c ON c.id = r.caja_id
+                WHERE a.presente = 1 AND a.eliminado_en IS NULL AND r.eliminado_en IS NULL AND c.eliminado_en IS NULL')->fetchAll();
             $vistosSet = array_flip($vistos);
             $baja = $this->db->prepare('UPDATE archivo_digital SET presente = 0 WHERE id = ?');
             foreach ($presentes as $f) {
@@ -150,12 +163,13 @@ final class Escaner
 
             // Recalcular estado digitalizado
             $this->db->exec('UPDATE registro r SET digitalizado =
-                EXISTS (SELECT 1 FROM archivo_digital a WHERE a.registro_id = r.id AND a.presente = 1)');
+                EXISTS (SELECT 1 FROM archivo_digital a WHERE a.registro_id = r.id AND a.presente = 1 AND a.eliminado_en IS NULL)');
 
             // Control cruzado con lo que dice el Excel
             $cruce = $this->db->query("SELECT c.numero caja, r.numero reg, r.digitalizado, r.excel_digitalizado
                 FROM registro r JOIN caja c ON c.id = r.caja_id
                 WHERE r.excel_digitalizado IS NOT NULL AND r.excel_digitalizado <> r.digitalizado
+                  AND r.eliminado_en IS NULL AND c.eliminado_en IS NULL
                 ORDER BY c.numero, r.numero");
             foreach ($cruce->fetchAll() as $x) {
                 if ((int)$x['excel_digitalizado'] === 1) {
@@ -166,7 +180,7 @@ final class Escaner
                         'Hay archivo pero el Excel lo marca como no digitalizado');
                 }
             }
-            $tot = $this->db->query('SELECT COUNT(*) FROM registro WHERE digitalizado = 1')->fetchColumn();
+            $tot = $this->db->query('SELECT COUNT(*) FROM registro WHERE digitalizado = 1 AND eliminado_en IS NULL')->fetchColumn();
             $this->rep->sumar('registros digitalizados (total)', (int)$tot);
 
             if ($simulacion) {

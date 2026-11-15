@@ -10,10 +10,10 @@ Extensiones de PHP necesarias: `pdo_mysql`, `zip`, `xmlreader`, `simplexml`, `mb
 
 | Pieza | Estado |
 |---|---|
-| Modelo de datos (`db/schema.sql`) | ✅ v0.2 |
+| Modelo de datos (`db/schema.sql`) | ✅ v0.3 (con ABM, bajas lógicas y auditoría) |
 | Importador del Excel del catálogo (`bin/importar.php`) | ✅ probado con las 70 pestañas |
 | Escaneo de archivos digitalizados (`bin/escanear.php`) | ✅ probado con la muestra de 8 cajas |
-| Backoffice | pendiente |
+| Backoffice | especificado en `docs/backoffice.md`; falta construir |
 | Front público | maqueta aprobada (v4); falta conectar |
 | Versiones livianas para web de los PDF pesados | pendiente |
 
@@ -58,6 +58,7 @@ src/        clases PHP (namespace Aida)
 ## Documentación
 
 - [`docs/decisiones.md`](docs/decisiones.md): reglas de importación y por qué son así. **Leer antes de tocar el importador.**
+- [`docs/backoffice.md`](docs/backoffice.md): ABM, leyendas, confirmaciones y panel de alertas para el operador.
 
 ## Equipo
 

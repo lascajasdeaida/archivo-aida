@@ -34,6 +34,16 @@ final class Reporte
         $this->incidencias[] = compact('nivel', 'codigo', 'caja', 'registro', 'detalle');
     }
 
+    /** @var int[] cajas alcanzadas por este proceso (para cerrar solas las alertas que ya no ocurren) */
+    public array $cajasAlcanzadas = [];
+    public bool $alcanceTotal = false;
+
+    /**
+     * Guarda el proceso y sus incidencias.
+     * - Si una incidencia igual ya está abierta, no se duplica: se vincula al proceso nuevo.
+     * - Las incidencias abiertas del mismo tipo de proceso que ya no se repiten (dentro del alcance
+     *   de esta corrida) se cierran solas, con la nota «Ya no ocurre».
+     */
     public function guardar(\PDO $db): ?int
     {
         if ($this->simulacion) {
@@ -42,9 +52,41 @@ final class Reporte
         $db->prepare('INSERT INTO proceso (tipo, fuente, simulacion, resumen, iniciado_en, terminado_en) VALUES (?,?,0,?,?,NOW())')
            ->execute([$this->tipo, $this->fuente, json_encode($this->cuentas, JSON_UNESCAPED_UNICODE), $this->iniciado]);
         $id = (int)$db->lastInsertId();
-        $st = $db->prepare('INSERT INTO incidencia (proceso_id, nivel, codigo, caja, registro, detalle) VALUES (?,?,?,?,?,?)');
+
+        $abiertas = $db->prepare('SELECT i.id, i.codigo, i.caja, i.registro, i.detalle FROM incidencia i
+            JOIN proceso p ON p.id = i.proceso_id WHERE i.resuelta = 0 AND p.tipo = ?');
+        $abiertas->execute([$this->tipo]);
+        $porClave = [];
+        foreach ($abiertas->fetchAll() as $a) {
+            $porClave[$a['codigo'] . '|' . $a['caja'] . '|' . $a['registro'] . '|' . $a['detalle']] = $a;
+        }
+
+        $ins = $db->prepare('INSERT INTO incidencia (proceso_id, nivel, codigo, caja, registro, detalle, requiere_validacion)
+                             VALUES (?,?,?,?,?,?,?)');
+        $mover = $db->prepare('UPDATE incidencia SET proceso_id = ? WHERE id = ?');
+        $vigentes = [];
         foreach ($this->incidencias as $i) {
-            $st->execute([$id, $i['nivel'], $i['codigo'], $i['caja'], $i['registro'], mb_substr($i['detalle'], 0, 1000)]);
+            $det = mb_substr($i['detalle'], 0, 1000);
+            $k = $i['codigo'] . '|' . $i['caja'] . '|' . $i['registro'] . '|' . $det;
+            if (isset($porClave[$k])) {
+                $mover->execute([$id, $porClave[$k]['id']]);
+                $vigentes[$k] = true;
+                continue;
+            }
+            $ins->execute([$id, $i['nivel'], $i['codigo'], $i['caja'], $i['registro'], $det,
+                           (int)Alertas::requiereValidacion($i['codigo'], $i['nivel'])]);
+            $vigentes[$k] = true;
+        }
+
+        $cerrar = $db->prepare("UPDATE incidencia SET resuelta = 1, resuelta_en = NOW(), resolucion = 'Ya no ocurre' WHERE id = ?");
+        foreach ($porClave as $k => $a) {
+            if (isset($vigentes[$k])) {
+                continue;
+            }
+            if ($this->alcanceTotal || ($a['caja'] !== null && in_array((int)$a['caja'], $this->cajasAlcanzadas, true))) {
+                $cerrar->execute([$a['id']]);
+                $this->sumar('alertas que se cerraron solas');
+            }
         }
         return $id;
     }
@@ -66,7 +108,9 @@ final class Reporte
             $out[] = '';
             $out[] = 'Incidencias:';
             foreach ($porCodigo as $k => $lista) {
-                $out[] = sprintf('  %s (%d)', $k, count($lista));
+                $al = Alertas::de($lista[0]['codigo']);
+                $out[] = sprintf('  %s (%d)%s — %s', $k, count($lista),
+                    Alertas::requiereValidacion($lista[0]['codigo'], $lista[0]['nivel']) ? ' [VALIDAR]' : '', $al['titulo']);
                 foreach (array_slice($lista, 0, 8) as $i) {
                     $donde = $i['caja'] !== null ? 'C' . $i['caja'] . ($i['registro'] !== null ? 'R' . $i['registro'] : '') : '';
                     $out[] = sprintf('    %-8s %s', $donde, $i['detalle']);

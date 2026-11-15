@@ -18,6 +18,8 @@ namespace Aida;
  *  - Es incremental: crea lo nuevo, actualiza lo que cambió y respeta los campos bloqueados
  *    (editados a mano en el backoffice). Nunca borra registros.
  *  - El estado «digitalizado» no lo toca: lo define el escaneo de carpetas.
+ *  - Lo dado de baja desde el backoffice (eliminado_en) no se vuelve a crear, y los registros
+ *    creados desde el backoffice (origen = 'backoffice') no se modifican.
  */
 final class Importador
 {
@@ -62,6 +64,7 @@ final class Importador
     public function importar(string $xlsxPath, ?array $soloCajas = null, bool $simulacion = false): Reporte
     {
         $this->rep = Reporte::iniciar('importacion', basename($xlsxPath), $simulacion);
+        $this->rep->alcanceTotal = $soloCajas === null;
         $x = new Xlsx($xlsxPath);
 
         $this->db->beginTransaction();
@@ -75,6 +78,7 @@ final class Importador
                 if ($soloCajas !== null && !in_array($numCaja, $soloCajas, true)) {
                     continue;
                 }
+                $this->rep->cajasAlcanzadas[] = $numCaja;
                 $this->importarCaja($numCaja, trim($hoja), $x->rows($hoja));
             }
             if ($simulacion) {
@@ -145,6 +149,12 @@ final class Importador
                 "La pestaña es de la caja $numCaja pero la columna A dice $cajaExcel");
         }
         $cajaId = $this->upsertCaja($numCaja, $nombre, $pestania, $resumen);
+        if ($cajaId === null) {
+            $this->rep->incidencia('info', 'CAJA_DADA_DE_BAJA', $numCaja, null,
+                'La caja fue dada de baja desde el backoffice; no se importó');
+            $this->rep->sumar('cajas dadas de baja (se respetan)');
+            return;
+        }
 
         // Registros
         $nomenclaturas = [];
@@ -159,7 +169,7 @@ final class Importador
         }
 
         // Registros que estaban en la base y ya no están en el Excel (no se borran)
-        $st = $this->db->prepare("SELECT numero FROM registro WHERE caja_id = ? AND origen = 'excel'");
+        $st = $this->db->prepare("SELECT numero FROM registro WHERE caja_id = ? AND origen = 'excel' AND eliminado_en IS NULL");
         $st->execute([$cajaId]);
         foreach ($st->fetchAll(\PDO::FETCH_COLUMN) as $n) {
             if (!isset($filas[(int)$n])) {
@@ -230,9 +240,9 @@ final class Importador
         return [$b, $c];
     }
 
-    private function upsertCaja(int $numero, string $nombre, string $pestania, ?string $resumen): int
+    private function upsertCaja(int $numero, string $nombre, string $pestania, ?string $resumen): ?int
     {
-        $st = $this->db->prepare('SELECT id, campos_bloqueados FROM caja WHERE numero = ?');
+        $st = $this->db->prepare('SELECT id, campos_bloqueados, eliminado_en FROM caja WHERE numero = ?');
         $st->execute([$numero]);
         $c = $st->fetch();
         if (!$c) {
@@ -240,6 +250,9 @@ final class Importador
                      ->execute([$numero, $nombre, $pestania, $resumen]);
             $this->rep->sumar('cajas nuevas');
             return (int)$this->db->lastInsertId();
+        }
+        if ($c['eliminado_en'] !== null) {
+            return null;
         }
         $bloq = json_decode((string)$c['campos_bloqueados'], true) ?: [];
         $sets = ['nombre_pestania = ?'];
@@ -318,9 +331,21 @@ final class Importador
             }
         }
 
-        $st = $this->db->prepare('SELECT id, campos_bloqueados FROM registro WHERE caja_id = ? AND numero = ?');
+        $st = $this->db->prepare('SELECT id, campos_bloqueados, origen, eliminado_en FROM registro WHERE caja_id = ? AND numero = ?');
         $st->execute([$cajaId, $num]);
         $r = $st->fetch();
+        if ($r && $r['eliminado_en'] !== null) {
+            $this->rep->incidencia('info', 'REGISTRO_DADO_DE_BAJA', $numCaja, $num,
+                'Fue dado de baja desde el backoffice y sigue en el Excel; no se volvió a crear');
+            $this->rep->sumar('registros dados de baja (se respetan)');
+            return;
+        }
+        if ($r && $r['origen'] === 'backoffice') {
+            $this->rep->incidencia('aviso', 'REGISTRO_DEL_BACKOFFICE', $numCaja, $num,
+                'Fue creado desde el backoffice y ahora también figura en el Excel; no se modificó. Revisar cuál vale');
+            $this->rep->sumar('registros del backoffice (no se tocan)');
+            return;
+        }
 
         if (!$r) {
             $cols = array_keys($datos);

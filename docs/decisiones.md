@@ -51,6 +51,22 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   También se pueden bloquear `tipos` y `descriptores` como conjunto.
 - El escaneo marca `presente = 0` los archivos que ya no están, sin borrarlos de la base.
 
+## ABM desde el backoffice (14/11/2026)
+
+- La base se modifica por dos vías: la importación del Excel y el **ABM directo** del backoffice (alta, modificación y baja
+  de cajas, registros, archivos y vocabularios). Detalle en [`backoffice.md`](backoffice.md).
+- **Bajas lógicas** (`eliminado_en`): lo dado de baja no se muestra y la importación y el escaneo no lo vuelven a crear,
+  aunque siga en el Excel o en la carpeta. Se reporta para que el operador confirme la baja o restaure.
+- Registros **creados en el backoffice** (`origen = 'backoffice'`): la importación no los modifica. Si el Excel trae uno
+  con el mismo número, se reporta para que el operador decida cuál vale.
+- Todo cambio manual queda en `auditoria`.
+
+## Alertas para el operador (14/11/2026)
+
+- Cada incidencia tiene título, leyenda y acción sugerida en `src/Alertas.php`, y se marca si **requiere validación**.
+- Las alertas no se duplican entre corridas y se cierran solas cuando el problema deja de ocurrir.
+- El operador valida las pendientes con una nota; queda registrado quién y cuándo.
+
 ## Vocabularios
 
 - Tipo de documento y Descriptor son **vocabularios curados**: el data entry solo elige de la lista (sep 2026).

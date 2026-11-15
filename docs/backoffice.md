@@ -271,3 +271,36 @@ mayúsculas o espacios, se desbloquea pero queda la versión de la base (el avis
 **Años de registros cargados a mano:** `php bin/recalcular-anios.php --simular` muestra qué cambia (con `--todos`, también los del
 Excel: sirve después de la migración 004 sin volver a importar); sin `--simular` lo aplica
 como proceso `correccion` (se deshace desde Importaciones).
+
+## 14. Vista previa: «Ver como en el sitio» (15/11/2026)
+
+En la cabecera de la ficha del registro y de la caja, **Ver como en el sitio ↗** (botón neutro, pestaña nueva) abre
+`?r=vista_previa&registro=ID` o `?r=vista_previa&caja=ID` (permiso `ver`). Muestra la página tal como la arma el sitio público,
+con las **mismas plantillas** que va a usar el sitio: `vistas/publico/ficha.php` y `caja.php` (layout `_sitio.php`, tarjeta
+`_tarjeta.php`, íconos `_iconos.php`).
+
+- **Banner fijo arriba** (`vistas/publico/_vista_previa.php`, `public/sitio/vista-previa.css`): «Vista previa — así se vería en el
+  sitio» y «Volver al backoffice». Debajo, si **hoy no aparece en el sitio**, el porqué: registro o caja dados de baja, registro no
+  publicado, acceso «a revisar», caja no publicada. La vista se muestra igual, como quedaría una vez resuelto. En la caja se
+  avisa además cuántos registros no entran en la lista (a revisar, no publicados, dados de baja).
+- **Qué cuenta la vista previa:** la lista de la caja, los vecinos y las cifras incluyen solo lo que el sitio mostraría si la caja
+  estuviera publicada. Las cajas vecinas son todas las que no están dadas de baja (en el sitio, solo las publicadas).
+- **Navegación:** de la ficha a su caja, de la caja a una ficha y entre vecinos se navega dentro de la vista previa. Los enlaces a
+  páginas del sitio que todavía no existen (inicio, explorar, consulta, sobre el archivo) y el buscador de la caja no navegan:
+  `vista-previa.js` avisa en el banner.
+- **Visor:** «Ver documento» abre el visor dentro de la ficha con un iframe a `archivo.php?id=` que se crea recién al pedirlo
+  (los PDF pesan hasta 780 MB). Sin JS, el botón abre el archivo directo. En la vista previa entrega con la sesión del backoffice,
+  así que **no suma en `evento_uso`**; la página en sí no registra nada.
+- `noindex,nofollow` (meta y `X-Robots-Tag`), `Cache-Control: private, no-store`.
+- Qué muestra cada estado: digitalizado y público → Ver documento + Descargar (con peso); restringido o «a revisar» → «Consulta a
+  pedido» + «Pedir consulta»; sin archivo → «Solo ficha» + «Consultar por este documento». Sin título → los tipos en cursiva.
+  Año con `registro_anio` (`Texto::aniosEtiqueta`): dudoso con subrayado punteado, «(sin confirmar)» y el texto de la planilla
+  debajo. Tipos y descriptores: aprobados y propuestos, nunca descartados, dados de baja ni sin letras («.»).
+  No se muestran observaciones de conservación ni de digitalización ni la nomenclatura del Excel.
+
+**Para el sitio público:** los datos salen de `src/Sitio.php` (`fichaPorCodigo`, `cajaPorNumero`; en modo público devuelve `null`
+si no se muestra, con las mismas reglas que `Buscador` y `Entrega`) y las URL de `src/Web/Enlaces.php` (`new Enlaces('/')` da las
+URL de `docs/ux/sitio-publico.md` §2: `/registro/C14R3`, `/caja/2-la-historia-oficial`…). El controlador público solo tiene que
+pedir los datos, devolver 404 si vienen `null` y requerir la plantilla con `$d` y `$enl`.
+CSS en `public/sitio/` (`tokens.css` + `estilo.css`), el mismo archivo que usan las maquetas de `docs/diseno/maquetas/`;
+comportamiento en `public/sitio/sitio.js` (menú, «Leer más», visor, copiar cita).

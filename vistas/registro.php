@@ -23,6 +23,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
     </div>
   </div>
   <div class="acciones">
+    <a class="btn" href="<?= App::url('vista_previa', ['registro' => $r['id']]) ?>" target="_blank" rel="noopener" title="Abre en una pestaña nueva cómo se vería esta ficha en el sitio público">Ver como en el sitio ↗</a>
     <?php if ($anterior): ?><a class="btn btn-chico" href="<?= App::url('registro', ['id' => $anterior['id']]) ?>">← R<?= (int)$anterior['numero'] ?></a><?php endif ?>
     <?php if ($siguiente): ?><a class="btn btn-chico" href="<?= App::url('registro', ['id' => $siguiente['id']]) ?>">R<?= (int)$siguiente['numero'] ?> →</a><?php endif ?>
   </div>

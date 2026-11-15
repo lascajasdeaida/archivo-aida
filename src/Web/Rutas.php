@@ -8,6 +8,7 @@ use Aida\Anios;
 use Aida\Correccion;
 use Aida\Curaduria;
 use Aida\Historial;
+use Aida\Sitio;
 use Aida\Texto;
 use Aida\Vocabulario;
 
@@ -1305,6 +1306,65 @@ final class Rutas
             'volver' => App::url('vocab_informe'),
             'peligro' => true,
         ]);
+    }
+
+    // ------------------------------------------------------------------
+    // Vista previa del sitio público
+    // ------------------------------------------------------------------
+
+    /**
+     * «Ver como en el sitio»: ?r=vista_previa&registro=ID o &caja=ID. Renderiza las mismas plantillas del sitio
+     * público (vistas/publico/ficha.php y caja.php) con un banner arriba y, si hoy no aparece en el sitio,
+     * los motivos. Solo lectura; no cuenta en evento_uso (el visor usa archivo.php con la sesión del backoffice).
+     */
+    public static function vista_previa(): void
+    {
+        App::exigir('ver');
+        $sitio = new Sitio(self::db(), true);
+        if (isset($_GET['registro'])) {
+            $d = $sitio->fichaPorId(self::int('registro')) ?? self::noEncontrado('registro');
+            $vista = 'ficha';
+            $volver = App::url('registro', ['id' => (int)$d['registro']['id']]);
+            $que = 'Este registro';
+        } elseif (isset($_GET['caja'])) {
+            $d = $sitio->cajaPorId(self::int('caja')) ?? self::noEncontrado('caja');
+            $vista = 'caja';
+            $volver = App::url('caja', ['id' => (int)$d['caja']['id']]);
+            $que = 'Esta caja';
+        } else {
+            self::noEncontrado('documento');
+        }
+        $enl = Enlaces::vistaPrevia();
+        header('X-Robots-Tag: noindex, nofollow');
+        header('Cache-Control: private, no-store');
+        $datos = [
+            'd' => $d,
+            'enl' => $enl,
+            'robots' => 'noindex,nofollow',
+            'cabezaExtra' => '<link rel="stylesheet" href="' . e($enl->recurso('sitio/vista-previa.css')) . '">' . "\n"
+                . '<script src="' . e($enl->recurso('sitio/vista-previa.js')) . '" defer></script>',
+        ];
+        $datos['antes'] = self::parcial('publico/_vista_previa', [
+            'motivos' => $d['motivos'], 'volver' => $volver, 'que' => $que,
+            'ocultos' => $vista === 'caja' ? $d['ocultos'] : [],
+        ]);
+        self::parcialPublico($vista, $datos);
+    }
+
+    /** Renderiza una vista a texto. @param array<string,mixed> $datos */
+    private static function parcial(string $vista, array $datos): string
+    {
+        extract($datos, EXTR_SKIP);
+        ob_start();
+        require dirname(__DIR__, 2) . "/vistas/$vista.php";
+        return (string)ob_get_clean();
+    }
+
+    /** Página completa del sitio público (vistas/publico/), sin el layout del backoffice. */
+    private static function parcialPublico(string $vista, array $datos): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        echo self::parcial("publico/$vista", $datos);
     }
 
     // ------------------------------------------------------------------

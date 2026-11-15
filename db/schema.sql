@@ -1,7 +1,10 @@
 -- =====================================================================
 -- Archivo AIDA BORTNIK · Las cajas de Aída
 -- Esquema MySQL / MariaDB · InnoDB · utf8mb4
--- Versión 0.4 (14/11/2026) — ABM, bajas lógicas e historial reversible
+-- Versión 0.5 (15/11/2026) — búsqueda FULLTEXT y control de migraciones
+--
+-- Los cambios posteriores a una instalación van además como migración en
+-- db/migraciones/NNN_*.sql (se aplican con php bin/migrar.php).
 -- =====================================================================
 
 SET NAMES utf8mb4;
@@ -39,7 +42,8 @@ CREATE TABLE IF NOT EXISTS caja (
   actualizado_en   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_caja_numero (numero),
-  FULLTEXT KEY ft_caja (nombre, resumen)
+  FULLTEXT KEY ft_caja (nombre, resumen),
+  FULLTEXT KEY ft_caja_nombre (nombre)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Una caja puede pertenecer a más de un período (decisión sep 2026).
@@ -101,7 +105,10 @@ CREATE TABLE IF NOT EXISTS registro (
   UNIQUE KEY uq_registro_codigo (codigo),
   KEY idx_registro_anio (anio),
   KEY idx_registro_acceso (acceso, publicado),
-  FULLTEXT KEY ft_registro (titulo, autor, lugar, resumen),
+  -- Búsqueda (src/Buscador.php, docs/busqueda.md). Tildes y mayúsculas: las ignora la colación.
+  FULLTEXT KEY ft_registro_publico (codigo, titulo, autor, lugar, fecha_texto, anio_texto, resumen, isbn, obs_editorial, edicion_catalogo),
+  FULLTEXT KEY ft_registro_titulo (titulo),
+  FULLTEXT KEY ft_registro_interno (obs_conservacion, obs_digitalizacion, seleccion_digit, excel_nomenclatura, excel_privado),
   CONSTRAINT fk_registro_caja FOREIGN KEY (caja_id) REFERENCES caja(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -240,5 +247,18 @@ CREATE TABLE IF NOT EXISTS evento_uso (
   KEY idx_ev_registro (registro_id),
   KEY idx_ev_fecha (creado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Migraciones aplicadas (bin/migrar.php). Este esquema ya incluye las que se registran abajo.
+CREATE TABLE IF NOT EXISTS migracion (
+  version      CHAR(3)      NOT NULL,
+  nombre       VARCHAR(120) NOT NULL,
+  checksum     CHAR(40)     NULL,                   -- NULL: incluida en schema.sql
+  duracion_ms  INT UNSIGNED NULL,
+  aplicada_en  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO migracion (version, nombre) VALUES
+  ('001', '001_busqueda_fulltext.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

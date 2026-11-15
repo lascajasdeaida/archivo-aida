@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Componentes · Las cajas de Aída</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<main id="contenido" tabindex="-1"><div class="contenedor">
+  <nav class="migas" aria-label="Estás en"><ol><li><a href="index.html">Maquetas</a></li><li aria-current="page">Componentes</li></ol></nav>
+  <p class="kicker">Sistema visual</p>
+  <h1>Componentes</h1>
+  <p>Catálogo vivo de <a href="../componentes.md">componentes.md</a>. Tokens en <a href="../tokens.css">tokens.css</a>.</p>
+
+  <section class="seccion" aria-labelledby="c-botones"><div class="seccion-cabeza"><h2 id="c-botones">Botones</h2></div>
+    <div class="acciones">
+      <button class="boton boton--primario" type="button"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-ver"/></svg>Ver documento</button>
+      <button class="boton boton--secundario" type="button"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-descargar"/></svg>Descargar PDF <span class="peso">(105 MB)</span></button>
+      <button class="boton boton--fantasma" type="button">Limpiar todo</button>
+    </div>
+    <div class="acciones">
+      <button class="boton boton--primario" type="button" disabled>Deshabilitado</button>
+      <button class="boton boton--secundario" type="button" disabled>Deshabilitado</button>
+      <button class="boton boton--fantasma" type="button" disabled>Deshabilitado</button>
+      <button class="boton boton--secundario boton--chico" type="button">Chico</button>
+      <button class="boton boton--secundario boton--icono" type="button" aria-label="Cerrar"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-cerrar"/></svg></button>
+    </div>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-etq"><div class="seccion-cabeza"><h2 id="c-etq">Badges de estado y año</h2></div>
+    <div class="etqs">
+      <span class="etq etq--digital"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-documento"/></svg>Documento digital</span>
+      <span class="etq etq--ficha"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-ficha"/></svg>Solo ficha</span>
+      <span class="etq etq--pedido"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-candado"/></svg>Consulta a pedido</span>
+      <span class="etq etq--duda"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-duda"/></svg>Año sin confirmar</span>
+      <span class="etq etq--tipo">Guion</span>
+    </div>
+    <p style="margin-top:16px">Año: <span class="anio-dudoso">1972 (sin confirmar)<svg class="icono" aria-hidden="true" focusable="false"><use href="#i-duda"/></svg></span> · rango: 1981/82 · sin año: Sin fecha</p>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-reg"><div class="seccion-cabeza"><h2 id="c-reg">Tarjeta de registro</h2><span class="meta">digitalizado · a pedido · solo ficha · año sin confirmar</span></div>
+    <ul class="lista-registros" id="ej-registros"></ul>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-cajas"><div class="seccion-cabeza"><h2 id="c-cajas">Tarjeta de caja</h2></div>
+    <ul class="grilla-cajas" id="ej-cajas"></ul>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-chips"><div class="seccion-cabeza"><h2 id="c-chips">Chips</h2></div>
+    <h3>Acceso con conteo</h3>
+    <ul class="accesos"><li><a class="acceso" href="explorar.html?tipo=guion">Guion <span class="n">545</span></a></li><li><a class="acceso acceso--todos" href="explorar.html#faceta-tipo">Todos los tipos (38)</a></li></ul>
+    <h3 style="margin-top:24px">Filtro activo</h3>
+    <ul class="chips"><li><button type="button" class="chip">Tipo de documento: <b>Carta</b><span class="chip__x"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-cerrar"/></svg></span><span class="solo-lector">, quitar filtro</span></button></li><li><button type="button" class="boton boton--fantasma boton--chico">Limpiar todo</button></li></ul>
+    <h3 style="margin-top:24px">Opción de filtro con conteo</h3>
+    <div style="max-width:320px">
+      <label class="opcion" for="o1"><input type="checkbox" id="o1" checked><span>Carta</span><span class="n">99<span class="solo-lector"> resultados</span></span></label>
+      <label class="opcion" for="o2"><input type="checkbox" id="o2"><span>Nota de prensa</span><span class="n">83<span class="solo-lector"> resultados</span></span></label>
+      <label class="opcion" for="o3"><input type="checkbox" id="o3" disabled><span>Caos Creativo (1963–2009)</span><span class="n">—<span class="solo-lector"> resultados</span></span></label>
+    </div>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-faceta"><div class="seccion-cabeza"><h2 id="c-faceta">Faceta colapsable</h2></div>
+    <div style="max-width:320px">
+      <details class="faceta" open><summary><span>Disponibilidad</span><span class="faceta__n">1<span class="solo-lector"> elegido</span></span><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-abajo"/></svg></summary>
+        <fieldset><legend>Disponibilidad</legend>
+          <label class="opcion" for="o4"><input type="checkbox" id="o4" checked><span>Con documento digital</span><span class="n">145<span class="solo-lector"> resultados</span></span></label>
+          <label class="opcion" for="o5"><input type="checkbox" id="o5"><span>Solo ficha (sin digitalizar)</span><span class="n">952<span class="solo-lector"> resultados</span></span></label>
+        </fieldset></details>
+      <details class="faceta"><summary><span>Acceso</span><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-abajo"/></svg></summary><fieldset><legend>Acceso</legend><p class="meta">…</p></fieldset></details>
+    </div>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-avisos"><div class="seccion-cabeza"><h2 id="c-avisos">Avisos</h2></div>
+    <div style="max-width:420px">
+      <div class="aviso aviso--pedido" role="note"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-candado"/></svg><p><b>Consulta a pedido</b>La ficha es pública, pero el documento se consulta pidiéndolo al archivo.</p></div>
+      <div class="aviso aviso--ficha" role="note"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-ficha"/></svg><p><b>Todavía no está digitalizado</b>El archivo se digitaliza por etapas; por ahora podés ver la ficha del catálogo.</p></div>
+    </div>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-migas"><div class="seccion-cabeza"><h2 id="c-migas">Migas y paginación</h2></div>
+    <nav class="migas" aria-label="Ejemplo de migas"><ol><li><a href="inicio.html">Inicio</a></li><li><a href="caja.html?n=14">Caja 14: Zsherezade</a></li><li aria-current="page">C14R3</li></ol></nav>
+    <div class="paginacion"><p class="meta" id="ej-mostrando">Mostrando 40 de 99</p><progress max="99" value="40" aria-labelledby="ej-mostrando"></progress><a class="boton boton--secundario" href="explorar.html?pagina=3">Mostrar 20 más</a></div>
+  </section>
+
+  <section class="seccion" aria-labelledby="c-iconos"><div class="seccion-cabeza"><h2 id="c-iconos">Íconos</h2><span class="meta">SVG propio, 24 × 24, trazo 1,75</span></div>
+    <ul class="accesos" id="ej-iconos">
+      <li class="acceso" data-icono="buscar"></li>
+<li class="acceso" data-icono="menu"></li>
+<li class="acceso" data-icono="cerrar"></li>
+<li class="acceso" data-icono="filtro"></li>
+<li class="acceso" data-icono="abajo"></li>
+<li class="acceso" data-icono="izq"></li>
+<li class="acceso" data-icono="der"></li>
+<li class="acceso" data-icono="flechaIzq"></li>
+<li class="acceso" data-icono="flechaDer"></li>
+<li class="acceso" data-icono="candado"></li>
+<li class="acceso" data-icono="documento"></li>
+<li class="acceso" data-icono="ficha"></li>
+<li class="acceso" data-icono="caja"></li>
+<li class="acceso" data-icono="descargar"></li>
+<li class="acceso" data-icono="ver"></li>
+<li class="acceso" data-icono="mas"></li>
+<li class="acceso" data-icono="menos"></li>
+<li class="acceso" data-icono="ancho"></li>
+<li class="acceso" data-icono="pantalla"></li>
+<li class="acceso" data-icono="copiar"></li>
+<li class="acceso" data-icono="enlace"></li>
+<li class="acceso" data-icono="duda"></li>
+<li class="acceso" data-icono="check"></li>
+<li class="acceso" data-icono="alerta"></li>
+<li class="acceso" data-icono="sobre"></li>
+<li class="acceso" data-icono="tiempo"></li>
+    </ul>
+  </section>
+</div></main>
+<script src="../../ux/wireframes/datos.js"></script>
+<script src="vocabulario-final.js"></script>
+<script src="maqueta.js"></script>
+<script>MAQ.componentes();</script>
+</body>
+</html>

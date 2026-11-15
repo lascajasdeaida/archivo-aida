@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las 70 cajas · Las cajas de Aída</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<main id="contenido" tabindex="-1"><div class="contenedor">
+  <nav class="migas" aria-label="Estás en"><ol><li><a href="inicio.html">Inicio</a></li><li aria-current="page">Las 70 cajas</li></ol></nav>
+  <h1>Las 70 cajas</h1>
+  <p>El número de caja es el del depósito. Varias obras ocupan más de una caja.</p>
+  <div class="barra-resultados" style="align-items:end;margin-top:24px">
+    <div class="campo" style="flex:1;min-width:220px;margin:0"><label for="filtro-cajas">Filtrar por nombre o número</label><input id="filtro-cajas" type="search"></div>
+    <div class="campo" style="margin:0"><label for="orden-cajas">Ordenar</label><select id="orden-cajas"><option value="numero">Por número</option><option value="nombre">Por nombre (A–Z)</option><option value="digit">Más digitalizadas primero</option></select></div>
+  </div>
+  <p class="conteo" id="conteo-cajas" role="status" style="margin:24px 0 8px"></p>
+  <ul class="grilla-cajas" id="lista-cajas"></ul>
+</div></main>
+<script src="../../ux/wireframes/datos.js"></script>
+<script src="vocabulario-final.js"></script>
+<script src="maqueta.js"></script>
+<script>MAQ.cajas();</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+/* Las cajas de Aída — tokens del sitio público.
+   Fuente: identidad del sitio actual (docs/diseno/referencias/identidad-sitio-actual.md), corregida para AA.
+   Contrastes medidos en docs/diseno/sistema.md (§2). Mobile first: la escala de escritorio entra desde 900 px.
+   Programación: importar este archivo antes de cualquier hoja del sitio público. */
+
+@import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&display=swap");
+
+:root {
+  /* ---------- Color: superficies ---------- */
+  --c-papel: #F8F6F1;          /* fondo general (background 40 33% 96%) */
+  --c-papel-2: #F4EFE6;        /* tarjetas (card 38 40% 93%) */
+  --c-pergamino: #F2EBDE;      /* bloques destacados, visor (parchment 39 45% 91%) */
+  --c-sepia: #E4DBCD;          /* secundario: marcadores, histograma, barra de avance vacía */
+  --c-blanco: #FFFFFF;         /* campos de formulario y hoja del visor */
+  --c-marron: #493527;         /* banda de cabecera y hero (warm-brown 25 30% 22%) */
+  --c-marron-2: #3A2A1F;       /* pie y hover sobre la banda */
+
+  /* ---------- Color: texto ---------- */
+  --c-tinta: #281D15;          /* texto principal · 15,2:1 sobre papel */
+  --c-tinta-2: #544537;        /* texto secundario · 8,5:1 */
+  --c-apagado: #6B5D49;        /* metadatos, ayudas · 5,9:1 (reemplaza al muted 25 15% 45%, que da 4,3:1) */
+  --c-crema: #F3EAD9;          /* texto sobre la banda marrón · 9,7:1 */
+
+  /* ---------- Color: marca y acción ---------- */
+  --c-naranja: #DD7F2C;        /* naranja de marca (primary 28 72% 52%). SOLO decorativo: filetes, íconos grandes, ilustración.
+                                  No llega a 3:1 sobre papel (2,7:1) ni con texto blanco (2,9:1). */
+  --c-naranja-700: #A14B14;    /* fondo del botón primario (texto blanco 6,0:1) y bordes activos (5,5:1 sobre papel) */
+  --c-naranja-800: #8F4C18;    /* enlaces y texto de acento · 6,1:1 sobre papel */
+  --c-naranja-900: #7A3E10;    /* hover/activo del botón primario (texto blanco 7,6:1) */
+  --c-naranja-suave: #F6E3CF;  /* fondo de chip activo y de opción elegida */
+  --c-ambar: #EA9A3E;          /* «de Aída» y acentos sobre la banda marrón · 5,0:1 sobre marrón */
+
+  /* ---------- Color: estados ---------- */
+  --c-digital: #3F6139;        /* Documento digital · 6,5:1 sobre papel */
+  --c-digital-suave: #E3EADB;
+  --c-pedido: #7A3E10;         /* Consulta a pedido (borde punteado + candado) */
+  --c-pedido-suave: #F6E3CF;
+  --c-duda: #7A5A0E;           /* año sin confirmar (subrayado punteado + «?») · 5,9:1 */
+  --c-duda-suave: #F4E8C4;
+  --c-error: #8C3A2E;          /* errores de formulario · 7,1:1 */
+  --c-error-suave: #F2D9D2;
+  --c-ok: #3F6139;
+
+  /* ---------- Color: líneas ---------- */
+  --c-filete: #DDD2C6;         /* separadores decorativos (no delimitan controles) */
+  --c-borde: #8C7A62;          /* bordes de controles: campos, checkboxes, botón secundario · 3,8:1 (WCAG 1.4.11) */
+  --c-foco: #281D15;           /* anillo de foco sobre fondos claros */
+  --c-foco-oscuro: #EA9A3E;    /* anillo de foco sobre la banda marrón */
+
+  /* ---------- Tipografía ---------- */
+  --f-titulo: "Playfair Display", Georgia, "Times New Roman", serif;
+  --f-texto: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --f-maquina: "Courier Prime", "Courier New", ui-monospace, monospace;   /* códigos (C14R3), kicker, datos de archivo */
+
+  /* escala celular (base 17 px) */
+  --t-base: 1.0625rem;         /* 17 px: cuerpo */
+  --t-chico: .9375rem;         /* 15 px: metadatos, etiquetas */
+  --t-mini: .8125rem;          /* 13 px: solo kicker en mayúsculas y conteos (nunca párrafos) */
+  --t-h3: 1.1875rem;           /* 19 px */
+  --t-h2: 1.5rem;              /* 24 px */
+  --t-h1: 2rem;                /* 32 px */
+  --t-hero: 2.625rem;          /* 42 px */
+  --t-cifra: 1.75rem;          /* cifras del inicio */
+  --lh-texto: 1.55;
+  --lh-titulo: 1.15;
+  --medida: 68ch;              /* ancho máximo de párrafo */
+
+  /* ---------- Espaciado (base 4 px) ---------- */
+  --e-1: 4px; --e-2: 8px; --e-3: 12px; --e-4: 16px; --e-5: 24px; --e-6: 32px; --e-7: 48px; --e-8: 64px;
+  --margen: 16px;              /* margen lateral del contenedor */
+  --ancho: 1240px;
+  --toque: 44px;               /* objetivo táctil mínimo */
+
+  /* ---------- Radios ---------- */
+  --r-1: 4px;                  /* etiquetas, campos */
+  --r-2: 8px;                  /* tarjetas, botones (radius .5rem del sitio actual) */
+  --r-3: 12px;                 /* paneles, visor */
+  --r-pill: 999px;             /* chips */
+
+  /* ---------- Sombras (tinta cálida, nunca negro puro) ---------- */
+  --s-1: 0 1px 2px rgba(40, 29, 21, .08), 0 0 0 1px rgba(40, 29, 21, .04);
+  --s-2: 0 4px 14px rgba(40, 29, 21, .12), 0 1px 3px rgba(40, 29, 21, .10);
+  --s-hoja: 0 10px 30px rgba(40, 29, 21, .22), 0 2px 6px rgba(40, 29, 21, .14);
+
+  /* ---------- Movimiento ---------- */
+  --m-rapido: 120ms;
+  --m-medio: 220ms;
+  --m-curva: cubic-bezier(.2, .7, .2, 1);
+
+  /* ---------- Textura de papel (SVG propio, ruido muy suave; solo decorativa) ---------- */
+  --textura-papel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .16 0 0 0 0 .11 0 0 0 0 .08 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (min-width: 900px) {
+  :root {
+    --t-h3: 1.3125rem;         /* 21 px */
+    --t-h2: 2rem;              /* 32 px */
+    --t-h1: 2.75rem;           /* 44 px */
+    --t-hero: 4.25rem;         /* 68 px */
+    --t-cifra: 2.25rem;
+    --margen: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --m-rapido: 0ms; --m-medio: 0ms; }
+}

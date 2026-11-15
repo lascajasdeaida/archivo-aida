@@ -30,6 +30,28 @@ $grupos = [
     <div class="chips" style="margin-bottom:12px">
       <?php foreach ($grupos as $k => [$tit, $chip, , $corto]): ?><span class="chip <?= $c[$k] ? $chip : '' ?>"><b><?= (int)$c[$k] ?></b> <?= e($corto) ?></span><?php endforeach ?>
     </div>
+    <?php $privados = array_filter($plan['filas'], fn($p) => $p['estado'] === 'aplicar' && !empty($p['privado_publico']));
+          $nPriv = count($privados); ?>
+    <?php if ($nPriv): ?>
+      <div class="leyenda leyenda-stop" style="display:block" id="privados">
+        <p style="margin-top:0"><b><?= $nPriv === 1 ? '1 registro que la planilla marca PRIVADO pasa a público.' : $nPriv . ' registros que la planilla marca PRIVADO pasan a público.' ?></b>
+          No se aplican sin la confirmación de abajo, junto a «Aplicar».</p>
+        <table class="tabla-chica">
+          <thead><tr><th class="num">Fila</th><th>Registro</th><th>En la base</th><th>Valor nuevo</th></tr></thead>
+          <tbody>
+          <?php foreach ($privados as $p): ?>
+            <tr>
+              <td class="num"><?= (int)$p['fila'] ?></td>
+              <td><?php if ($p['url']): ?><a href="<?= App::url($p['url'][0], ['id' => $p['url'][1]]) ?>" target="_blank"><?= e($p['destino']) ?></a><?php else: ?><?= e($p['destino']) ?><?php endif ?>
+                <span class="chip chip-stop">PRIVADO en la planilla</span></td>
+              <td><span class="antes"><?= e($mostrar($p['actual'], $p['campo'])) ?></span></td>
+              <td><span class="despues"><?= e($mostrar($p['nuevo'], $p['campo'])) ?></span></td>
+            </tr>
+          <?php endforeach ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif ?>
     <?php if ($c['conflicto']): ?>
       <div class="leyenda leyenda-stop"><div><b><?= $c['conflicto'] === 1 ? 'Hay 1 conflicto.' : 'Hay ' . (int)$c['conflicto'] . ' conflictos.' ?></b> El archivo esperaba un valor actual y en la base hoy hay otro: alguien ya lo cambió.
         Esas filas no se aplican; revisalas en la ficha.</div></div>
@@ -44,9 +66,10 @@ $grupos = [
             <?php if ($k === 'conflicto'): ?><th>El archivo esperaba</th><?php endif ?><th>Nota</th></tr></thead>
           <tbody>
           <?php foreach ($filas as $p): ?>
-            <tr>
+            <tr<?= $k === 'aplicar' && !empty($p['privado_publico']) ? ' style="background:var(--stop-soft)"' : '' ?>>
               <td class="num"><?= (int)$p['fila'] ?></td>
-              <td><?php if ($p['url']): ?><a href="<?= App::url($p['url'][0], ['id' => $p['url'][1]]) ?>" target="_blank"><?= e($p['destino']) ?></a><?php else: ?><?= e($p['destino']) ?><?php endif ?></td>
+              <td><?php if ($p['url']): ?><a href="<?= App::url($p['url'][0], ['id' => $p['url'][1]]) ?>" target="_blank"><?= e($p['destino']) ?></a><?php else: ?><?= e($p['destino']) ?><?php endif ?>
+                <?php if ($k === 'aplicar' && !empty($p['privado_publico'])): ?><span class="chip chip-stop">PRIVADO en la planilla</span><?php endif ?></td>
               <td><?= e($p['etiqueta']) ?></td>
               <td><span class="antes"><?= e($mostrar($p['actual'], $p['campo'])) ?></span></td>
               <td><span class="despues"><?= e($mostrar($p['nuevo'] ?? $p['valor_nuevo'], $p['campo'])) ?></span></td>
@@ -65,7 +88,12 @@ $grupos = [
         <form method="post" action="<?= App::url('correccion_aplicar') ?>">
           <?= App::campoToken() ?>
           <input type="hidden" name="vista" value="<?= e($sim['token']) ?>">
-          <button class="btn btn-primario" data-doble="Se corrige<?= $c['aplicar'] === 1 ? ' 1 celda' : 'n ' . (int)$c['aplicar'] . ' celdas' ?> en la base y quedan bloqueadas para el Excel. Se puede deshacer completa desde Importaciones. ¿Confirmar?"><?= $c['aplicar'] === 1 ? 'Aplicar 1 corrección' : 'Aplicar ' . (int)$c['aplicar'] . ' correcciones' ?></button>
+          <?php if ($nPriv): ?>
+            <label class="check confirmo"><input type="checkbox" name="confirmar_privados" value="1" required
+              onchange="this.form.querySelector('button').disabled = !this.checked">
+              Confirmo que <?= $nPriv === 1 ? 'este registro que la planilla marca PRIVADO pasa' : 'estos ' . $nPriv . ' registros que la planilla marca PRIVADO pasan' ?> a público</label>
+          <?php endif ?>
+          <button class="btn btn-primario" <?= $nPriv ? 'disabled' : '' ?> data-doble="Se corrige<?= $c['aplicar'] === 1 ? ' 1 celda' : 'n ' . (int)$c['aplicar'] . ' celdas' ?> en la base y quedan bloqueadas para el Excel. Se puede deshacer completa desde Importaciones. ¿Confirmar?"><?= $c['aplicar'] === 1 ? 'Aplicar 1 corrección' : 'Aplicar ' . (int)$c['aplicar'] . ' correcciones' ?></button>
         </form>
       <?php endif ?>
       <form method="post" action="<?= App::url('correccion_descartar') ?>">
@@ -82,7 +110,8 @@ $grupos = [
       <p><b><?= e($hecha['original']) ?></b> · <?= (int)$hecha['aplicadas'] ?> celdas corregidas en <?= (int)$hecha['registros'] ?> registros
         <?= $hecha['cajas'] ? 'y ' . (int)$hecha['cajas'] . ' cajas' : '' ?>.
         <?= $hecha['cuentas']['saltear'] ? (int)$hecha['cuentas']['saltear'] . ' salteadas.' : '' ?>
-        <?= $hecha['cuentas']['conflicto'] ? (int)$hecha['cuentas']['conflicto'] . ' con conflicto, no se aplicaron.' : '' ?></p>
+        <?= $hecha['cuentas']['conflicto'] ? (int)$hecha['cuentas']['conflicto'] . ' con conflicto, no se aplicaron.' : '' ?>
+        <?= !empty($hecha['omitidas_privado']) ? (int)$hecha['omitidas_privado'] . ' pasaban a público registros que la planilla marca PRIVADO y no se aplicaron (faltó la confirmación).' : '' ?></p>
       <p class="nota">Cuando el equipo corrija lo mismo en su planilla, la importación lo detecta, desbloquea esos campos y lo informa
         («Corrección hecha también en la planilla»).</p>
       <div class="acciones"><a class="btn" href="<?= App::url('procesos') ?>">Ver en Importaciones (para deshacerla)</a></div>

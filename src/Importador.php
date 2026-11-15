@@ -20,8 +20,9 @@ namespace Aida;
  *  - El estado «digitalizado» no lo toca: lo define el escaneo de carpetas.
  *  - Lo dado de baja desde el backoffice (eliminado_en) no se vuelve a crear, y los registros
  *    creados desde el backoffice (origen = 'backoffice') no se modifican.
- *  - Año (col. K): Texto::anio() da desde/hasta y si está sin confirmar. Un registro responde a todos
- *    los años del rango. Lo que no se puede interpretar queda sin año y se informa.
+ *  - Año (col. K): Texto::anio() da la lista de años (registro_anio, src/Anios.php) y el resumen
+ *    menor/mayor/sin confirmar. Un rango responde a todos sus años; una lista salteada, solo a los que nombra.
+ *    Lo que no se puede interpretar queda sin año y se informa.
  *  - Tipos y descriptores se resuelven con Aida\Vocabulario: fusiones, términos movidos al otro
  *    vocabulario y grafías anteriores van al término vigente; los descartados se ignoran.
  *    Cada regla aplicada se informa agrupada por caja (src/Alertas.php, VOCAB_*).
@@ -217,8 +218,8 @@ final class Importador
             $n = count($this->corregidos);
             $lista = implode(', ', array_slice($this->corregidos, 0, 30)) . ($n > 30 ? ' …' : '');
             $this->rep->incidencia('info', 'CORREGIDO_EN_PLANILLA', $numCaja, null, ($n === 1
-                ? 'El equipo corrigió en la planilla 1 campo que estaba corregido a mano; vuelve a tomarse del Excel'
-                : "El equipo corrigió en la planilla $n campos que estaban corregidos a mano; vuelven a tomarse del Excel") . " ($lista)");
+                ? 'El equipo corrigió en la planilla 1 campo que estaba corregido a mano; se desbloqueó'
+                : "El equipo corrigió en la planilla $n campos que estaban corregidos a mano; se desbloquearon") . " ($lista)");
             $this->corregidos = [];
         }
         foreach ($nomenclaturas as $nom => $nums) {
@@ -316,8 +317,10 @@ final class Importador
         if ($c['eliminado_en'] !== null) {
             return null;
         }
+        $delExcel = ['nombre' => $nombre, 'resumen' => $resumen];
         $bloq = $this->desbloquearCorregidos('caja', (int)$c['id'], $numero, null,
-            json_decode((string)$c['campos_bloqueados'], true) ?: [], ['nombre' => $nombre, 'resumen' => $resumen]);
+            json_decode((string)$c['campos_bloqueados'], true) ?: [], $delExcel);
+        ['nombre' => $nombre, 'resumen' => $resumen] = $delExcel;   // con la versión de la base, si se conservó
         $sets = ['nombre_pestania = ?'];
         $vals = [$pestania];
         if (!in_array('nombre', $bloq, true)) {
@@ -426,10 +429,11 @@ final class Importador
             $antes = null;
         } else {
             $regId = (int)$r['id'];
+            $anioExcel = $datos['anio_texto'];
             $bloq = $this->desbloquearCorregidos('registro', $regId, $numCaja, $num,
                 json_decode((string)$r['campos_bloqueados'], true) ?: [], $datos);
-            if (in_array('anio_texto', $bloq, true)) {
-                // Año editado a mano: los campos derivados salen del texto que quedó en la base, no del Excel
+            if (in_array('anio_texto', $bloq, true) || $datos['anio_texto'] !== $anioExcel) {
+                // Año editado a mano (o conservado al desbloquearlo): los campos derivados salen del texto que quedó en la base, no del Excel
                 $st = $this->db->prepare('SELECT anio_texto FROM registro WHERE id = ?');
                 $st->execute([$regId]);
                 $an = Texto::anio($st->fetchColumn());
@@ -461,6 +465,9 @@ final class Importador
             }
         }
 
+        // Años del filtro (registro_anio): siguen al año que quedó en el registro
+        (new Anios($this->db))->sincronizar($regId);
+
         // Vocabularios
         $this->vincular($regId, [
             'tipo_documento' => [$f['tipo1'], $f['tipo2'], $f['tipo3']],
@@ -480,13 +487,15 @@ final class Importador
     /**
      * Cierra el circuito con la planilla: si un campo bloqueado (corregido a mano) ahora trae en el Excel
      * el mismo valor que la base — sin contar espacios ni mayúsculas, sí las tildes —, el equipo ya lo corrigió
-     * en su planilla: se desbloquea (vía Historial, queda en esta importación y se deshace con ella) y vuelve a
-     * tomarse del Excel. Si el Excel trae otro valor, el bloqueo sigue.
+     * en su planilla: se desbloquea (vía Historial, queda en esta importación y se deshace con ella). Si el valor
+     * es idéntico, vuelve a tomarse del Excel; si solo coincide ignorando mayúsculas y espacios («aída  BORTNIK»
+     * vs «Aída Bortnik»), se conserva el de la base: se reemplaza en $datos (decisión del PM, 15/11/2026).
+     * Si el Excel trae otro valor, el bloqueo sigue.
      * @param list<string> $bloq
-     * @param array<string,mixed> $datos lo que trae el Excel
+     * @param array<string,mixed> $datos lo que trae el Excel; vuelve con el valor de la base en los conservados
      * @return list<string> campos que siguen bloqueados
      */
-    private function desbloquearCorregidos(string $entidad, int $id, int $numCaja, ?int $num, array $bloq, array $datos): array
+    private function desbloquearCorregidos(string $entidad, int $id, int $numCaja, ?int $num, array $bloq, array &$datos): array
     {
         $candidatos = array_values(array_intersect($bloq, array_keys($datos)));
         if (!$candidatos) {
@@ -512,7 +521,13 @@ final class Importador
         $this->rep->sumar('campos corregidos en la planilla (se desbloquean)', count(array_intersect($candidatos, $libres)));
         $etq = $entidad === 'caja' ? ['nombre' => 'Nombre de caja', 'resumen' => 'Resumen de la caja'] : self::ETIQUETAS;
         foreach (array_intersect($candidatos, $libres) as $campo) {
-            $txt = ($num !== null ? "R$num " : '') . ($etq[$campo] ?? $campo);
+            $conservado = (string)$datos[$campo] !== (string)($base[$campo] ?? '');
+            if ($conservado) {
+                // Coincide solo sin mayúsculas ni espacios: queda nuestra versión
+                $datos[$campo] = $base[$campo];
+                $this->rep->sumar('campos desbloqueados conservando la versión de la base');
+            }
+            $txt = ($num !== null ? "R$num " : '') . ($etq[$campo] ?? $campo) . ($conservado ? ' (se conservó la versión de la base)' : '');
             if ($entidad === 'caja') {
                 $this->corregidosCaja[] = $txt;
             } else {

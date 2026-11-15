@@ -91,10 +91,11 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
       echo '<div class="dos">'; $campo('autor'); $campo('lugar'); echo '</div>';
       echo '<div class="dos">'; $campo('fecha_texto'); $campo('anio_texto'); echo '</div>';
       if ($r['anio_texto'] !== null && $r['anio_texto'] !== '') {
-          $etq = \Aida\Texto::anioEtiqueta($r['anio'] === null ? null : (int)$r['anio'], $r['anio_hasta'] === null ? null : (int)$r['anio_hasta'], false);
+          // Los años a los que responde en el filtro (registro_anio), como se ven en el sitio
+          $etq = \Aida\Texto::aniosEtiqueta($anios ?? []);
           echo '<p class="nota anio-filtro' . ($r['anio_sin_confirmar'] ? ' anio-dudoso' : '') . '">'
-             . ($etq === null ? 'Sin año para el filtro: el texto de la columna Año no es un año, un rango ni una fecha.'
-                 : 'Para el filtro por año: <b>' . e($etq) . '</b>' . ($r['anio_sin_confirmar'] ? ' · <b>año no confirmado</b> (la planilla lo trae con duda; en el sitio se ve «' . e(\Aida\Texto::anioEtiqueta((int)$r['anio'], (int)$r['anio_hasta'], true)) . '»)' : ''))
+             . ($etq === null ? 'Sin año para el filtro: el texto de la columna Año no es un año, un rango, una lista ni una fecha.'
+                 : 'Para el filtro por año: <b>' . e($etq) . '</b>' . ($r['anio_sin_confirmar'] ? ' · <b>año no confirmado</b> (la planilla lo trae con duda)' : ''))
              . '</p>';
       }
       echo '<div class="dos">'; $campo('paginas'); $campo('isbn'); echo '</div>';

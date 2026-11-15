@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Aida\Web;
 
 use Aida\Alertas;
+use Aida\Anios;
 use Aida\Correccion;
 use Aida\Curaduria;
 use Aida\Historial;
@@ -493,6 +494,7 @@ final class Rutas
             'bloqueadoPor' => $quien,
             'alertas' => self::alertasAbiertas((int)$c['numero'], (int)$r['numero']),
             'historial' => self::historialDe('registro', (int)$r['id']),
+            'anios' => (new Anios(self::db()))->leer((int)$r['id']),
             'anterior' => $pos !== false && $pos > 0 ? $lista[$pos - 1] : null,
             'siguiente' => $pos !== false && isset($lista[$pos + 1]) ? $lista[$pos + 1] : null,
         ]);
@@ -1001,7 +1003,9 @@ final class Rutas
         $dir = CargaExcel::directorio();
         try {
             $filas = Correccion::leerArchivo("$dir/{$s['archivo']}", $s['ext']);
-            $r = (new Correccion(self::db(), App::usuarioId()))->aplicar($filas, $s['original'], $s['firma']);
+            // Pasar a público lo que la planilla marca PRIVADO exige la casilla aparte (se valida también acá)
+            $r = (new Correccion(self::db(), App::usuarioId()))->aplicar($filas, $s['original'], $s['firma'],
+                !empty($_POST['confirmar_privados']));
         } catch (\RuntimeException $e) {
             App::aviso('error', $e->getMessage());
             App::redirigir('correccion');
@@ -1015,6 +1019,11 @@ final class Rutas
         unset($_SESSION['correccion']);
         $_SESSION['correccion_hecha'] = $r + ['original' => $s['original']];
         App::aviso('ok', "Corrección #{$r['proceso']}: se aplicaron {$r['aplicadas']} cambios. Se puede deshacer completa desde Importaciones.");
+        if ($r['omitidas_privado']) {
+            App::aviso('error', ($r['omitidas_privado'] === 1 ? 'No se aplicó 1 fila que pasaba a público un registro'
+                : "No se aplicaron {$r['omitidas_privado']} filas que pasaban a público registros")
+                . ' que la planilla marca PRIVADO: faltó tildar la confirmación. Si corresponde, subí la planilla de nuevo y confirmalo.');
+        }
         App::redirigir('correccion');
     }
 

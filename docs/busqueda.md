@@ -14,7 +14,7 @@ $cajas = $b->cajas('secuestro');                // cajas por nombre/resumen, par
 ```
 
 Devuelve `total`, `pagina`, `paginas`, `resultados` (código, título, autor, año, `anio_hasta`, `anio_sin_confirmar`,
-`anio_etiqueta` —«1981–1982», «1972 (sin confirmar)», para mostrar—, resumen recortado, tipos, caja, acceso, digitalizado, relevancia), `facetas` (caja, decada, tipo, descriptor, acceso, digitalizado, cada una con
+`anios` —la lista de años— y `anio_etiqueta` —«1981–1982», «1998, 2006–2008», «1972 (sin confirmar)», para mostrar—, resumen recortado, tipos, caja, acceso, digitalizado, relevancia), `facetas` (caja, decada, tipo, descriptor, acceso, digitalizado, cada una con
 `valor`, `etiqueta`, `cantidad`) y `consulta` (cómo se interpretó el texto, para mostrarlo si hace falta).
 
 ## Qué entiende el cuadro de búsqueda
@@ -24,7 +24,7 @@ Devuelve `total`, `pagina`, `paginas`, `resultados` (código, título, autor, a�
 | `jovenes`, `JÓVENES` | lo mismo: no importan tildes ni mayúsculas |
 | `secuestr` | por prefijo: secuestro, secuestros |
 | `"historia oficial"` o `«historia oficial»` | la frase exacta, en ese orden |
-| `1983` | el texto 1983 en cualquier campo, y los registros cuyo año o rango incluye 1983 («1981/1986») |
+| `1983` | el texto 1983 en cualquier campo, y los registros que tienen 1983 entre sus años («Entre 1981 y 1986»; no «1981/1986», que son dos años sueltos) |
 | `C2R5`, `c10r02` | ese registro (los ceros a la izquierda no importan) |
 | `C14` | los registros de la caja 14 |
 | `tv`, `yo`, `the` | la palabra completa (no «mayo» ni «ensayo») |
@@ -41,9 +41,12 @@ digitalizar, la nomenclatura y el PRIVADO del Excel. **Relevancia**: código exa
 ve; «a revisar» no se publica hasta decidir), de cajas sin baja y `publicada = 1`. El backoffice ve todo salvo las
 bajas (con `'bajas' => true`, también esas).
 
-**Años (15/11/2026):** cada registro cubre `anio`…`anio_hasta` (ver «Años» en `decisiones.md`). `anio` filtra los registros cuyo
-rango incluye ese año («1981/82» aparece con 1981 y con 1982); `anio_desde`/`anio_hasta` traen los rangos que se cruzan con el pedido.
-La faceta de décadas cuenta un registro en cada década que toca. El orden por año usa el primer año del rango.
+**Años (15/11/2026, ajustado el mismo día):** un registro responde **solo a sus años**, guardados en `registro_anio`
+(ver «Años» en `decisiones.md`). Un rango trae todos sus años («1981/82» aparece con 1981 y con 1982; «Entre 1983 y 1986», con
+1983, 1984, 1985 y 1986); una lista salteada, solo los que nombra («1998/2006/2007/2008» no aparece filtrando 2000).
+`anio` = tiene ese año; `anio_desde`/`anio_hasta` = tiene algún año dentro del pedido; `decada` (1980) = tiene algún año entre
+1980 y 1989. La faceta de décadas cuenta un registro una vez en cada década en la que tiene algún año («1998/2006»: años 90 y 2000,
+no se cuenta en una década del medio). El orden por año usa `registro.anio`, el menor de sus años.
 Los años sin confirmar filtran igual; el sitio tiene que mostrar `anio_etiqueta`.
 
 **Facetas:** cada una se cuenta sin su propio filtro, para que la interfaz pueda ofrecer «sumar» otra caja u otro

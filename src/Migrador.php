@@ -18,6 +18,14 @@ final class Migrador
   PRIMARY KEY (version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
+    /**
+     * Pasos en PHP que acompañan a una migración (lo que SQL solo no puede calcular). Se corren después
+     * de sus sentencias y antes de registrarla; tienen que ser idempotentes como el SQL.
+     */
+    private const POSTERIORES = [
+        '004' => 'reconstruirAnios',   // registro_anio: listas salteadas con Texto::anio()
+    ];
+
     /** @var array<string,string> version => ruta */
     public array $archivos = [];
     /** @var list<string> */
@@ -93,10 +101,22 @@ final class Migrador
                     . "\n" . mb_strimwidth($s, 0, 300, '…'), 0, $e);
             }
         }
+        if (isset(self::POSTERIORES[$version])) {
+            try {
+                $this->{self::POSTERIORES[$version]}();
+            } catch (\Throwable $e) {
+                throw new \RuntimeException('Falló el paso posterior de ' . basename($f) . ': ' . $e->getMessage(), 0, $e);
+            }
+        }
         $ms = (int)((hrtime(true) - $t0) / 1e6);
         $this->db->prepare('INSERT INTO migracion (version, nombre, checksum, duracion_ms) VALUES (?,?,?,?)')
            ->execute([$version, basename($f), sha1_file($f), $ms]);
         return $ms;
+    }
+
+    private function reconstruirAnios(): void
+    {
+        (new Anios($this->db))->reconstruir();
     }
 
     /**

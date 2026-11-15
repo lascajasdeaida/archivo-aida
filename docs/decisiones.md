@@ -56,6 +56,13 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   tomarse del Excel y se informa `CORREGIDO_EN_PLANILLA` (informativa, una por caja con la lista de campos). Vale para
   registros y para nombre y resumen de caja; el Año arrastra sus campos derivados. Si el Excel trae otro valor, el bloqueo
   sigue como siempre. Tipos y descriptores bloqueados no entran en esta regla.
+- **Desbloqueo conservando nuestra versión (15/11/2026, decisión del PM):** si el Excel coincide con lo corregido a mano **solo
+  ignorando mayúsculas y espacios** («aída  BORTNIK» vs «Aída Bortnik»), el campo se desbloquea igual pero **queda el valor de la
+  base**, no el del Excel. Si coincide exacto, como antes (es el mismo valor). El desbloqueo queda en el historial dentro de la
+  importación; en `CORREGIDO_EN_PLANILLA` esos campos llevan «(se conservó la versión de la base)».
+  *Pendiente:* como el campo queda libre, la **importación siguiente** sí toma la grafía del Excel. Ver la pregunta al PM en la
+  entrega (opciones: dejarlo bloqueado hasta que coincida exacto, o que el importador nunca pise un campo libre por una diferencia
+  solo de mayúsculas y espacios).
 
 ## ABM desde el backoffice (14/11/2026)
 
@@ -83,7 +90,11 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   importación no los pisa mientras la planilla siga con el error) y **se deshace completo** desde Importaciones.
   Cuando el equipo corrige su planilla, la regla del circuito (arriba, «Carga incremental») los desbloquea sola.
 - Sirve para el **cambio masivo de acceso** (columna «Acceso» o «PRIVADO»: Público / Restringido / A revisar, o VERDADERO,
-  FALSO, VERLO). Un público sobre algo que la planilla marca PRIVADO se avisa en la vista previa.
+  FALSO, VERLO).
+- **PRIVADO a público pide confirmación aparte (15/11/2026, decisión del PM):** las filas que pasan a público un registro que la
+  planilla marca PRIVADO (`excel_privado = VERDADERO`) se listan destacadas en la vista previa y «Aplicar» queda deshabilitado
+  hasta tildar «Confirmo que estos N registros que la planilla marca PRIVADO pasan a público». Se valida también en el servidor:
+  sin la casilla, esas filas no se aplican (el resto sí) y se informa en el aviso y en el resumen del proceso. Igual que la ficha.
 - Corregir el Año recalcula `anio`, `anio_hasta` y `anio_sin_confirmar` con `Texto::anio()`.
 - Prueba con la lista real (302 filas): 258 se aplican (240 Autor, 14 fechas, 4 nombres de caja), 44 se saltean («Revisar»:
   25 Año, 18 Autor, 1 Descriptor), 0 conflictos. Deshecha completa, todo vuelve; aplicada de nuevo, la importación del Excel
@@ -134,11 +145,22 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 
 ## Años (columna K) — 15/11/2026, decisión del PM
 
-- Se guarda `anio` (año, o primer año del rango), `anio_hasta` (último año; igual a `anio` si es uno solo) y `anio_sin_confirmar`.
-  El texto original queda en `anio_texto` y es lo que se muestra.
-- **Un registro responde a todos los años de su rango**: «1981/82» aparece filtrando 1981 y filtrando 1982, y cuenta en cada
-  década que toca (`src/Buscador.php`).
-- **Con «?» el año es dudoso**: «1972?» filtra como 1972 pero queda **no confirmado**. En el backoffice se ve en rojo con el chip
+- **Un registro solo responde a los años que figuran en su columna Año** (15/11/2026, decisión del PM, ajusta la anterior):
+  - un **rango** responde a todos sus años: «1981/82» aparece filtrando 1981 y 1982; «Entre 1983 y 1986», de 1983 a 1986;
+  - una **lista salteada** responde **solo** a los años listados: «1998/2006/2007/2008» aparece con 1998, 2006, 2007 y 2008,
+    **no** filtrando 2000–2005, y cuenta en los años 90 y en los 2000 (no en una década del medio).
+- Los años de cada registro se guardan en **`registro_anio`** (una fila por año, con `sin_confirmar` por año). El filtro por año,
+  rango y década y la faceta de décadas usan esa tabla (`src/Buscador.php`). En `registro` quedan como **resumen** `anio` (el menor),
+  `anio_hasta` (el mayor) y `anio_sin_confirmar` (alguno dudoso), para ordenar y mostrar; son lo que audita el historial.
+  El texto original queda en `anio_texto` y es lo que se muestra; el sitio muestra la lista con `Texto::aniosEtiqueta`
+  («1998, 2006–2008»).
+- `registro_anio` se deriva del año del registro (`src/Anios.php`) y nunca lo contradice: la ponen al día `Historial` (al editar el
+  Año en la ficha, en la corrección masiva y **al deshacer**) y el `Importador`. No se audita aparte. Es un derivado: rehacer sus
+  filas no es «borrar» en el sentido de la carga incremental.
+- **Por qué una tabla** y no una lista en una columna: el filtro por año es un `anio = ?` sobre un índice (`anio, registro_id`), la
+  faceta de décadas sale de contar filas, y funciona igual en MySQL 8.4 y MariaDB 10.11 (sin JSON_TABLE ni FIND_IN_SET).
+- **Con «?» el año es dudoso**: «1972?» filtra como 1972 pero queda **no confirmado**. La duda va por parte: en
+  «1980? 1996/97/98/2006» solo 1980 queda sin confirmar. En el backoffice se ve en rojo con el chip
   «Año no confirmado» (ficha y lista de la caja); en el sitio se muestra «1972 (sin confirmar)» (`Texto::anioEtiqueta`).
 - Lo interpreta `Texto::anio()`, igual en la importación y al editar el año a mano:
 
@@ -146,20 +168,30 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 |---|---|---|
 | Año | `1974`, celda numérica | 1974 |
 | Año con duda | `1972?`, `¿1984?`, `1989???`, `1977(¿?)` | 1972, sin confirmar |
-| Rango con barra o guion | `1981/82`, `1981/1982`, `2004/ 2005`, `1982 /1986`, `1975-1979?`, `2000/1999` | 1981–1982 (desordenado: se ordena; con «?», sin confirmar) |
-| Rango con palabras | `1960 a 2009`, `Entre 1983 y 1986`, `Desde 1971 hasta 1991`, `1988 y 1989` | 1960–2009 |
-| Uno u otro | `1977 o 1978` | 1977–1978, sin confirmar |
-| Lista | `1981/82/83`, `(1981.82,83)`, `1969. 1970. 1971`, `1998/2006/2007/2008` | del menor al mayor (1998–2008) |
+| Rango con palabras o guion | `1960 a 2009`, `2001 a 2006`, `Entre 1983 y 1986`, `Desde 1971 hasta 1991`, `1975-1979?` | todos los años del rango (1960 a 2009; con «?», sin confirmar) |
+| Años con barra, punto, coma o «y», seguidos | `1981/82`, `1981/1982`, `2004/ 2005`, `2000/1999`, `1981/82/83`, `(1981.82,83)`, `1969. 1970. 1971`, `1988 y 1989` | los años escritos; como son consecutivos, equivale a un rango (1981, 1982 y 1983) |
+| Lista salteada | `1998/2006/2007/2008`, `1985/87/90`, `1981/1990/1993/1994/ 2004`, `1982 /1986` | **solo** los años escritos (1998, 2006, 2007, 2008) |
+| Uno u otro | `1977 o 1978` | los dos, sin confirmar |
+| Varias partes con su duda | `1980? 1996/97/98/2006` | 1980 sin confirmar; 1996, 1997, 1998 y 2006 confirmados |
 | Fecha completa | `03/02/2006`, `02/02/1982 (sobre)`, `20 al 25 de junio de 1988` | el año de la fecha |
 | Década | `años 70`, `década del 80`, `1970s` | 1970–1979 |
 | Sin fecha | `sin fecha`, `s/f`, `Sin dato`, `No tiene fecha`, `sin precisar`, `?` | sin año, no se informa |
-| Otro texto | `Posterior a 1990 porque…`, `Año XXII de la publicación`, `agosto/95 y agosto/97`, `1980? 1996/97/98/2006` | sin año; se informa (`ANIO_NO_INTERPRETADO`, informativa) |
+| Otro texto | `Posterior a 1990 porque…`, `Año XXII de la publicación`, `agosto/95 y agosto/97` | sin año; se informa (`ANIO_NO_INTERPRETADO`, informativa) |
 
 - Años fuera de 1900–2100: no se toman. Dos dígitos después de un año completo siguen su siglo («1999/00» = 1999–2000).
 - Los años se recalculan en cada importación. Con el Excel del 14/11/2026, de los **102 registros sin año filtrable pasan a
   filtrables 77** (51 rangos, 11 listas, 8 con duda, 7 fechas); quedan 25 sin año (20 «sin fecha» y 5 textos).
   En total: 62 registros con rango y 13 sin confirmar.
 - Si el año se editó a mano (`anio_texto` bloqueado), los campos derivados salen del texto de la base, no del Excel.
+- **Barra entre dos años no seguidos** («1982 /1986», «1981/1983», «1973/1986»): se lee como **dos años sueltos**, igual que
+  cualquier lista con barra; para un rango hay que escribir «1982 a 1986» o «1982-1986». Con el Excel del 14/11/2026 son 10
+  registros (C7R2, C15R17, C21R5–R8, C46R11, C46R19, C54R1, C54R2). *Pendiente de confirmar por el PM.*
+- **Cambio respecto de la regla anterior** (Excel del 14/11/2026, 1098 registros): **13 registros** cambian de años. 12 dejan de
+  aparecer en años intermedios (las 2 listas de 3 o más años salteados —C66R10, C66R13— y los 10 de arriba) y 1 pasa a tener año
+  (C66R18, «1980? 1996/97/98/2006»). Quedan 4 sin año por texto ilegible.
+- **Migración 004** (`db/migraciones/004_registro_anio.sql`): crea `registro_anio` y la completa con los rangos que había; el
+  `Migrador` corre después `Anios::reconstruir()`, que pasa las listas salteadas a sus años reales. Los textos que antes no se leían
+  necesitan una importación o `php bin/recalcular-anios.php --todos` (cambian el resumen, que va por el historial).
 
 ## Cajas y períodos
 

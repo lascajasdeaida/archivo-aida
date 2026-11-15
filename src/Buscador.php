@@ -22,12 +22,13 @@ namespace Aida;
  *  - -palabra: excluye.
  *  - Cada término tiene que aparecer en el registro, en sus tipos/descriptores o en el nombre de su caja.
  *
- * Años: un registro responde a todos los años entre anio y anio_hasta («1981/82» aparece filtrando 1981 y 1982;
- * ver Texto::anio). anio = ese año está en el rango; anio_desde/anio_hasta = el rango del registro se cruza con el pedido.
- * La faceta de décadas cuenta el registro en cada década que toca. Los resultados traen anio_sin_confirmar y
- * anio_etiqueta («1972 (sin confirmar)», «1981–1982») para mostrar.
+ * Años: un registro responde solo a los años de registro_anio (src/Anios.php, Texto::anio): «1981/82» aparece filtrando
+ * 1981 y 1982; «1998/2006/2007/2008» en esos cuatro años y no filtrando 2000. anio = tiene ese año;
+ * anio_desde/anio_hasta = tiene algún año dentro del pedido. La faceta de décadas cuenta el registro una vez en cada
+ * década en la que tiene algún año. registro.anio (el menor) queda para ordenar. Los resultados traen anio_sin_confirmar
+ * y anio_etiqueta con la lista tal cual («1998, 2006–2008», «1972 (sin confirmar)») para mostrar.
  *
- * Filtros: caja (número o lista), anio, anio_desde, anio_hasta, tipo y descriptor (id o lista de ids de vocabulario,
+ * Filtros: caja (número o lista), anio, anio_desde, anio_hasta, decada (1980 = 1980–1989), tipo y descriptor (id o lista de ids de vocabulario,
  * dentro de un mismo filtro alcanza con uno), acceso, digitalizado (0/1). En el backoffice además 'bajas' => true.
  * Las facetas se cuentan sin el filtro de la propia faceta (para poder sumar opciones).
  */
@@ -189,8 +190,21 @@ final class Buscador
                 }
             }
         }
+        // 2b. Años de los candidatos (registro_anio)
+        $anios = [];
+        $sqlAnios = 'SELECT registro_id, anio, sin_confirmar FROM registro_anio';
+        foreach ($lotes as $ids) {
+            $sql = $ids ? $sqlAnios . ' WHERE registro_id IN (' . $this->marcas($ids) . ')' : $sqlAnios;
+            foreach ($this->filas($sql, $ids) as $a) {
+                if (isset($esCandidato[$a['registro_id']])) {
+                    $anios[(int)$a['registro_id']][(int)$a['anio']] = (bool)(int)$a['sin_confirmar'];
+                }
+            }
+        }
         foreach ($candidatos as &$c) {
             $c['id'] = (int)$c['id'];
+            $c['anios'] = $anios[$c['id']] ?? [];
+            ksort($c['anios']);
             $c['caja'] = (int)$c['caja'];
             $c['anio'] = $c['anio'] === null ? null : (int)$c['anio'];
             $c['anio_hasta'] = $c['anio'] === null ? null : (int)($c['anio_hasta'] ?? $c['anio']);
@@ -240,7 +254,8 @@ final class Buscador
                     'id' => $c['id'], 'codigo' => $d['codigo'] ?? null, 'titulo' => $d['titulo'] ?? null,
                     'autor' => $d['autor'] ?? null, 'lugar' => $d['lugar'] ?? null, 'fecha_texto' => $d['fecha_texto'] ?? null,
                     'anio' => $c['anio'], 'anio_hasta' => $c['anio_hasta'], 'anio_sin_confirmar' => $c['anio_sin_confirmar'],
-                    'anio_etiqueta' => Texto::anioEtiqueta($c['anio'], $c['anio_hasta'], (bool)$c['anio_sin_confirmar']),
+                    'anios' => array_keys($c['anios']),
+                    'anio_etiqueta' => Texto::aniosEtiqueta($c['anios']),
                     'anio_texto' => $d['anio_texto'] ?? null, 'resumen' => $d['resumen'] ?? null,
                     'tipos' => $d['tipos'] ?? null, 'acceso' => $c['acceso'], 'digitalizado' => $c['digitalizado'],
                     'caja_numero' => $c['caja'], 'caja_nombre' => $c['caja_nombre'], 'relevancia' => round($c['relevancia'], 3),
@@ -360,8 +375,8 @@ final class Buscador
             $sql[] = '(c.nombre LIKE ? OR c.nombre LIKE ?)';
             array_push($par, "$p%", "% $p%", "$p%", "% $p%");
             if (in_array((int)$p, $c['anios'], true) && preg_match('/^\d{4}$/', $p)) {
-                $sql[] = '(r.anio <= ? AND COALESCE(r.anio_hasta, r.anio) >= ?)';
-                array_push($par, (int)$p, (int)$p);
+                $sql[] = 'EXISTS (SELECT 1 FROM registro_anio ra WHERE ra.registro_id = r.id AND ra.anio = ?)';
+                $par[] = (int)$p;
             }
             $conds[] = ['(' . implode(' OR ', $sql) . ')', $par];
         }
@@ -425,6 +440,12 @@ final class Buscador
                 $out[$k] = (int)$f[$k];
             }
         }
+        // Década (1980 = años 80): es el rango 1980–1989, cruzado con el que ya venga
+        if (isset($f['decada']) && $f['decada'] !== '' && (int)$f['decada'] > 0) {
+            $d = intdiv((int)$f['decada'], 10) * 10;
+            $out['anio_desde'] = max($out['anio_desde'] ?? $d, $d);
+            $out['anio_hasta'] = min($out['anio_hasta'] ?? $d + 9, $d + 9);
+        }
         $accesos = $this->modo === self::PUBLICO ? ['publico', 'restringido'] : ['publico', 'restringido', 'a_revisar'];
         if (isset($f['acceso']) && ($v = array_values(array_intersect((array)$f['acceso'], $accesos)))) {
             $out['acceso'] = $v;
@@ -469,15 +490,23 @@ final class Buscador
             return false;
         }
         if ($sin !== 'decada') {
-            // El registro cubre [anio, anio_hasta]: pasa si ese rango toca el pedido
-            if (isset($f['anio']) && ($c['anio'] === null || $c['anio'] > $f['anio'] || $c['anio_hasta'] < $f['anio'])) {
+            // Solo los años del registro (registro_anio): una lista salteada no responde a los años del medio
+            if (isset($f['anio']) && !isset($c['anios'][$f['anio']])) {
                 return false;
             }
-            if (isset($f['anio_desde']) && ($c['anio'] === null || $c['anio_hasta'] < $f['anio_desde'])) {
-                return false;
-            }
-            if (isset($f['anio_hasta']) && ($c['anio'] === null || $c['anio'] > $f['anio_hasta'])) {
-                return false;
+            if (isset($f['anio_desde']) || isset($f['anio_hasta'])) {
+                $d = $f['anio_desde'] ?? PHP_INT_MIN;
+                $h = $f['anio_hasta'] ?? PHP_INT_MAX;
+                $toca = false;
+                foreach ($c['anios'] as $a => $_) {
+                    if ($a >= $d && $a <= $h) {
+                        $toca = true;
+                        break;
+                    }
+                }
+                if (!$toca) {
+                    return false;
+                }
             }
         }
         foreach (['tipo', 'descriptor'] as $k) {
@@ -508,9 +537,10 @@ final class Buscador
                 $etiquetaCaja[$c['caja']] = $c['caja_nombre'];
             }
             if ($this->cumple($c, $f, 'decada')) {
-                // Un rango cuenta en cada década que toca («1978/1982»: años 70 y años 80)
-                $decadas = $c['anio'] === null ? ['sin_anio']
-                    : range(intdiv($c['anio'], 10) * 10, intdiv($c['anio_hasta'], 10) * 10, 10);
+                // Cuenta una vez en cada década en la que tiene algún año («1978/1982»: años 70 y 80;
+                // «1998/2006»: años 90 y 2000)
+                $decadas = !$c['anios'] ? ['sin_anio']
+                    : array_unique(array_map(fn($a) => intdiv($a, 10) * 10, array_keys($c['anios'])));
                 foreach ($decadas as $d) {
                     $cuentas['decada'][$d] = ($cuentas['decada'][$d] ?? 0) + 1;
                 }

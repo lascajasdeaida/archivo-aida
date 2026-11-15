@@ -1,6 +1,7 @@
 -- =====================================================================
 -- Archivo AIDA BORTNIK · Las cajas de Aída
 -- Esquema MySQL / MariaDB · InnoDB · utf8mb4
+-- Versión 0.8 (15/11/2026) — años de cada registro (registro_anio): las listas salteadas filtran solo sus años
 -- Versión 0.7 (15/11/2026) — corrección masiva por planilla (proceso 'correccion')
 -- Versión 0.6 (15/11/2026) — curaduría de vocabularios (mover, descartar, alias) y años con rango
 --
@@ -70,9 +71,9 @@ CREATE TABLE IF NOT EXISTS registro (
   autor                VARCHAR(500) NULL,              -- col. G
   lugar                VARCHAR(500) NULL,              -- col. I
   fecha_texto          VARCHAR(500) NULL,              -- col. J "Fecha como dice el doc" (solo se muestra)
-  anio                 SMALLINT     NULL,              -- col. K: año, o primer año del rango (filtrable; ver Texto::anio)
-  anio_hasta           SMALLINT     NULL,              -- último año del rango (= anio si es un año solo)
-  anio_sin_confirmar   TINYINT(1)   NOT NULL DEFAULT 0, -- 1 = la planilla lo trae con duda («1972?»)
+  anio                 SMALLINT     NULL,              -- col. K: resumen, el menor de sus años (orden; el filtro usa registro_anio)
+  anio_hasta           SMALLINT     NULL,              -- resumen, el mayor de sus años (= anio si es un año solo)
+  anio_sin_confirmar   TINYINT(1)   NOT NULL DEFAULT 0, -- 1 = alguno de sus años viene con duda («1972?»)
   anio_texto           VARCHAR(60)  NULL,              -- col. K tal cual ("1972?", "1982 /1986")
   paginas              INT UNSIGNED NULL,              -- col. L
   resumen              TEXT         NULL,              -- col. M
@@ -152,6 +153,18 @@ CREATE TABLE IF NOT EXISTS vocabulario_alias (
   UNIQUE KEY uq_alias (tipo, clave),
   KEY idx_alias_vocab (vocabulario_id),
   CONSTRAINT fk_alias_vocab FOREIGN KEY (vocabulario_id) REFERENCES vocabulario(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Años a los que responde cada registro (col. K, Texto::anio; ver src/Anios.php y docs/decisiones.md).
+-- «1998/2006/2007/2008» = 4 filas; «1981/82» o «Entre 1983 y 1986» = todos los años del rango.
+-- Filtro por año, rango y década y faceta de décadas (src/Buscador.php). Derivada: la mantienen Historial e Importador.
+CREATE TABLE IF NOT EXISTS registro_anio (
+  registro_id    INT UNSIGNED NOT NULL,
+  anio           SMALLINT     NOT NULL,
+  sin_confirmar  TINYINT(1)   NOT NULL DEFAULT 0,       -- ese año está con duda en la planilla («1980?»)
+  PRIMARY KEY (registro_id, anio),
+  KEY idx_registro_anio_anio (anio, registro_id),
+  CONSTRAINT fk_ra_registro FOREIGN KEY (registro_id) REFERENCES registro(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS registro_vocabulario (
@@ -286,6 +299,7 @@ CREATE TABLE IF NOT EXISTS migracion (
 INSERT IGNORE INTO migracion (version, nombre) VALUES
   ('001', '001_busqueda_fulltext.sql'),
   ('002', '002_curaduria_y_anios.sql'),
-  ('003', '003_correccion_masiva.sql');
+  ('003', '003_correccion_masiva.sql'),
+  ('004', '004_registro_anio.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -20,6 +20,11 @@ namespace Aida;
  *  - El estado «digitalizado» no lo toca: lo define el escaneo de carpetas.
  *  - Lo dado de baja desde el backoffice (eliminado_en) no se vuelve a crear, y los registros
  *    creados desde el backoffice (origen = 'backoffice') no se modifican.
+ *  - Año (col. K): Texto::anio() da desde/hasta y si está sin confirmar. Un registro responde a todos
+ *    los años del rango. Lo que no se puede interpretar queda sin año y se informa.
+ *  - Tipos y descriptores se resuelven con Aida\Vocabulario: fusiones, términos movidos al otro
+ *    vocabulario y grafías anteriores van al término vigente; los descartados se ignoran.
+ *    Cada regla aplicada se informa agrupada por caja (src/Alertas.php, VOCAB_*).
  */
 final class Importador
 {
@@ -50,15 +55,18 @@ final class Importador
 
     /** Campos de `registro` que escribe el importador (y que se pueden bloquear). */
     private const CAMPOS_REGISTRO = [
-        'titulo', 'autor', 'lugar', 'fecha_texto', 'anio', 'anio_texto', 'paginas', 'resumen', 'isbn',
+        'titulo', 'autor', 'lugar', 'fecha_texto', 'anio', 'anio_hasta', 'anio_sin_confirmar', 'anio_texto', 'paginas', 'resumen', 'isbn',
         'obs_editorial', 'edicion_catalogo', 'obs_conservacion', 'obs_digitalizacion', 'seleccion_digit',
         'excel_digitalizado', 'excel_nomenclatura', 'excel_privado', 'acceso',
     ];
 
     private Reporte $rep;
     private Historial $hist;
-    /** @var array<string,int> cache de vocabulario "tipo|clave" => id */
+    /** @var array<string,array|false> cache de vocabulario "tipo|clave" => resolución (false = descartado) */
     private array $vocab = [];
+    private Vocabulario $voc;
+    /** @var array<string,array{codigo:string,detalle:string,registros:list<int>}> reglas de curaduría aplicadas en la caja actual */
+    private array $reglas = [];
 
     public function __construct(private readonly \PDO $db)
     {
@@ -92,6 +100,8 @@ final class Importador
         try {
             $this->rep->abrir($this->db);
             $this->hist = new Historial($this->db, null, 'importacion', $this->rep->procesoId);
+            $this->voc = new Vocabulario($this->db);
+            $this->vocab = [];
             foreach ($x->sheetNames() as $hoja) {
                 if (!preg_match('/^\s*Caja\s+(\d+)\b/iu', $hoja, $m)) {
                     $this->rep->sumar('pestañas ignoradas');
@@ -181,8 +191,18 @@ final class Importador
 
         // Registros
         $nomenclaturas = [];
+        $this->reglas = [];
         foreach ($filas as $num => $f) {
             $this->importarRegistro($cajaId, $numCaja, $num, $f, $nomenclaturas);
+        }
+        // Reglas de curaduría aplicadas: una incidencia informativa por regla y caja
+        foreach ($this->reglas as $g) {
+            sort($g['registros']);
+            $n = count($g['registros']);
+            $lista = implode(', ', array_map(fn($x) => "R$x", array_slice($g['registros'], 0, 30))) . ($n > 30 ? ' …' : '');
+            $this->rep->incidencia('info', $g['codigo'], $numCaja, $n === 1 ? $g['registros'][0] : null,
+                sprintf($g['detalle'], $n === 1 ? '1 registro' : "$n registros") . " ($lista)");
+            $this->rep->sumar('reglas de curaduría aplicadas', $n);
         }
         foreach ($nomenclaturas as $nom => $nums) {
             if (count($nums) > 1) {
@@ -302,12 +322,13 @@ final class Importador
     {
         $codigo = Texto::codigo($numCaja, $num);
 
-        // Año
+        // Año: año solo, rango o con duda (Texto::anio, tabla en docs/decisiones.md)
         $anioRaw = $f['anio_raw'];
         $anioTxt = Texto::limpio($anioRaw);
-        $anio = Texto::entero($anioRaw);
-        if ($anio !== null && ($anio < 1900 || $anio > 2100)) {
-            $anio = null;
+        $an = Texto::anio($anioRaw);
+        if ($an['formato'] === 'ilegible') {
+            $this->rep->incidencia('info', 'ANIO_NO_INTERPRETADO', $numCaja, $num,
+                'La columna Año dice «' . mb_substr((string)$anioTxt, 0, 80) . '»: no se pudo leer un año, así que no aparece en el filtro por año');
         }
 
         // Nomenclatura (control cruzado)
@@ -335,7 +356,9 @@ final class Importador
             'autor'              => Texto::limpio($f['autor']),
             'lugar'              => Texto::limpio($f['lugar']),
             'fecha_texto'        => Texto::limpio($f['fecha_texto']),
-            'anio'               => $anio,
+            'anio'               => $an['desde'],
+            'anio_hasta'         => $an['hasta'],
+            'anio_sin_confirmar' => (int)$an['sin_confirmar'],
             'anio_texto'         => $anioTxt,
             'paginas'            => Texto::entero($f['paginas']),
             'resumen'            => Texto::limpio($f['resumen']),
@@ -386,6 +409,16 @@ final class Importador
         } else {
             $regId = (int)$r['id'];
             $bloq = json_decode((string)$r['campos_bloqueados'], true) ?: [];
+            if (in_array('anio_texto', $bloq, true)) {
+                // Año editado a mano: los campos derivados salen del texto que quedó en la base, no del Excel
+                $st = $this->db->prepare('SELECT anio_texto FROM registro WHERE id = ?');
+                $st->execute([$regId]);
+                $an = Texto::anio($st->fetchColumn());
+                $datos['anio'] = $an['desde'];
+                $datos['anio_hasta'] = $an['hasta'];
+                $datos['anio_sin_confirmar'] = (int)$an['sin_confirmar'];
+                $bloq = array_values(array_diff($bloq, ['anio', 'anio_hasta', 'anio_sin_confirmar']));
+            }
             $set = [];
             $vals = [];
             foreach ($datos as $k => $v) {
@@ -410,12 +443,10 @@ final class Importador
         }
 
         // Vocabularios
-        if (!in_array('tipos', $bloq, true)) {
-            $this->vincular($regId, 'tipo_documento', [$f['tipo1'], $f['tipo2'], $f['tipo3']], $numCaja, $num);
-        }
-        if (!in_array('descriptores', $bloq, true)) {
-            $this->vincular($regId, 'descriptor', [$f['desc1'], $f['desc2'], $f['desc3'], $f['desc4']], $numCaja, $num);
-        }
+        $this->vincular($regId, [
+            'tipo_documento' => [$f['tipo1'], $f['tipo2'], $f['tipo3']],
+            'descriptor' => [$f['desc1'], $f['desc2'], $f['desc3'], $f['desc4']],
+        ], $bloq, $numCaja, $num);
 
         // Historial (permite deshacer esta importación)
         if ($antes === null) {
@@ -458,54 +489,106 @@ final class Importador
         return ['publico', $privTxt];
     }
 
-    /** @param array<int,mixed> $valores */
-    private function vincular(int $regId, string $tipo, array $valores, int $caja, int $num): void
+    /**
+     * Asigna tipos y descriptores. Cada valor se resuelve al término vigente, que puede ser del otro
+     * vocabulario (término movido): «Televisión» en la columna Tipo se carga como descriptor.
+     * Los que llegan por una regla de curaduría van después de los propios de la columna, en el orden del Excel.
+     * @param array<string,array<int,mixed>> $columnas tipo de vocabulario => valores de sus columnas
+     * @param list<string> $bloq campos bloqueados del registro ('tipos', 'descriptores')
+     */
+    private function vincular(int $regId, array $columnas, array $bloq, int $caja, int $num): void
     {
-        $ids = [];
-        $orden = 0;
-        foreach ($valores as $v) {
-            $nombre = Texto::limpio($v);
-            if ($nombre === null) {
-                continue;
-            }
-            if (mb_strlen($nombre) > 80) {
-                $this->rep->incidencia('aviso', 'VOCABULARIO_TEXTO_LARGO', $caja, $num,
-                    ($tipo === 'descriptor' ? 'Descriptor' : 'Tipo') . ' con texto largo, no parece un término: «'
-                    . mb_substr($nombre, 0, 60) . '…»; no se cargó');
-                continue;
-            }
-            $orden++;
-            $id = $this->vocabId($tipo, $nombre, $caja, $num);
-            if (!isset($ids[$id])) {
-                $ids[$id] = $orden;
+        $propios = ['tipo_documento' => [], 'descriptor' => []];
+        $movidos = ['tipo_documento' => [], 'descriptor' => []];
+        foreach ($columnas as $tipo => $valores) {
+            foreach ($valores as $v) {
+                $nombre = Texto::limpio($v);
+                if ($nombre === null) {
+                    continue;
+                }
+                if (mb_strlen($nombre) > 80) {
+                    $this->rep->incidencia('aviso', 'VOCABULARIO_TEXTO_LARGO', $caja, $num,
+                        ($tipo === 'descriptor' ? 'Descriptor' : 'Tipo') . ' con texto largo, no parece un término: «'
+                        . mb_substr($nombre, 0, 60) . '…»; no se cargó');
+                    continue;
+                }
+                $res = $this->vocabId($tipo, $nombre);
+                if ($res['regla'] !== null) {
+                    $this->anotarRegla($tipo, $nombre, $res, $num);
+                }
+                if ($res['descartado']) {
+                    continue;
+                }
+                if ($res['tipo'] === $tipo) {
+                    $propios[$tipo][$res['id']] ??= true;
+                } else {
+                    $movidos[$res['tipo']][$res['id']] ??= true;
+                }
             }
         }
-        $this->db->prepare('DELETE rv FROM registro_vocabulario rv JOIN vocabulario v ON v.id = rv.vocabulario_id
-                            WHERE rv.registro_id = ? AND v.tipo = ?')->execute([$regId, $tipo]);
         $ins = $this->db->prepare('INSERT INTO registro_vocabulario (registro_id, vocabulario_id, orden) VALUES (?,?,?)');
-        foreach ($ids as $id => $o) {
-            $ins->execute([$regId, $id, $o]);
+        foreach ([ 'tipo_documento' => 'tipos', 'descriptor' => 'descriptores'] as $tipo => $campo) {
+            if (in_array($campo, $bloq, true)) {
+                continue;
+            }
+            $ids = array_keys($propios[$tipo] + $movidos[$tipo]);
+            $this->db->prepare('DELETE rv FROM registro_vocabulario rv JOIN vocabulario v ON v.id = rv.vocabulario_id
+                                WHERE rv.registro_id = ? AND v.tipo = ?')->execute([$regId, $tipo]);
+            foreach ($ids as $i => $id) {
+                $ins->execute([$regId, $id, $i + 1]);
+            }
         }
     }
 
-    private function vocabId(string $tipo, string $nombre, int $caja, int $num): int
+    /** Junta las reglas aplicadas en la caja para informarlas agrupadas. */
+    private function anotarRegla(string $tipo, string $nombre, array $res, int $num): void
     {
-        $clave = Texto::clave($nombre);
-        $k = "$tipo|$clave";
+        $col = Vocabulario::NOMBRES[$tipo];
+        [$codigo, $detalle] = match ($res['regla']) {
+            'descartado' => ['VOCAB_DESCARTADO', "«{$nombre}» llegó como {$col} en %s y se ignoró: es un término descartado"],
+            'movido' => ['VOCAB_MOVIDO', "«{$nombre}» llegó como {$col} en %s y se cargó como " . Vocabulario::NOMBRES[$res['tipo']] . " «{$res['nombre']}»"],
+            'renombre' => ['VOCAB_RENOMBRADO', "«{$nombre}» ({$col}) llegó con la grafía anterior en %s y se cargó como «{$res['nombre']}»"],
+            default => ['VOCAB_FUSIONADO', "«{$nombre}» ({$col}) llegó en %s y se cargó como «{$res['nombre']}», el término en que se fusionó"],
+        };
+        $k = "$codigo|$tipo|" . Texto::clave($nombre);
+        $this->reglas[$k] ??= ['codigo' => $codigo, 'detalle' => $detalle, 'registros' => []];
+        if (!in_array($num, $this->reglas[$k]['registros'], true)) {
+            $this->reglas[$k]['registros'][] = $num;
+        }
+    }
+
+    /**
+     * Término vigente para un valor de la columna $tipo. Si no existe, se crea como propuesto.
+     * @return array{id:int, tipo:string, nombre:string, descartado:bool, regla:?string}
+     */
+    private function vocabId(string $tipo, string $nombre): array
+    {
+        $k = "$tipo|" . Texto::clave($nombre);
         if (isset($this->vocab[$k])) {
             return $this->vocab[$k];
         }
-        $st = $this->db->prepare('SELECT id, fusionado_en FROM vocabulario WHERE tipo = ? AND clave = ?');
-        $st->execute([$tipo, $clave]);
-        $row = $st->fetch();
-        if ($row) {
-            $id = (int)($row['fusionado_en'] ?? $row['id']);
-        } else {
+        $r = $this->voc->resolver($tipo, $nombre);
+        if ($r === null) {
             $this->db->prepare("INSERT INTO vocabulario (tipo, nombre, clave, estado) VALUES (?,?,?,'propuesto')")
-                     ->execute([$tipo, $nombre, $clave]);
-            $id = (int)$this->db->lastInsertId();
+                     ->execute([$tipo, $nombre, Texto::clave($nombre)]);
             $this->rep->sumar($tipo === 'descriptor' ? 'descriptores nuevos (a curar)' : 'tipos nuevos (a curar)');
+            return $this->vocab[$k] = ['id' => (int)$this->db->lastInsertId(), 'tipo' => $tipo, 'nombre' => $nombre,
+                                       'descartado' => false, 'regla' => null];
         }
-        return $this->vocab[$k] = $id;
+        if ($r['via'] === 'eliminado') {
+            // Término cuya alta se deshizo: vuelve como propuesto, porque la planilla lo sigue usando
+            $id = (int)$r['inicio']['id'];
+            $antes = $this->hist->leer('vocabulario', $id, ['estado', 'fusionado_en', 'regla', 'eliminado_en', 'eliminado_por']);
+            $this->db->prepare("UPDATE vocabulario SET estado = 'propuesto', fusionado_en = NULL, regla = NULL,
+                                eliminado_en = NULL, eliminado_por = NULL WHERE id = ?")->execute([$id]);
+            $this->hist->registrar('vocabulario', $id, 'restauracion', $antes, $this->hist->leer('vocabulario', $id, array_keys($antes)));
+            $this->rep->sumar($tipo === 'descriptor' ? 'descriptores nuevos (a curar)' : 'tipos nuevos (a curar)');
+            return $this->vocab[$k] = ['id' => $id, 'tipo' => $tipo, 'nombre' => (string)$r['inicio']['nombre'],
+                                       'descartado' => false, 'regla' => null];
+        }
+        $fin = $r['final'];
+        $descartado = $fin['estado'] === 'descartado';
+        return $this->vocab[$k] = ['id' => (int)$fin['id'], 'tipo' => (string)$fin['tipo'], 'nombre' => (string)$fin['nombre'],
+                                   'descartado' => $descartado, 'regla' => $descartado ? 'descartado' : $r['regla']];
     }
 }

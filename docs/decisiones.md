@@ -76,10 +76,70 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 - Un término se puede fusionar con otro (`fusionado_en`); el importador usa el destino de la fusión.
 - Textos largos (> 80 caracteres) en una columna de vocabulario se descartan y se reportan: son resúmenes pegados en la columna equivocada.
 
+### Curaduría: mover, fusionar, renombrar y descartar (15/11/2026, decisión del PM)
+
+- **Tipo de documento** = qué es la pieza (carta, guion, recorte). **Descriptor** = de qué área o tema trata (cine, televisión).
+  Un término cargado en el vocabulario equivocado **se mueve** («Televisión» de tipo a descriptor; «Carta», «Fotografía»,
+  «Comunicado de prensa», «Referencia de época» de descriptor a tipo). Si en el destino ya hay un término equivalente,
+  se fusiona en él; si no, se crea aprobado.
+- **Regla en el importador** (`src/Vocabulario.php`): cada valor del Excel se resuelve al **término vigente**, en este orden:
+  1. el término con esa clave en esa columna, siguiendo `fusionado_en` (fusión o movido, `regla`) hasta el vigente, que puede ser
+     del otro vocabulario: «Televisión» en la columna Tipo se carga como descriptor, sin crear un término nuevo;
+  2. si no existe, una **grafía anterior** de un término renombrado (`vocabulario_alias`): renombrar «Bordereaux» → «Bordereau»
+     cambia la clave y deja «Bordereaux» como alias, así la planilla puede traer cualquiera de las dos;
+  3. si el vigente está **descartado**, no se asigna.
+  Los términos que llegan por una regla van después de los propios de la columna. No se bloquea nada: el Excel sigue actualizando
+  los tipos y descriptores del registro.
+- **Estado «descartado»** para términos basura («g», «s», «.», frases pegadas): deja de mostrarse y de asignarse, se quita de
+  sus registros sin bloquear los demás tipos y descriptores, y la importación lo ignora. Motivo obligatorio, confirmación con doble
+  validación. Se restaura deshaciendo el descarte.
+- **Registro e informe:** cada movimiento, fusión, renombre y descarte es un `proceso` de tipo `curaduria` (quién, cuándo, motivo,
+  registros afectados) con todos sus cambios en `auditoria` (términos, alias y la lista de cada registro). Se deshace completo
+  desde Vocabularios → **Cambios de curaduría**, que también se copia como texto o se baja en CSV para el equipo de digitalización
+  y el cliente. Las fusiones y renombres, que antes no quedaban en el historial, ahora sí.
+- Cada vez que una importación aplica una regla se informa, **agrupada por término y caja**, como incidencia informativa:
+  `VOCAB_MOVIDO`, `VOCAB_FUSIONADO`, `VOCAB_RENOMBRADO`, `VOCAB_DESCARTADO` (`src/Alertas.php`).
+- Deshacer el alta de un término (por ejemplo, el destino creado al mover) lo da de baja (`eliminado_en`). Si la planilla lo vuelve
+  a traer, la importación lo revive como propuesto.
+
+## Años (columna K) — 15/11/2026, decisión del PM
+
+- Se guarda `anio` (año, o primer año del rango), `anio_hasta` (último año; igual a `anio` si es uno solo) y `anio_sin_confirmar`.
+  El texto original queda en `anio_texto` y es lo que se muestra.
+- **Un registro responde a todos los años de su rango**: «1981/82» aparece filtrando 1981 y filtrando 1982, y cuenta en cada
+  década que toca (`src/Buscador.php`).
+- **Con «?» el año es dudoso**: «1972?» filtra como 1972 pero queda **no confirmado**. En el backoffice se ve en rojo con el chip
+  «Año no confirmado» (ficha y lista de la caja); en el sitio se muestra «1972 (sin confirmar)» (`Texto::anioEtiqueta`).
+- Lo interpreta `Texto::anio()`, igual en la importación y al editar el año a mano:
+
+| Formato | Ejemplos reales | Resultado |
+|---|---|---|
+| Año | `1974`, celda numérica | 1974 |
+| Año con duda | `1972?`, `¿1984?`, `1989???`, `1977(¿?)` | 1972, sin confirmar |
+| Rango con barra o guion | `1981/82`, `1981/1982`, `2004/ 2005`, `1982 /1986`, `1975-1979?`, `2000/1999` | 1981–1982 (desordenado: se ordena; con «?», sin confirmar) |
+| Rango con palabras | `1960 a 2009`, `Entre 1983 y 1986`, `Desde 1971 hasta 1991`, `1988 y 1989` | 1960–2009 |
+| Uno u otro | `1977 o 1978` | 1977–1978, sin confirmar |
+| Lista | `1981/82/83`, `(1981.82,83)`, `1969. 1970. 1971`, `1998/2006/2007/2008` | del menor al mayor (1998–2008) |
+| Fecha completa | `03/02/2006`, `02/02/1982 (sobre)`, `20 al 25 de junio de 1988` | el año de la fecha |
+| Década | `años 70`, `década del 80`, `1970s` | 1970–1979 |
+| Sin fecha | `sin fecha`, `s/f`, `Sin dato`, `No tiene fecha`, `sin precisar`, `?` | sin año, no se informa |
+| Otro texto | `Posterior a 1990 porque…`, `Año XXII de la publicación`, `agosto/95 y agosto/97`, `1980? 1996/97/98/2006` | sin año; se informa (`ANIO_NO_INTERPRETADO`, informativa) |
+
+- Años fuera de 1900–2100: no se toman. Dos dígitos después de un año completo siguen su siglo («1999/00» = 1999–2000).
+- Los años se recalculan en cada importación. Con el Excel del 14/11/2026, de los **102 registros sin año filtrable pasan a
+  filtrables 77** (51 rangos, 11 listas, 8 con duda, 7 fechas); quedan 25 sin año (20 «sin fecha» y 5 textos).
+  En total: 62 registros con rango y 13 sin confirmar.
+- Si el año se editó a mano (`anio_texto` bloqueado), los campos derivados salen del texto de la base, no del Excel.
+
 ## Cajas y períodos
 
 - Una caja puede pertenecer a más de un período (`caja_periodo`, N:N). Períodos, cajas y vocabularios se administran desde el backoffice.
 - El número de caja es el número físico del depósito. El resumen de la caja sale de la primera «Edición de catálogo» de la pestaña.
+- **Unificar nombres parecidos** (15/11/2026): el numeral final («II», «91/92/93») y la aclaración entre paréntesis
+  («(España)», «(Argentina)», también escrita sin paréntesis) **distinguen cajas**: no se proponen como errores de grafía.
+  Se agrupan como «misma obra, distinta parte» o «versiones distintas» y solo se ofrece unificar el título conservando
+  la parte o la aclaración de cada caja. Las cajas que un resumen presenta juntas («Cajas 8 y 12») se muestran con esa evidencia,
+  sin sugerir un nombre salvo que uno contenga al otro («Azucena» / «Azucena Villaflor»).
 
 ## Pendientes
 

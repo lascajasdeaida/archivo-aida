@@ -19,6 +19,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
       <span class="chip <?= $r['acceso'] === 'publico' ? '' : 'chip-warn' ?>"><?= acceso_txt($r['acceso']) ?></span>
       <span class="chip"><?= $r['origen'] === 'backoffice' ? 'Cargado a mano' : 'Desde el Excel' ?></span>
       <?php if (!$r['publicado']): ?><span class="chip chip-warn">No publicado</span><?php endif ?>
+      <?php if ($r['anio_sin_confirmar']): ?><span class="chip chip-stop" title="La planilla dice «<?= e($r['anio_texto']) ?>»">Año no confirmado</span><?php endif ?>
     </div>
   </div>
   <div class="acciones">
@@ -89,6 +90,13 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
       $campo('titulo');
       echo '<div class="dos">'; $campo('autor'); $campo('lugar'); echo '</div>';
       echo '<div class="dos">'; $campo('fecha_texto'); $campo('anio_texto'); echo '</div>';
+      if ($r['anio_texto'] !== null && $r['anio_texto'] !== '') {
+          $etq = \Aida\Texto::anioEtiqueta($r['anio'] === null ? null : (int)$r['anio'], $r['anio_hasta'] === null ? null : (int)$r['anio_hasta'], false);
+          echo '<p class="nota anio-filtro' . ($r['anio_sin_confirmar'] ? ' anio-dudoso' : '') . '">'
+             . ($etq === null ? 'Sin año para el filtro: el texto de la columna Año no es un año, un rango ni una fecha.'
+                 : 'Para el filtro por año: <b>' . e($etq) . '</b>' . ($r['anio_sin_confirmar'] ? ' · <b>año no confirmado</b> (la planilla lo trae con duda; en el sitio se ve «' . e(\Aida\Texto::anioEtiqueta((int)$r['anio'], (int)$r['anio_hasta'], true)) . '»)' : ''))
+             . '</p>';
+      }
       echo '<div class="dos">'; $campo('paginas'); $campo('isbn'); echo '</div>';
       $campo('resumen', 'area');
       ?>

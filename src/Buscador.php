@@ -22,6 +22,11 @@ namespace Aida;
  *  - -palabra: excluye.
  *  - Cada término tiene que aparecer en el registro, en sus tipos/descriptores o en el nombre de su caja.
  *
+ * Años: un registro responde a todos los años entre anio y anio_hasta («1981/82» aparece filtrando 1981 y 1982;
+ * ver Texto::anio). anio = ese año está en el rango; anio_desde/anio_hasta = el rango del registro se cruza con el pedido.
+ * La faceta de décadas cuenta el registro en cada década que toca. Los resultados traen anio_sin_confirmar y
+ * anio_etiqueta («1972 (sin confirmar)», «1981–1982») para mostrar.
+ *
  * Filtros: caja (número o lista), anio, anio_desde, anio_hasta, tipo y descriptor (id o lista de ids de vocabulario,
  * dentro de un mismo filtro alcanza con uno), acceso, digitalizado (0/1). En el backoffice además 'bajas' => true.
  * Las facetas se cuentan sin el filtro de la propia faceta (para poder sumar opciones).
@@ -163,7 +168,7 @@ final class Buscador
         // 1. Candidatos: visibilidad + texto
         [$wSql, $wPar] = $this->where($this->condicionesTexto($consulta), $filtros);
         [$rel, $relPar] = $this->relevancia($consulta);
-        $candidatos = $this->filas("SELECT r.id, r.numero, r.anio, r.acceso, r.digitalizado, c.numero AS caja, c.nombre AS caja_nombre,
+        $candidatos = $this->filas("SELECT r.id, r.numero, r.anio, r.anio_hasta, r.anio_sin_confirmar, r.acceso, r.digitalizado, c.numero AS caja, c.nombre AS caja_nombre,
                 $rel AS relevancia
             FROM registro r JOIN caja c ON c.id = r.caja_id WHERE $wSql", array_merge($relPar, $wPar));
 
@@ -188,6 +193,8 @@ final class Buscador
             $c['id'] = (int)$c['id'];
             $c['caja'] = (int)$c['caja'];
             $c['anio'] = $c['anio'] === null ? null : (int)$c['anio'];
+            $c['anio_hasta'] = $c['anio'] === null ? null : (int)($c['anio_hasta'] ?? $c['anio']);
+            $c['anio_sin_confirmar'] = (int)$c['anio_sin_confirmar'];
             $c['digitalizado'] = (int)$c['digitalizado'];
             $c['relevancia'] = (float)$c['relevancia'];
             $c['tipo'] = $vocab[$c['id']]['tipo'] ?? [];
@@ -232,7 +239,9 @@ final class Buscador
                 $resultados[] = [
                     'id' => $c['id'], 'codigo' => $d['codigo'] ?? null, 'titulo' => $d['titulo'] ?? null,
                     'autor' => $d['autor'] ?? null, 'lugar' => $d['lugar'] ?? null, 'fecha_texto' => $d['fecha_texto'] ?? null,
-                    'anio' => $c['anio'], 'anio_texto' => $d['anio_texto'] ?? null, 'resumen' => $d['resumen'] ?? null,
+                    'anio' => $c['anio'], 'anio_hasta' => $c['anio_hasta'], 'anio_sin_confirmar' => $c['anio_sin_confirmar'],
+                    'anio_etiqueta' => Texto::anioEtiqueta($c['anio'], $c['anio_hasta'], (bool)$c['anio_sin_confirmar']),
+                    'anio_texto' => $d['anio_texto'] ?? null, 'resumen' => $d['resumen'] ?? null,
                     'tipos' => $d['tipos'] ?? null, 'acceso' => $c['acceso'], 'digitalizado' => $c['digitalizado'],
                     'caja_numero' => $c['caja'], 'caja_nombre' => $c['caja_nombre'], 'relevancia' => round($c['relevancia'], 3),
                 ] + array_intersect_key($d, ['publicado' => 1, 'eliminado_en' => 1, 'excel_privado' => 1]);
@@ -351,8 +360,8 @@ final class Buscador
             $sql[] = '(c.nombre LIKE ? OR c.nombre LIKE ?)';
             array_push($par, "$p%", "% $p%", "$p%", "% $p%");
             if (in_array((int)$p, $c['anios'], true) && preg_match('/^\d{4}$/', $p)) {
-                $sql[] = 'r.anio = ?';
-                $par[] = (int)$p;
+                $sql[] = '(r.anio <= ? AND COALESCE(r.anio_hasta, r.anio) >= ?)';
+                array_push($par, (int)$p, (int)$p);
             }
             $conds[] = ['(' . implode(' OR ', $sql) . ')', $par];
         }
@@ -460,10 +469,11 @@ final class Buscador
             return false;
         }
         if ($sin !== 'decada') {
-            if (isset($f['anio']) && $c['anio'] !== $f['anio']) {
+            // El registro cubre [anio, anio_hasta]: pasa si ese rango toca el pedido
+            if (isset($f['anio']) && ($c['anio'] === null || $c['anio'] > $f['anio'] || $c['anio_hasta'] < $f['anio'])) {
                 return false;
             }
-            if (isset($f['anio_desde']) && ($c['anio'] === null || $c['anio'] < $f['anio_desde'])) {
+            if (isset($f['anio_desde']) && ($c['anio'] === null || $c['anio_hasta'] < $f['anio_desde'])) {
                 return false;
             }
             if (isset($f['anio_hasta']) && ($c['anio'] === null || $c['anio'] > $f['anio_hasta'])) {
@@ -498,8 +508,12 @@ final class Buscador
                 $etiquetaCaja[$c['caja']] = $c['caja_nombre'];
             }
             if ($this->cumple($c, $f, 'decada')) {
-                $d = $c['anio'] === null ? 'sin_anio' : intdiv($c['anio'], 10) * 10;
-                $cuentas['decada'][$d] = ($cuentas['decada'][$d] ?? 0) + 1;
+                // Un rango cuenta en cada década que toca («1978/1982»: años 70 y años 80)
+                $decadas = $c['anio'] === null ? ['sin_anio']
+                    : range(intdiv($c['anio'], 10) * 10, intdiv($c['anio_hasta'], 10) * 10, 10);
+                foreach ($decadas as $d) {
+                    $cuentas['decada'][$d] = ($cuentas['decada'][$d] ?? 0) + 1;
+                }
             }
             foreach (['tipo', 'descriptor'] as $k) {
                 if ($this->cumple($c, $f, $k)) {

@@ -12,7 +12,7 @@ cualquier caja, registro y componente (tipos, descriptores, archivos, períodos,
 | Caja | número (sugerido, se puede forzar), nombre, resumen, períodos | todos los campos | lógica (`eliminado_en`) |
 | Registro | dentro de una caja; número sugerido (el siguiente libre, no reutiliza liberados) | todos los campos, tipos, descriptores, acceso | lógica |
 | Archivo digital | subir o asociar un archivo a un registro | reemplazar, cambiar orden/parte | lógica (deja de mostrarse; el archivo físico no se borra) |
-| Tipo / Descriptor | nuevo término aprobado | renombrar, aprobar un «propuesto», fusionar dos términos | solo si no tiene registros; si tiene, fusionar |
+| Tipo / Descriptor | nuevo término aprobado | renombrar, aprobar un «propuesto», fusionar, mover al otro vocabulario (§10) | descartar (basura) o fusionar; se puede deshacer |
 | Período | nombre, años, orden | todos los campos | solo si no tiene cajas |
 
 Reglas:
@@ -47,7 +47,11 @@ Antes de ejecutar, el operador ve qué se va a afectar y confirma:
 - **Cambio de acceso a público** de un registro que la planilla marca PRIVADO: «La planilla lo marca como privado. ¿Publicarlo igual?»
 - **Cambiar caja o número** de un registro digitalizado: «Cambia la nomenclatura {anterior} → {nueva}. Los archivos hay que renombrarlos.»
 - **Desbloquear un campo:** «Se va a reemplazar «{valor actual}» por lo que diga la planilla en la próxima importación.»
-- **Fusionar términos:** «{x} registros pasan de «{origen}» a «{destino}».»
+- **Fusionar términos:** «{x} registros pasan de «{origen}» al término elegido. {n} ya lo tenían.»
+- **Mover un término al otro vocabulario:** «{x} registros pierden el tipo «{término}» y suman el descriptor elegido. {n} ya lo tenían.
+  {m} registros quedan sin tipo de documento: {códigos}.» Ofrece el término equivalente del destino (recomendado), crear uno nuevo u otro.
+- **Descartar un término:** «Se quita de {x} registros. Los demás tipos y descriptores no se tocan ni se bloquean.» Motivo obligatorio.
+- **Deshacer un cambio de curaduría:** «Vuelve todo a como estaba antes del {fecha}…»
 
 ## 4. Notificaciones: verificaciones pendientes
 
@@ -64,7 +68,9 @@ sugerida de cada una está en `src/Alertas.php`.
 - Agrupadas por caja y por tipo, con filtros por estado (pendiente / validada / cerrada sola) y por fecha.
 
 **Informativas** (`requiere_validacion = 0`): pestaña aparte, sin contador. Sirven para pasarle correcciones
-al equipo de digitalización (por ejemplo, nomenclaturas mal tipeadas). Exportables a Excel.
+al equipo de digitalización (por ejemplo, nomenclaturas mal tipeadas). Exportables a Excel. Incluyen las reglas de curaduría
+que aplicó la importación (`VOCAB_MOVIDO`, `VOCAB_FUSIONADO`, `VOCAB_RENOMBRADO`, `VOCAB_DESCARTADO`, una por término y caja,
+con los registros) y los años que no se pudieron leer (`ANIO_NO_INTERPRETADO`).
 
 **Comportamiento**
 - Una alerta igual a otra abierta no se duplica.
@@ -89,6 +95,10 @@ modificaciones y bajas a través de esa clase.
   puede deshacer primero el cambio más nuevo o forzar (solo editor o admin, con confirmación).
 - Deshacer también queda en el historial, así que **una reversión se puede volver a deshacer**.
 - Mientras no exista el backoffice, se puede usar `php bin/revertir.php` (ver README).
+- Los cambios de un registro que vienen de un **cambio de curaduría** (§10) muestran «curaduría #N» y se deshacen completos
+  desde Cambios de curaduría, no uno por uno. Si se intenta deshacer uno suelto y el término ya no corresponde
+  («Televisión» ya es descriptor), el conflicto lo explica.
+- Las listas de tipos y descriptores se comparan por término vigente: un renombre o una fusión posteriores no cuentan como conflicto.
 
 ## 6. Perfiles
 
@@ -98,7 +108,7 @@ modificaciones y bajas a través de esa clase.
 | Bajas y restauraciones | ✅ | ✅ | — | — |
 | Cambiar acceso (público/restringido) | ✅ | ✅ | — | — |
 | Forzar número / cambiar nomenclatura | ✅ | ✅ (con confirmación) | — | — |
-| Curar vocabularios (aprobar, fusionar) | ✅ | ✅ | — | — |
+| Curar vocabularios (aprobar, renombrar, fusionar, mover, descartar, deshacer) | ✅ | ✅ | — | — |
 | Validar alertas | ✅ | ✅ | — | ✅ |
 | Deshacer cambios propios | ✅ | ✅ | ✅ | — |
 | Deshacer cambios de otros o importaciones completas | ✅ | ✅ | — | — |
@@ -159,3 +169,54 @@ Nunca recibe una ruta: la saca de la base y la resuelve con `realpath` dentro de
 Por intención (`public/admin/estilo.css`): **verde** crear o agregar (`btn-crear`), **naranja** guardar o aplicar (`btn-primario`),
 **rojo** quitar o dar de baja (`btn-peligro`, `btn-peligro-borde`). Lo que cambia muchos datos de una vez lleva `data-doble`
 (primer clic arma, segundo confirma) aunque se pueda deshacer.
+
+## 10. Curaduría de vocabularios (15/11/2026)
+
+Reglas en `docs/decisiones.md` («Curaduría»). Lógica en `src/Curaduria.php` y `src/Vocabulario.php`.
+
+**Vocabularios** (`?r=vocabularios`): por defecto muestra los términos vigentes (propuestos y aprobados); el filtro de estado
+muestra también fusionados, movidos y descartados. Cada término vigente tiene:
+
+| Acción | Botón | Qué hace |
+|---|---|---|
+| Aprobar | verde | `propuesto` → `aprobado` (queda en el historial del término) |
+| Renombrar | naranja, en línea, motivo opcional | Cambia nombre y clave. La grafía anterior queda como alias («También reconoce…») |
+| Fusionar… | pantalla de confirmación | Pasa sus registros a otro término del mismo vocabulario |
+| Mover a {otro vocabulario}… | pantalla de confirmación | Pasa sus registros al otro vocabulario: a un término equivalente (recomendado), a uno nuevo o a otro |
+| Descartar… | rojo, pantalla de confirmación | Lo quita de sus registros y lo esconde. Motivo obligatorio |
+| Restaurar | verde, `data-doble` (descartados) | Deshace el descarte: vuelve a la lista y a sus registros |
+
+Las tres pantallas de confirmación (`?r=vocab_curar&op=mover|fusionar|descartar&id=`) muestran cuántos registros cambian,
+cuántos ya tenían el destino (se actualiza al elegir otro) y cuáles quedan sin tipo o sin descriptor. Se confirman con la casilla
+«Entiendo lo que va a pasar» y el botón rojo con `data-doble` (doble validación).
+
+**Cambios de curaduría** (`?r=vocab_informe`): todos los movimientos, fusiones, renombres y descartes con fecha, quién,
+motivo, registros afectados (desplegable con los códigos) y estado (vigente / deshecho, cuándo y por quién).
+- **Copiar como texto:** resumen de los vigentes, listo para pegar en un mail al equipo de digitalización o al cliente.
+- **Descargar CSV** (`&formato=csv`): todos, separado por «;», UTF-8 con BOM (lo abre Excel en castellano).
+- **Deshacer…** (rojo, con confirmación): revierte la operación completa. Si después algún registro cambió (a mano o por una
+  importación), no se aplica nada y se muestran los conflictos; un editor puede forzar.
+
+Las operaciones no aparecen en la lista de Importaciones (son procesos de tipo `curaduria`).
+
+## 11. Años en la ficha y en la lista de la caja (15/11/2026)
+
+- Debajo del campo Año, la ficha dice cómo se interpretó para el filtro: «Para el filtro por año: 1981–1982», o
+  «Sin año para el filtro…» si no se pudo leer.
+- **Año no confirmado** («1972?»): chip rojo en la cabecera de la ficha y en la lista de la caja (el año, en rojo), con la
+  aclaración de que en el sitio se verá «1972 (sin confirmar)».
+- Un texto que no es un año lleva el chip «sin año» en la lista de la caja.
+- Al editar el Año a mano se aplican las mismas reglas que en la importación.
+
+## 12. Unificar nombres de cajas (15/11/2026)
+
+`?r=cajas_unificar` agrupa las cajas con nombres parecidos en cuatro clases, en este orden:
+
+| Clase | Ejemplo | Qué ofrece |
+|---|---|---|
+| Misma obra, distinta grafía | 3 «Noticia de un secuestro» / 5 «Noticias de un secuetro» | Unificar con un nombre (sugerido: el que tiene más tildes y menos mayúsculas) |
+| El resumen las presenta juntas | 8 «Why Me?» / 12 «La Vìctima» («Cajas 8 y 12») | Unificar, sin sugerencia salvo que un nombre contenga al otro (9 / 13 → «Azucena Villaflor») |
+| Misma obra, distinta parte: no unificar | 23 «Cenizas del Paraíso» / 24 «… II»; 49 / 59 «Fade Out 91/92/93», «95/96/97» | Solo unificar el título; cada caja conserva su numeral |
+| Versiones distintas: no unificar | 30, 31, 34 «(España)» / 35 «(Argentina)» | Solo unificar el título; cada caja conserva su aclaración (también la escrita sin paréntesis: «… España») |
+
+Ninguna caja viene tildada. Cada cambio queda en el historial de la caja (se puede deshacer) y bloquea el nombre para el Excel.

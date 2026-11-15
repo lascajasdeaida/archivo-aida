@@ -88,7 +88,34 @@ final class Alertas
         'COLUMNAS_INVERTIDAS'      => ['titulo' => 'Columnas con el título cambiado', 'leyenda' => 'Los títulos de «Digitalización» y «Nombre de archivo» están invertidos; se leyeron por contenido.', 'accion' => 'Ninguna.', 'valida' => false],
         'TEXTO_RECORTADO'          => ['titulo' => 'Texto recortado', 'leyenda' => 'Un campo superaba el largo permitido y se recortó.', 'accion' => 'Revisar el campo en la ficha y completarlo a mano si hace falta.', 'valida' => true],
         'VOCABULARIO_TEXTO_LARGO'  => ['titulo' => 'Texto largo en Tipo o Descriptor', 'leyenda' => 'Parece un resumen pegado en la columna equivocada. No se cargó como término.', 'accion' => 'Revisar el registro y asignarle el tipo o descriptor correcto.', 'valida' => true],
-        'CAJA_VACIA'               => ['titulo' => 'Pestaña sin registros', 'leyenda' => 'La pestaña de la caja no tiene filas con datos.', 'accion' => 'Ninguna, salvo que la caja debería tener contenido.', 'valida' => false],
+        'ANIO_NO_INTERPRETADO'     => ['titulo' => 'Año que no se pudo leer', 'leyenda' => 'La columna Año tiene un texto que no es un año, un rango ni una fecha («Posterior a 1990…», «Año XXII»). El registro queda sin año para el filtro; el texto se muestra igual.', 'accion' => 'Si corresponde un año, pedirle al equipo que lo escriba en la planilla (por ejemplo «1990?» si es dudoso).', 'valida' => false],
+
+        // --- Reglas de curaduría de vocabularios aplicadas por la importación (src/Curaduria.php) ---
+        'VOCAB_MOVIDO' => [
+            'titulo'  => 'Término movido al otro vocabulario',
+            'leyenda' => 'La planilla trae en la columna Tipo un término que se curó como descriptor (o al revés). Se cargó en el vocabulario correcto, sin crear un término nuevo.',
+            'accion'  => 'Ninguna. Si conviene, avisar al equipo de digitalización para que lo escriba en la columna correcta (ver Vocabularios → Cambios de curaduría).',
+            'valida'  => false,
+        ],
+        'VOCAB_FUSIONADO' => [
+            'titulo'  => 'Término fusionado en otro',
+            'leyenda' => 'La planilla trae un término que se fusionó con otro. Se cargó el término en que se fusionó.',
+            'accion'  => 'Ninguna. Se puede pasar al equipo la lista de cambios de curaduría para que usen el término vigente.',
+            'valida'  => false,
+        ],
+        'VOCAB_RENOMBRADO' => [
+            'titulo'  => 'Término con la grafía anterior',
+            'leyenda' => 'La planilla trae la grafía que tenía un término antes de renombrarlo. Se cargó el término con su nombre actual.',
+            'accion'  => 'Ninguna. Se puede avisar al equipo cuál es la grafía vigente.',
+            'valida'  => false,
+        ],
+        'VOCAB_DESCARTADO' => [
+            'titulo'  => 'Término descartado que sigue en la planilla',
+            'leyenda' => 'La planilla trae un término que se descartó en la curaduría (una letra suelta, un texto pegado). Se ignoró; los demás tipos y descriptores del registro se cargaron igual.',
+            'accion'  => 'Pedirle al equipo que lo borre de la planilla o lo reemplace por el término que corresponda.',
+            'valida'  => false,
+        ],
+        'CAJA_VACIA'               =>['titulo' => 'Pestaña sin registros', 'leyenda' => 'La pestaña de la caja no tiene filas con datos.', 'accion' => 'Ninguna, salvo que la caja debería tener contenido.', 'valida' => false],
 
         // --- Escaneo de archivos ---
         'ARCHIVO_DESAPARECIDO' => [

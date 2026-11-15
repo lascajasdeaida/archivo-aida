@@ -54,7 +54,9 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
             <?php elseif ($r0['tipos']): ?><?= e($r0['tipos']) ?>
             <?php else: ?><span class="nota">Sin título ni tipo cargado</span><?php endif ?>
           </td>
-          <td><?= e($r0['anio_texto']) ?></td>
+          <td class="<?= $r0['anio_sin_confirmar'] ? 'anio-dudoso' : '' ?>"><?= e($r0['anio_texto']) ?>
+            <?php if ($r0['anio_sin_confirmar']): ?><br><span class="chip chip-stop" title="Para el filtro: <?= e(\Aida\Texto::anioEtiqueta((int)$r0['anio'], (int)$r0['anio_hasta'], false)) ?>">Año no confirmado</span>
+            <?php elseif ($r0['anio_texto'] !== null && $r0['anio'] === null): ?><br><span class="chip" title="No aparece en el filtro por año">sin año</span><?php endif ?></td>
           <td class="no-tachar"><div class="chips">
             <?php if ($r0['eliminado_en']): ?><span class="chip chip-stop">Baja</span><?php endif ?>
             <?= $r0['digitalizado'] ? '<span class="chip chip-ok">Digitalizado</span>' : ($r0['excel_digitalizado'] ? '<span class="chip chip-warn">Archivo pendiente</span>' : '<span class="chip">Sin digitalizar</span>') ?>

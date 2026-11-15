@@ -28,7 +28,7 @@ $cajaNum = isset($caja) ? (int)$caja['numero'] : null;
         <input type="hidden" name="ids[]" value="<?= (int)$i['id'] ?>">
         <input type="hidden" name="volver" value="<?= e($volver) ?>">
         <input type="text" name="nota" placeholder="Qué decidiste" required>
-        <button class="btn btn-chico" style="margin-top:6px">Validar</button>
+        <button class="btn btn-chico btn-crear" style="margin-top:6px">✓ Validar</button>
       </form>
       <?php endif ?>
     </div>

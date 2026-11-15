@@ -42,7 +42,7 @@ $mostrar = function ($v) {
           <?= App::campoToken() ?>
           <input type="hidden" name="cambio" value="<?= (int)$a['id'] ?>">
           <input type="hidden" name="volver" value="<?= e($volver) ?>">
-          <button class="btn btn-chico" title="<?= $a['accion'] === 'alta' ? 'Deshacer el alta lo deja dado de baja' : 'Vuelve cada campo al valor anterior' ?>">Deshacer</button>
+          <button class="btn btn-chico btn-peligro-borde" data-doble="<?= $a['accion'] === 'alta' ? 'Queda dado de baja. ¿Confirmar?' : 'Vuelve al valor anterior. ¿Confirmar?' ?>">Deshacer</button>
         </form>
       <?php endif ?>
     </div>

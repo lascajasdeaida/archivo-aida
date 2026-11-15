@@ -18,7 +18,7 @@
     <?php endif ?>
     <label>Título<input type="text" name="titulo" value="<?= e($datos['titulo'] ?? '') ?>" required autofocus></label>
     <div class="acciones">
-      <button class="btn btn-primario">Crear registro</button>
+      <button class="btn btn-crear">Crear registro</button>
       <a class="btn" href="<?= App::url('caja', ['id' => $caja['id']]) ?>">Cancelar</a>
     </div>
   </form>

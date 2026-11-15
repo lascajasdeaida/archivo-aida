@@ -31,7 +31,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
 <?php if ($r['eliminado_en']): ?>
   <div class="leyenda leyenda-stop">
     <div><b>Dado de baja el <?= fecha($r['eliminado_en']) ?>.</b> No se muestra en el sitio y la importación no lo vuelve a crear.</div>
-    <?php if (App::puede('baja')): ?><form method="post" action="<?= App::url('registro_restaurar', ['id' => $r['id']]) ?>"><?= App::campoToken() ?><button class="btn btn-chico">Restaurar</button></form><?php endif ?>
+    <?php if (App::puede('baja')): ?><form method="post" action="<?= App::url('registro_restaurar', ['id' => $r['id']]) ?>"><?= App::campoToken() ?><button class="btn btn-chico btn-crear">Restaurar</button></form><?php endif ?>
   </div>
 <?php endif ?>
 <?php if ($caja['eliminado_en']): ?>
@@ -42,7 +42,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
     <div><b>Cargado a mano.</b> La planilla no modifica este registro.</div>
     <?php if (App::puede('baja') && !$r['eliminado_en']): ?>
       <form method="post" action="<?= App::url('origen_excel', ['id' => $r['id']]) ?>"><?= App::campoToken() ?>
-        <button class="btn btn-chico" onclick="return confirm('Desde la próxima importación, el Excel va a poder actualizar este registro (salvo los campos editados a mano). ¿Seguir?')">Pasar a origen Excel</button>
+        <button class="btn btn-chico" data-doble="El Excel va a poder actualizarlo. ¿Confirmar?">Pasar a origen Excel</button>
       </form>
     <?php endif ?>
   </div>
@@ -83,7 +83,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
               $q = $bloqueadoPor[$k] ?? null;
               echo '<div class="candado">✎ Editado a mano' . ($q ? ' el ' . fecha($q['creado_en'], false) . ' por ' . e($q['usuario_nombre'] ?: $q['usuario_email'] ?: 'backoffice') : '')
                  . '. La planilla ya no actualiza este campo. '
-                 . '<button type="submit" form="desbloquear-' . $k . '" class="link" onclick="return confirm(\'En la próxima importación, este campo se reemplaza por lo que diga la planilla. ¿Seguir?\')">Volver a tomarlo del Excel</button></div>';
+                 . '<button type="submit" form="desbloquear-' . $k . '" class="link" data-doble="La planilla va a reemplazar este valor. ¿Confirmar?">Volver a tomarlo del Excel</button></div>';
           }
       };
       $campo('titulo');
@@ -111,7 +111,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
       <p class="nota">Ctrl/Cmd + clic para elegir varios. Los términos «propuestos» todavía no fueron curados.</p>
       <?php foreach (['tipos', 'descriptores'] as $k): if ($bloqueado($k)): ?>
         <div class="candado">✎ <?= $k === 'tipos' ? 'Tipos' : 'Descriptores' ?> editados a mano. La planilla ya no los actualiza.
-          <button type="submit" form="desbloquear-<?= $k ?>" class="link">Volver a tomarlos del Excel</button></div>
+          <button type="submit" form="desbloquear-<?= $k ?>" class="link" data-doble="La planilla va a reemplazarlos. ¿Confirmar?">Volver a tomarlos del Excel</button></div>
       <?php endif; endforeach ?>
       <?php $campo('obs_editorial', 'area'); $campo('edicion_catalogo', 'area'); $campo('obs_conservacion', 'area'); $campo('obs_digitalizacion', 'area'); ?>
 
@@ -160,7 +160,8 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
           <?php if (App::puede('baja') && !$r['eliminado_en']): ?>
             <form method="post" action="<?= App::url($quitado ? 'archivo_restaurar' : 'archivo_baja', ['id' => $a['id']]) ?>">
               <?= App::campoToken() ?>
-              <button class="btn btn-chico" <?= $quitado ? '' : 'onclick="return confirm(\'El archivo deja de mostrarse en este registro. El archivo físico no se borra. ¿Seguir?\')"' ?>><?= $quitado ? 'Volver a asociar' : 'Quitar' ?></button>
+              <?php if ($quitado): ?><button class="btn btn-chico btn-crear">Volver a asociar</button>
+              <?php else: ?><button class="btn btn-chico btn-peligro-borde" data-doble="Se oculta del registro (no se borra). ¿Confirmar?">Quitar</button><?php endif ?>
             </form>
           <?php endif ?>
         </div>
@@ -184,7 +185,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
     </section>
 
     <?php if (!$r['eliminado_en'] && App::puede('baja')): ?>
-      <p><a class="btn btn-chico" href="<?= App::url('registro_baja', ['id' => $r['id']]) ?>">Dar de baja el registro…</a></p>
+      <p><a class="btn btn-chico btn-peligro-borde" href="<?= App::url('registro_baja', ['id' => $r['id']]) ?>">Dar de baja el registro…</a></p>
     <?php endif ?>
   </aside>
 </div>

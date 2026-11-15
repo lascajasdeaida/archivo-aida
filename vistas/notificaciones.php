@@ -58,7 +58,7 @@ $base = ['tab' => $tab] + array_filter(['caja' => $_GET['caja'] ?? null, 'codigo
     <div class="lote">
       <label class="check"><input type="checkbox" onclick="document.querySelectorAll('input[name=&quot;ids[]&quot;]').forEach(c=>c.checked=this.checked)"> Todas</label>
       <input type="text" name="nota" placeholder="Qué decidiste (queda registrado con tu usuario)" required>
-      <button class="btn btn-primario">Validar las elegidas</button>
+      <button class="btn btn-crear">✓ Validar las elegidas</button>
     </div>
   <?php endif ?>
 </form>

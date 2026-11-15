@@ -191,3 +191,23 @@ fieldset.panel{background:var(--surface-2)!important}
 
 /* Pie */
 .pie{border-top:1px solid var(--line);margin-top:24px}
+
+/* Acciones destructivas en rojo, con doble validación */
+.btn-peligro{background:var(--stop);border-color:var(--stop);color:#fff}
+.btn-peligro:hover{background:#73291F;border-color:#73291F}
+.btn-peligro:disabled{opacity:.45;cursor:not-allowed}
+.btn-peligro-borde{border-color:var(--stop);color:var(--stop);background:#fff}
+.btn-peligro-borde:hover{background:var(--stop-soft)}
+button.link[data-doble]{color:var(--stop)}
+.armado,.btn.armado,button.link.armado{background:var(--stop)!important;color:#fff!important;border-color:var(--stop)!important;
+  text-decoration:none;padding:3px 9px;border-radius:var(--radio);animation:latido 1s ease-in-out infinite}
+@keyframes latido{0%,100%{box-shadow:0 0 0 0 rgba(140,58,46,.55)}50%{box-shadow:0 0 0 6px rgba(140,58,46,0)}}
+.confirmo{background:var(--stop-soft);border:1px solid #e0b7ad;padding:8px 12px;border-radius:var(--radio);margin:0}
+.panel.confirmar{border-top:4px solid var(--stop)}
+
+/* Colores por intención:
+   verde = crear o recuperar · naranja = guardar (acción principal) · rojo = baja o deshacer · neutro = navegar/filtrar */
+:root{--crear:#3F6B3A;--crear-osc:#2F5A2B;--crear-suave:#E1EBDA}
+.btn-crear{background:var(--crear);border-color:var(--crear);color:#fff}
+.btn-crear:hover{background:var(--crear-osc);border-color:var(--crear-osc)}
+.btn-primario{font-weight:700}

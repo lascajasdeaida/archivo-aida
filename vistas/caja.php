@@ -10,7 +10,7 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
     <h1><?= e($caja['nombre']) ?></h1>
   </div>
   <div class="acciones">
-    <?php if (!$caja['eliminado_en'] && App::puede('editar')): ?><a class="btn btn-primario" href="<?= App::url('registro_nuevo', ['caja' => $caja['id']]) ?>">+ Nuevo registro</a><?php endif ?>
+    <?php if (!$caja['eliminado_en'] && App::puede('editar')): ?><a class="btn btn-crear" href="<?= App::url('registro_nuevo', ['caja' => $caja['id']]) ?>">+ Nuevo registro</a><?php endif ?>
   </div>
 </div>
 
@@ -18,7 +18,7 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
   <div class="leyenda leyenda-stop">
     <div><b>Dada de baja el <?= fecha($caja['eliminado_en']) ?>.</b> No se muestra en el sitio y la importación del Excel no la vuelve a crear.</div>
     <?php if (App::puede('baja')): ?>
-    <form method="post" action="<?= App::url('caja_restaurar', ['id' => $caja['id']]) ?>"><?= App::campoToken() ?><button class="btn btn-chico">Restaurar</button></form>
+    <form method="post" action="<?= App::url('caja_restaurar', ['id' => $caja['id']]) ?>"><?= App::campoToken() ?><button class="btn btn-chico btn-crear">Restaurar</button></form>
     <?php endif ?>
   </div>
 <?php endif ?>
@@ -91,11 +91,11 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
       <?php foreach (array_intersect($bloq, ['nombre', 'resumen']) as $k): ?>
         <form method="post" action="<?= App::url('campo_desbloquear') ?>" class="acciones">
           <?= App::campoToken() ?><input type="hidden" name="entidad" value="caja"><input type="hidden" name="id" value="<?= (int)$caja['id'] ?>"><input type="hidden" name="campo" value="<?= e($k) ?>">
-          <button class="link" onclick="return confirm('En la próxima importación, «<?= e($k) ?>» se reemplaza por lo que diga la planilla. ¿Seguir?')">Volver a tomar «<?= e($k) ?>» del Excel</button>
+          <button class="link" data-doble="La planilla va a reemplazar este valor. ¿Confirmar?">Volver a tomar «<?= e($k) ?>» del Excel</button>
         </form>
       <?php endforeach ?>
       <?php if (!$caja['eliminado_en'] && App::puede('baja')): ?>
-        <p class="acciones"><a class="btn btn-chico" href="<?= App::url('caja_baja', ['id' => $caja['id']]) ?>">Dar de baja la caja…</a></p>
+        <p class="acciones"><a class="btn btn-chico btn-peligro-borde" href="<?= App::url('caja_baja', ['id' => $caja['id']]) ?>">Dar de baja la caja…</a></p>
       <?php endif ?>
     </section>
 

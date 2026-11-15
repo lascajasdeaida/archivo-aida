@@ -10,7 +10,7 @@
     <label>Nombre<input type="text" name="nombre" value="<?= e($datos['nombre'] ?? '') ?>" required></label>
     <label>Resumen<textarea name="resumen" rows="5"><?= e($datos['resumen'] ?? '') ?></textarea></label>
     <div class="acciones">
-      <button class="btn btn-primario">Crear caja</button>
+      <button class="btn btn-crear">Crear caja</button>
       <a class="btn" href="<?= App::url('cajas') ?>">Cancelar</a>
     </div>
   </form>

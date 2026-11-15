@@ -18,13 +18,13 @@ $activos = array_values(array_filter($terminos, fn($t) => !$t['fusionado_en']));
 <form method="post" action="<?= App::url('vocab_accion') ?>" class="filtros">
   <?= App::campoToken() ?><input type="hidden" name="tipo" value="<?= e($tipo) ?>"><input type="hidden" name="accion" value="nuevo">
   <label>Nuevo término<input type="text" name="nombre" required></label>
-  <button class="btn">Agregar</button>
+  <button class="btn btn-crear">+ Agregar</button>
 </form>
 <?php $prop = count(array_filter($activos, fn($t) => $t['estado'] === 'propuesto')); if ($prop): ?>
-<form method="post" action="<?= App::url('vocab_accion') ?>" class="acciones" onsubmit="return confirm('Se aprueban los <?= $prop ?> términos propuestos tal como están. Conviene antes fusionar los repetidos. ¿Seguir?')">
+<form method="post" action="<?= App::url('vocab_accion') ?>" class="acciones" >
   <?= App::campoToken() ?><input type="hidden" name="tipo" value="<?= e($tipo) ?>"><input type="hidden" name="accion" value="aprobar_todos">
   <span class="nota"><?= $prop ?> términos propuestos sin curar.</span>
-  <button class="btn btn-chico">Aprobar todos los propuestos</button>
+  <button class="btn btn-chico btn-crear" data-doble="Se aprueban <?= $prop ?> términos tal como están. ¿Confirmar?">Aprobar todos los propuestos</button>
 </form>
 <?php endif ?>
 <?php endif ?>
@@ -47,18 +47,18 @@ $activos = array_values(array_filter($terminos, fn($t) => !$t['fusionado_en']));
             <?php if ($t['estado'] === 'propuesto'): ?>
               <form method="post" action="<?= App::url('vocab_accion') ?>" class="inline"><?= App::campoToken() ?>
                 <input type="hidden" name="tipo" value="<?= e($tipo) ?>"><input type="hidden" name="accion" value="aprobar"><input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
-                <button class="btn btn-chico">Aprobar</button></form>
+                <button class="btn btn-chico btn-crear">Aprobar</button></form>
             <?php endif ?>
             <form method="post" action="<?= App::url('vocab_accion') ?>" class="inline" onsubmit="var n=prompt('Nuevo nombre','<?= e(addslashes($t['nombre'])) ?>'); if(!n) return false; this.nombre.value=n;">
               <?= App::campoToken() ?><input type="hidden" name="tipo" value="<?= e($tipo) ?>"><input type="hidden" name="accion" value="renombrar"><input type="hidden" name="id" value="<?= (int)$t['id'] ?>"><input type="hidden" name="nombre">
               <button class="btn btn-chico">Renombrar</button></form>
-            <form method="post" action="<?= App::url('vocab_accion') ?>" class="inline" onsubmit="return confirm('Los <?= (int)$t['usos'] ?> registros que usan «<?= e(addslashes($t['nombre'])) ?>» pasan al término elegido. ¿Seguir?')">
+            <form method="post" action="<?= App::url('vocab_accion') ?>" class="inline">
               <?= App::campoToken() ?><input type="hidden" name="tipo" value="<?= e($tipo) ?>"><input type="hidden" name="accion" value="fusionar"><input type="hidden" name="id" value="<?= (int)$t['id'] ?>">
               <select name="destino" style="display:inline-block;width:auto;margin:0" required>
                 <option value="">Fusionar en…</option>
                 <?php foreach ($activos as $o): if ($o['id'] != $t['id']): ?><option value="<?= (int)$o['id'] ?>"><?= e($o['nombre']) ?></option><?php endif; endforeach ?>
               </select>
-              <button class="btn btn-chico">Fusionar</button></form>
+              <button class="btn btn-chico btn-peligro-borde" data-doble="<?= (int)$t['usos'] ?> registros cambian de término. ¿Confirmar?">Fusionar</button></form>
           </div>
         <?php endif ?>
       </td>

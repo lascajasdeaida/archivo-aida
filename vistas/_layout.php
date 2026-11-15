@@ -43,7 +43,7 @@
           <input type="hidden" name="forzar" value="1">
           <input type="hidden" name="volver" value="<?= e($_SERVER['REQUEST_URI'] ? '?' . ($_SERVER['QUERY_STRING'] ?? '') : '') ?>">
           <p class="nota">Podés deshacer primero el cambio más nuevo, o forzar: los campos en conflicto vuelven igual al valor anterior.</p>
-          <button class="btn btn-peligro">Forzar de todos modos</button>
+          <button class="btn btn-peligro" data-doble="Los campos en conflicto se pisan. ¿Confirmar?">Forzar de todos modos</button>
         </form>
       <?php endif ?>
     </div>
@@ -51,5 +51,31 @@
   <?= $contenido ?>
 </main>
 <footer class="pie">Archivo Aída Bortnik · backoffice · P3DESIGN</footer>
+<script>
+/* Doble validación: el primer clic arma el botón y explica qué va a pasar;
+   el segundo, dentro de 6 segundos, ejecuta. Se desarma solo. */
+document.addEventListener('click', function (ev) {
+  var b = ev.target.closest('[data-doble]');
+  if (!b) return;
+  if (b.dataset.armado === '1') { return; }
+  ev.preventDefault();
+  document.querySelectorAll('[data-armado="1"]').forEach(function (o) { if (o !== b) desarmar(o); });
+  b.dataset.original = b.innerHTML;
+  b.dataset.armado = '1';
+  b.classList.add('armado');
+  b.innerHTML = '⚠ ' + b.dataset.doble;
+  b._t = setTimeout(function () { desarmar(b); }, 6000);
+}, true);
+function desarmar(b) {
+  clearTimeout(b._t);
+  if (b.dataset.armado !== '1') return;
+  b.dataset.armado = '0';
+  b.classList.remove('armado');
+  b.innerHTML = b.dataset.original;
+}
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape') document.querySelectorAll('[data-armado="1"]').forEach(desarmar);
+});
+</script>
 </body>
 </html>

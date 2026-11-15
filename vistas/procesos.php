@@ -23,7 +23,7 @@ $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevo
         <?php if ($p['deshechos'] && !$vivos): ?><span class="chip chip-stop">Deshecha</span><?php elseif ($p['deshechos']): ?><span class="chip chip-warn"><?= (int)$p['deshechos'] ?> cambios deshechos</span><?php endif ?>
       </div></td>
       <td><?php if ($p['pendientes']): ?><a class="chip chip-acc" href="<?= App::url('notificaciones') ?>">🔔 <?= (int)$p['pendientes'] ?></a><?php endif ?></td>
-      <td><?php if ($vivos > 0 && App::puede('deshacer_todo')): ?><a class="btn btn-chico" href="<?= App::url('proceso_deshacer', ['id' => $p['id']]) ?>">Deshacer…</a><?php endif ?></td>
+      <td><?php if ($vivos > 0 && App::puede('deshacer_todo')): ?><a class="btn btn-chico btn-peligro-borde" href="<?= App::url('proceso_deshacer', ['id' => $p['id']]) ?>">Deshacer…</a><?php endif ?></td>
     </tr>
   <?php endforeach ?>
   <?php if (!$procesos): ?><tr><td colspan="7" class="nota">Todavía no se corrió ninguna importación.</td></tr><?php endif ?>

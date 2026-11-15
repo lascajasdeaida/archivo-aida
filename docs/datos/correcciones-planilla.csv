@@ -1,0 +1,303 @@
+registro,columna,valor_actual,correccion_sugerida,accion,motivo
+C1R2,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C1R19,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C1R20,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C2R1,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C2R3,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C2R5,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C2R6,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C2R7,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C2R9,Autor,"Alfredo E. Allende/ Luis Palalro y Señora/ International association of Jewish Writers/ Marcos Aguinis, presidente Canal 7 ATC/ Asociación Argentina de Actores/ Oskar Senkman International association of Jewish Writers/ Marcos Aguinis, Secretario de Cultura/ Marta y Cesar Carducci/ Nissin Sharim, Delfina Guzman, Claudio Di Girolamo/ Oskar Senkman International association of Jewish Writers/ Delia y Gregorio Faigón.",,Revisar,El campo Autor tiene una descripción en lugar de nombres. Dejar solo los nombres separados por «; » y pasar el resto al Resumen.
+C2R17,Autor,"Eduardo Mignona, Adolfo Perez Esquivel, Graciela y Enrique Fernández Meijide, Rodolfo Rabanal, Mario Benedetti, Madres de Plaza de Mayo, Magdalena Ruiz Guiñazú, Matilde Herrera, Ricardo Molinas, Hugo Paredero, Jacobo Timmerman, Pablo Giussani.",,Revisar,El campo Autor tiene una descripción en lugar de nombres. Dejar solo los nombres separados por «; » y pasar el resto al Resumen.
+C2R18,Autor,"Eduardo Mignona, Adolfo Perez Esquivel, Graciela y Enrique Fernández Meijide, Rodolfo Rabanal, Mario Benedetti, Madres de Plaza de Mayo, Magdalena Ruiz Guiñazú, Matilde Herrera, Ricardo Molinas, Hugo Paredero, Jacobo Timmerman, Pablo Giussani.",,Revisar,El campo Autor tiene una descripción en lugar de nombres. Dejar solo los nombres separados por «; » y pasar el resto al Resumen.
+C2R29,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C3R1,Fecha como dice el documento,08/12/2017,17/12/2008,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C3R7,Año,2008,,Revisar,"El año no coincide con la fecha del documento («14/09/1990»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C3R8,Año,2008,,Revisar,"El año no coincide con la fecha del documento («20/10/1990»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C4R18,Autor,Aída,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C4R19,Autor,Aída,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+Caja 5 (todas las filas),Nombre de caja (columna B),Noticias de un secuetro,Noticia de un secuestro,Corregir,Error de tipeo: es la misma obra que la caja 3. Corregir en todas las filas de la pestaña.
+C5R3,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C5R4,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C5R5,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C5R6,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C5R7,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C5R8,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C6R4,Autor,"Mario Benedetti adaptación Aída Bortink, Sergio Renán","Mario Benedetti adaptación Aída Bortnik, Sergio Renán",Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C6R5,Autor,"Mario Benedetti, adaptación Aída Bortink, Sergio Renán","Mario Benedetti, adaptación Aída Bortnik, Sergio Renán",Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C6R10,Descriptor,g,,Revisar,Hay una letra suelta en un Descriptor. Completar el descriptor que corresponda o dejar la celda vacía.
+C9R1,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C9R5,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C9R6,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C9R7,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C9R8,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C9R9,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C9R10,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C9R11,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C9R12,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C10R1,Año,1993,,Revisar,"El año no coincide con la fecha del documento («sabado 30 marzo 1991»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C10R18,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C10R19,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C10R20,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C10R21,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C10R22,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C10R23,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C10R24,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+Caja 12 (todas las filas),Nombre de caja (columna B),La Vìctima,La Víctima,Corregir,Tilde invertida (ì en lugar de í). Corregir en todas las filas de la pestaña.
+C12R1,Autor,Aida Bortnik- Osvaldo Soriano,Aída Bortnik- Osvaldo Soriano,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C12R2,Autor,Aida Bortnik- Osvaldo Soriano,Aída Bortnik- Osvaldo Soriano,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C12R3,Autor,Aida Bortnik- Osvaldo Soriano,Aída Bortnik- Osvaldo Soriano,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R16,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R17,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R18,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R19,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R20,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R21,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R22,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R23,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R24,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R25,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R26,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R27,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R28,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C13R29,Autor,Entre paréntesis dice Patricia,,Revisar,El campo Autor tiene una descripción en lugar de nombres. Dejar solo los nombres separados por «; » y pasar el resto al Resumen.
+C14R2,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R3,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R4,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R5,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R6,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R7,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R8,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R9,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R10,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R11,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R13,Autor,Aida Bortnik Ferreira,,Revisar,Confirmar la forma del nombre (¿el segundo apellido es correcto?).
+C14R14,Autor,Aida Bortnik Ferreira,,Revisar,Confirmar la forma del nombre (¿el segundo apellido es correcto?).
+C14R15,Autor,Aida Bortnik Ferreira,,Revisar,Confirmar la forma del nombre (¿el segundo apellido es correcto?).
+C14R16,Autor,Aida Bortnik Ferreira,,Revisar,Confirmar la forma del nombre (¿el segundo apellido es correcto?).
+C14R17,Autor,Aida Bortnik Ferreira,,Revisar,Confirmar la forma del nombre (¿el segundo apellido es correcto?).
+C14R18,Autor,Aida Bortnik Ferreira,,Revisar,Confirmar la forma del nombre (¿el segundo apellido es correcto?).
+C14R19,Autor,Aida Bortnik Ferreira,,Revisar,Confirmar la forma del nombre (¿el segundo apellido es correcto?).
+C14R20,Autor,Aida Bortnik Ferreira,,Revisar,Confirmar la forma del nombre (¿el segundo apellido es correcto?).
+C14R21,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C14R22,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C15R11,Autor,Bortnik Aída,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C16R3,Año,1997,,Revisar,"El año no coincide con la fecha del documento («1981»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C17R1,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R2,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R3,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R4,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R5,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R6,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R7,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R8,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R9,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R10,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R11,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R12,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R13,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R14,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R16,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R17,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R18,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R19,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R20,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R21,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R22,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R23,Año,2004,,Revisar,"El año no coincide con la fecha del documento («03/10/2003»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C17R25,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R26,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R27,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R28,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R30,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R31,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R32,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R33,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Áurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Áurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R35,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Áurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Áurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R36,Año,2004,,Revisar,"El año no coincide con la fecha del documento («29/12/2003»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C17R37,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R38,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R39,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C17R40,Autor,"El equipo de guionistas de la serie estuvo conformado por Juan Campanella, Alejo Flah, Juan Pablo Domenech, Aída Bortnik y Aurea Martínez",Juan Campanella; Alejo Flah; Juan Pablo Domenech; Aída Bortnik; Aurea Martínez,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C18R2,Autor,Teatro Municipal Gral. San Martín donde hacen entrevistas a diferentes referentes entre ellos Aída Bortnik. No figura el nombre del entrevistador.,,Revisar,El campo Autor tiene una descripción en lugar de nombres. Dejar solo los nombres separados por «; » y pasar el resto al Resumen.
+C18R4,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R5,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R12,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R13,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R15,Autor,AB y carta firmada por Sergio,Aída Bortnik y carta firmada por Sergio,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R16,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R17,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R18,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R19,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R20,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R21,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R22,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R23,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R24,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C18R25,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C20R1,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R2,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R2,Año,1979,,Revisar,"El año no coincide con la fecha del documento («01/06/1976»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C20R7,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik. En la tapa de este guión dice: Basado en un libro de Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R7,Año,1979,,Revisar,"El año no coincide con la fecha del documento («01/10/1978»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C20R8,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik. En la tapa de este guión dice: Basado en un libro de Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R8,Año,1979,,Revisar,"El año no coincide con la fecha del documento («01/10/1978»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C20R9,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik. En la tapa de este guión dice: Basado en un libro de Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R9,Año,1979,,Revisar,"El año no coincide con la fecha del documento («01/10/1978»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C20R10,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik.,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R17,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R18,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R19,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R20,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R21,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C20R22,Autor,Los guionistas de La Isla fueron Alejandro Doria y Aída Bortnik,Alejandro Doria; Aída Bortnik,Corregir,El campo Autor tiene una oración. Dejar solo los nombres separados por «; » y pasar la oración al Resumen si aporta información.
+C21R4,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C21R5,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C21R6,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C21R7,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C21R8,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C21R9,Autor,Aída Bortink,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C27R1,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C27R2,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C27R3,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C27R4,Año,1981,,Revisar,"El año no coincide con la fecha del documento («01/06/1979»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C27R5,Año,1981,,Revisar,"El año no coincide con la fecha del documento («01/08/1979»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C28R1,Año,1975,,Revisar,"El año no coincide con la fecha del documento («1974/75»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C29R1,Fecha como dice el documento,05/02/2021,21/02/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C29R2,Fecha como dice el documento,05/02/2025,25/02/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C29R7,Fecha como dice el documento,05/03/2017,17/03/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R2,Fecha como dice el documento,04/12/2014,14/12/2004,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R3,Fecha como dice el documento,05/04/2018,18/04/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R4,Fecha como dice el documento,05/04/2004,04/04/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R5,Fecha como dice el documento,05/03/1930,30/03/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R6,Fecha como dice el documento,05/03/2019,19/03/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R7,Fecha como dice el documento,05/04/2029,29/04/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R10,Fecha como dice el documento,05/04/2018,18/04/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R11,Fecha como dice el documento,05/04/2019,19/04/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R12,Fecha como dice el documento,05/04/2019,19/04/2005,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C32R17,Fecha como dice el documento,04/12/1931,31/12/2004,Corregir,Se tipeó como aa/mm/dd y Excel la leyó como dd/mm/aa. Escribirla como texto (empezando con un apóstrofo: '30/03/2005) para que Excel no la convierta.
+C33R4,Autor,Aída Bortnik???,Aída Bortnik,Revisar,Confirmar la forma del nombre (tiene signos de duda).
+C35R1,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R2,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R3,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R4,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R5,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R6,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R7,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R8,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R9,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R10,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R11,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R12,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R13,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R14,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R15,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R16,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R16,Año,1986,,Revisar,"El año no coincide con la fecha del documento («España 1978»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C35R17,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R17,Año,1986,,Revisar,"El año no coincide con la fecha del documento («España 1978»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C35R18,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C35R19,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C36R1,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C36R2,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C36R3,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C36R4,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C36R5,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C36R6,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C36R7,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C36R8,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C37R1,Autor,Aída Bortink- José María Pasquini Durán y Carlos Somigliana,Aída Bortnik- José María Pasquini Durán y Carlos Somigliana,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C37R2,Autor,Aída Bortink- José María Pasquini Durán y Carlos Somigliana,Aída Bortnik- José María Pasquini Durán y Carlos Somigliana,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C37R3,Autor,Aída Bortink- José María Pasquini Durán y Carlos Somigliana,Aída Bortnik- José María Pasquini Durán y Carlos Somigliana,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C37R4,Autor,Aída Bortink- José María Pasquini Durán y Carlos Somigliana,Aída Bortnik- José María Pasquini Durán y Carlos Somigliana,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C37R5,Autor,Aída Bortink- José María Pasquini Durán y Carlos Somigliana,Aída Bortnik- José María Pasquini Durán y Carlos Somigliana,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C37R6,Autor,Aída Bortink- José María Pasquini Durán y Carlos Somigliana,Aída Bortnik- José María Pasquini Durán y Carlos Somigliana,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C37R7,Autor,Aída Bortink- José María Pasquini Durán y Carlos Somigliana,Aída Bortnik- José María Pasquini Durán y Carlos Somigliana,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+Caja 39 (todas las filas),Nombre de caja (columna B),Crecer do Golpe,Crecer de golpe,Corregir,Error de tipeo en el título de la película. Corregir en todas las filas de la pestaña.
+C41R2,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R3,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R4,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R4,Año,2002,,Revisar,"El año no coincide con la fecha del documento («05/01/2001»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C41R5,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R6,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R7,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R8,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R9,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R10,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R13,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R14,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R15,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C41R16,Año,2002,,Revisar,"El año no coincide con la fecha del documento («1989»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C41R17,Año,2002,,Revisar,"El año no coincide con la fecha del documento («1989»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C42R14,Año,1987,,Revisar,"El año no coincide con la fecha del documento («02/10/1986»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C43R27,Año,1999,,Revisar,"El año no coincide con la fecha del documento («9 july 1998»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C43R28,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C45R17,Autor,Aída Bornik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R1,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R2,Autor,AB / Loreley Gaffoglio,Aída Bortnik / Loreley Gaffoglio,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R3,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R4,Autor,AB y varios,Aída Bortnik y varios,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R5,Autor,AB y varios,Aída Bortnik y varios,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R6,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R7,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R8,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R9,Autor,AB y varios,Aída Bortnik y varios,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R10,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R11,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R13,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R14,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R15,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R16,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R18,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C46R18,Año,1954,,Revisar,"El año no coincide con la fecha del documento («23/07/1958»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C48R3,Autor,Uberto Pasolini a AB,Uberto Pasolini a Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C49R5,Año,1991,,Revisar,"El año no coincide con la fecha del documento («July 17th 1992»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+Caja 50 (todas las filas),Nombre de caja (columna B),"La mujer del Cholo, Felíz cumpleaños, Como en los Cuentos, Gente Sola","La mujer del Cholo, Feliz cumpleaños, Como en los cuentos, Gente sola",Corregir,«Feliz» va sin tilde. Corregir en todas las filas de la pestaña.
+C52R2,Año,1947,,Revisar,"El año no coincide con la fecha del documento («15/10/1941»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C53R4,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C53R5,Autor,The Films Society of Lincoln Center and the Department of Film of the Museum of Modern Art,,Revisar,El campo Autor tiene una descripción en lugar de nombres. Dejar solo los nombres separados por «; » y pasar el resto al Resumen.
+C53R6,Autor,The Films Society of Lincoln Center and the Department of Film of the Museum of Modern Art,,Revisar,El campo Autor tiene una descripción en lugar de nombres. Dejar solo los nombres separados por «; » y pasar el resto al Resumen.
+C53R11,Autor,The Films Society of Lincoln Center and the Department of Film of the Museum of Modern Art,,Revisar,El campo Autor tiene una descripción en lugar de nombres. Dejar solo los nombres separados por «; » y pasar el resto al Resumen.
+C53R23,Autor,"Guillermo Correa entrevista a Francisco Negro Juárez, quien le envió fax a AB referencia en n. 21 de esta Caja.",,Revisar,El campo Autor tiene una descripción en lugar de nombres. Dejar solo los nombres separados por «; » y pasar el resto al Resumen.
+C54R1,Autor,AB y Alejandro Doria,Aída Bortnik y Alejandro Doria,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R6,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R7,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R8,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R9,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R10,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R11,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R12,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R13,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R14,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R15,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R16,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R17,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C55R28,Autor,Aida Bortnik y Raul De La Torre,Aída Bortnik y Raul De La Torre,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R1,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R2,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R3,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R4,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R5,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R6,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R7,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R8,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R9,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R10,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R11,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R12,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R13,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C57R14,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C60R19,Año,2000,,Revisar,"El año no coincide con la fecha del documento («1994»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C61R1,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C61R3,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C61R4,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C61R5,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C61R6,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C64R1,Año,1983,,Revisar,"El año no coincide con la fecha del documento («IX-1982»). Confirmar cuál vale; si es material de época guardado para un proyecto posterior, dejarlo como está."
+C65R2,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C65R3,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C65R4,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C66R7,Autor,Aida Bortnik,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C69R2,Autor,"AB y otros (Romero, Camus","Aída Bortnik y otros (Romero, Camus",Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C70R14,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."
+C70R15,Autor,AB,Aída Bortnik,Corregir,"Unificar la forma del nombre: «Aída Bortnik», con tilde y sin abreviar."

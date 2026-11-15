@@ -87,6 +87,24 @@ document.querySelectorAll('.contenido table').forEach(function (t) {
   var w = document.createElement('div'); w.className = 'tabla-scroll';
   t.parentNode.insertBefore(w, t); w.appendChild(t);
 });
+/* Vista previa de PDF: el iframe se crea recién al pedirla, para no bajar el archivo con cada ficha */
+(function () {
+  var panel = document.getElementById('vista-previa');
+  if (!panel) return;
+  document.querySelectorAll('[data-vista]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var f = panel.querySelector('iframe');
+      if (!f) { f = document.createElement('iframe'); f.title = 'Vista previa del documento'; panel.appendChild(f); }
+      if (f.getAttribute('src') !== b.dataset.vista) f.src = b.dataset.vista;
+      panel.querySelector('.nombre').textContent = b.dataset.nombre;
+      panel.hidden = false; panel.focus(); panel.scrollIntoView({behavior: 'smooth', block: 'start'});
+    });
+  });
+  panel.querySelector('.cerrar').addEventListener('click', function () {
+    var f = panel.querySelector('iframe'); if (f) f.remove();
+    panel.hidden = true;
+  });
+})();
 /* Selector de términos con casillas y chips */
 document.querySelectorAll('.selector-terminos').forEach(function (sel) {
   var cajas = sel.querySelectorAll('.lista input[type=checkbox]');

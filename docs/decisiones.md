@@ -69,6 +69,28 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   cada importación. Cualquier cambio, o una importación completa, **se puede deshacer** (`src/Historial.php`).
   Si el mismo campo se modificó de nuevo después, la reversión no se aplica y se informa el conflicto.
 
+## Corrección masiva por planilla (15/11/2026, decisión del PM)
+
+- Con los errores de la planilla del equipo (fechas al revés, grafías de «Aída Bortnik», nombres de cajas) se hacen
+  **las dos cosas**: se le pasa al equipo la lista (`docs/datos/correcciones-planilla.csv`) para que corrija su planilla,
+  y se corrige ya en la base desde el backoffice con esa misma lista (Importaciones o Cajas → **Corrección masiva…**).
+- El archivo (CSV o .xlsx) trae `registro` (C#R#, o «Caja N (todas las filas)» para el nombre de caja), `columna` con el
+  nombre de la columna del Excel y `valor_nuevo` (o `correccion_sugerida`). Opcionales: `valor_actual` (si no coincide con la
+  base hay **conflicto** y esa fila no se aplica) y `accion` («Revisar» se saltea). Tipos y descriptores no se corrigen así:
+  se curan en Vocabularios.
+- Siempre hay **vista previa**; al aplicar se recalcula y, si la base cambió en el medio, no se aplica nada.
+- Se aplica con `Historial::actualizar` en un proceso de tipo `correccion`: queda auditado, **bloquea** los campos (la próxima
+  importación no los pisa mientras la planilla siga con el error) y **se deshace completo** desde Importaciones.
+  Cuando el equipo corrige su planilla, la regla del circuito (arriba, «Carga incremental») los desbloquea sola.
+- Sirve para el **cambio masivo de acceso** (columna «Acceso» o «PRIVADO»: Público / Restringido / A revisar, o VERDADERO,
+  FALSO, VERLO). Un público sobre algo que la planilla marca PRIVADO se avisa en la vista previa.
+- Corregir el Año recalcula `anio`, `anio_hasta` y `anio_sin_confirmar` con `Texto::anio()`.
+- Prueba con la lista real (302 filas): 258 se aplican (240 Autor, 14 fechas, 4 nombres de caja), 44 se saltean («Revisar»:
+  25 Año, 18 Autor, 1 Descriptor), 0 conflictos. Deshecha completa, todo vuelve; aplicada de nuevo, la importación del Excel
+  actual (con los errores) no pisa ninguna.
+- **Registros cargados a mano:** `php bin/recalcular-anios.php [--simular]` les aplica `Texto::anio()` (los del Excel ya se
+  recalculan en cada importación). Queda como proceso `correccion`, reversible.
+
 ## Alertas para el operador (14/11/2026)
 
 - Cada incidencia tiene título, leyenda y acción sugerida en `src/Alertas.php`, y se marca si **requiere validación**.

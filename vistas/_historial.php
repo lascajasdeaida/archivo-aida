@@ -39,6 +39,7 @@ $mostrar = function ($v, string $campo = '') {
       <span>· <?= e($a['usuario_nombre'] ?: $a['usuario_email'] ?: ($origenes[$a['origen']] ?? $a['origen'])) ?></span>
       <?php $curaduria = ($a['proceso_tipo'] ?? '') === 'curaduria'; ?>
       <?php if ($curaduria): ?><span>· <a href="<?= App::url('vocab_informe') ?>">curaduría #<?= (int)$a['proceso_id'] ?></a>: <?= e($a['proceso_fuente']) ?></span>
+      <?php elseif (($a['proceso_tipo'] ?? '') === 'correccion'): ?><span>· <a href="<?= App::url('procesos') ?>">corrección masiva #<?= (int)$a['proceso_id'] ?></a>: <?= e($a['proceso_fuente']) ?></span>
       <?php elseif ($a['proceso_id']): ?><span>· proceso #<?= (int)$a['proceso_id'] ?></span><?php endif ?>
       <?php if ($a['revierte_id']): ?><span class="chip">deshace #<?= (int)$a['revierte_id'] ?></span><?php endif ?>
       <?php if ($a['revertido_en']): ?><span class="chip chip-stop">deshecho <?= fecha($a['revertido_en']) ?></span>

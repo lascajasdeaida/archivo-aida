@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Aida\Web;
 
 use Aida\Alertas;
+use Aida\Correccion;
 use Aida\Curaduria;
 use Aida\Historial;
 use Aida\Texto;
@@ -909,6 +910,147 @@ final class Rutas
         unset($_SESSION['importacion']);
     }
 
+    // ------------------------------------------------------------------
+    // Corrección masiva por planilla (src/Correccion.php)
+    // ------------------------------------------------------------------
+
+    private const CORRECCION_MAX_MB = 5;
+
+    /**
+     * Subir la planilla de correcciones (CSV o .xlsx) y ver la vista previa. Nada se guarda hasta «Aplicar».
+     */
+    public static function correccion(): void
+    {
+        App::exigir('correccion');
+        if (CargaExcel::postDemasiadoGrande()) {
+            App::aviso('error', 'El archivo supera el máximo permitido (' . self::CORRECCION_MAX_MB . ' MB).');
+            App::redirigir('correccion');
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::verificarPost();
+            $f = $_FILES['planilla'] ?? null;
+            $ext = strtolower(pathinfo((string)($f['name'] ?? ''), PATHINFO_EXTENSION));
+            $err = null;
+            if (!$f || !isset($f['error']) || is_array($f['error']) || $f['error'] === UPLOAD_ERR_NO_FILE) {
+                $err = 'Elegí la planilla de correcciones (.csv o .xlsx).';
+            } elseif ($f['error'] !== UPLOAD_ERR_OK) {
+                $err = in_array($f['error'], [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)
+                    ? 'El archivo supera el máximo permitido (' . self::CORRECCION_MAX_MB . ' MB).' : 'No se pudo recibir el archivo. Probá de nuevo.';
+            } elseif (!in_array($ext, ['csv', 'xlsx'], true)) {
+                $err = 'Tiene que ser un .csv o un .xlsx. Desde Google Sheets: Archivo → Descargar → CSV o Microsoft Excel.';
+            } elseif (!is_uploaded_file((string)$f['tmp_name']) || (int)filesize((string)$f['tmp_name']) === 0) {
+                $err = 'El archivo está vacío o no llegó bien.';
+            } elseif ((int)filesize((string)$f['tmp_name']) > self::CORRECCION_MAX_MB * 1048576) {
+                $err = 'El archivo supera el máximo permitido (' . self::CORRECCION_MAX_MB . ' MB).';
+            } elseif ($ext === 'xlsx') {
+                $err = CargaExcel::validarZip((string)$f['tmp_name']);
+            }
+            if ($err) {
+                App::aviso('error', $err);
+                App::redirigir('correccion');
+            }
+            $dir = CargaExcel::directorio();
+            self::descartarCorreccion();
+            $nombre = 'corr-' . bin2hex(random_bytes(12)) . '.' . $ext;
+            if (!move_uploaded_file($f['tmp_name'], "$dir/$nombre")) {
+                App::aviso('error', 'No se pudo guardar el archivo en el servidor. Avisá al equipo técnico.');
+                App::redirigir('correccion');
+            }
+            @chmod("$dir/$nombre", 0640);
+            try {
+                $filas = Correccion::leerArchivo("$dir/$nombre", $ext);
+                $plan = (new Correccion(self::db(), App::usuarioId()))->plan($filas);
+            } catch (\RuntimeException $e) {
+                @unlink("$dir/$nombre");
+                App::aviso('error', $e->getMessage());
+                App::redirigir('correccion');
+            } catch (\Throwable $e) {
+                @unlink("$dir/$nombre");
+                error_log('[aida-bo] corrección: ' . $e);
+                App::aviso('error', 'No se pudo leer el archivo. Revisá que sea un CSV o un Excel con las columnas registro, columna y valor_nuevo.');
+                App::redirigir('correccion');
+            }
+            unset($_SESSION['correccion_hecha']);
+            $_SESSION['correccion'] = [
+                'token' => bin2hex(random_bytes(16)), 'archivo' => $nombre, 'ext' => $ext,
+                'original' => CargaExcel::nombreOriginal((string)$f['name']), 'sha1' => sha1_file("$dir/$nombre"),
+                'firma' => $plan['firma'], 'en' => time(),
+            ];
+            App::redirigir('correccion');
+        }
+        $s = self::correccionVigente();
+        $plan = null;
+        if ($s) {
+            // La vista previa se recalcula al mostrarla: refleja la base de ahora
+            $plan = (new Correccion(self::db(), App::usuarioId()))->plan(Correccion::leerArchivo(CargaExcel::directorio() . '/' . $s['archivo'], $s['ext']));
+            $_SESSION['correccion']['firma'] = $plan['firma'];
+        }
+        App::render('correccion', ['sim' => $s, 'plan' => $plan, 'hecha' => $s ? null : ($_SESSION['correccion_hecha'] ?? null),
+                                   'maxMb' => self::CORRECCION_MAX_MB]);
+    }
+
+    public static function correccion_aplicar(): void
+    {
+        App::exigir('correccion');
+        App::verificarPost();
+        $s = self::correccionVigente();
+        if (!$s || !hash_equals($s['token'], (string)($_POST['vista'] ?? ''))) {
+            App::aviso('error', 'La vista previa venció o ya se usó. Subí la planilla de nuevo.');
+            App::redirigir('correccion');
+        }
+        $dir = CargaExcel::directorio();
+        try {
+            $filas = Correccion::leerArchivo("$dir/{$s['archivo']}", $s['ext']);
+            $r = (new Correccion(self::db(), App::usuarioId()))->aplicar($filas, $s['original'], $s['firma']);
+        } catch (\RuntimeException $e) {
+            App::aviso('error', $e->getMessage());
+            App::redirigir('correccion');
+        } catch (\Throwable $e) {
+            error_log('[aida-bo] corrección: ' . $e);
+            App::aviso('error', 'La corrección falló y no se guardó nada. Ya quedó registrado; avisá al equipo técnico.');
+            App::redirigir('correccion');
+        }
+        // Se conserva la planilla aplicada, con el número de proceso
+        @rename("$dir/{$s['archivo']}", sprintf('%s/correccion-%d-%s.%s', $dir, $r['proceso'], date('Ymd-His'), $s['ext']));
+        unset($_SESSION['correccion']);
+        $_SESSION['correccion_hecha'] = $r + ['original' => $s['original']];
+        App::aviso('ok', "Corrección #{$r['proceso']}: se aplicaron {$r['aplicadas']} cambios. Se puede deshacer completa desde Importaciones.");
+        App::redirigir('correccion');
+    }
+
+    public static function correccion_descartar(): void
+    {
+        App::exigir('correccion');
+        App::verificarPost();
+        self::descartarCorreccion();
+        unset($_SESSION['correccion_hecha']);
+        App::aviso('info', 'Vista previa descartada. No se cambió nada.');
+        App::redirigir('correccion');
+    }
+
+    private static function correccionVigente(): ?array
+    {
+        $s = $_SESSION['correccion'] ?? null;
+        if (!$s) {
+            return null;
+        }
+        $ruta = CargaExcel::directorio() . '/' . basename((string)$s['archivo']);
+        if (time() - (int)$s['en'] > CargaExcel::VIGENCIA || !is_file($ruta) || sha1_file($ruta) !== $s['sha1']) {
+            self::descartarCorreccion();
+            return null;
+        }
+        return $s;
+    }
+
+    private static function descartarCorreccion(): void
+    {
+        $s = $_SESSION['correccion'] ?? null;
+        if ($s && preg_match('/^corr-[0-9a-f]{24}\.(csv|xlsx)$/', (string)$s['archivo'])) {
+            @unlink(CargaExcel::directorio() . '/' . $s['archivo']);
+        }
+        unset($_SESSION['correccion']);
+    }
+
     public static function proceso_deshacer(): void
     {
         App::exigir('deshacer_todo');
@@ -932,13 +1074,15 @@ final class Rutas
         $n->execute([$id]);
         $det = array_map(fn($x) => "{$x['n']} " . ($x['accion'] === 'alta' ? 'altas' : 'modificaciones') . " de {$x['entidad']}", $n->fetchAll());
         App::render('confirmar', [
-            'titulo' => "Deshacer la {$proc['tipo']} #{$id}",
+            'titulo' => ($proc['tipo'] === 'correccion' ? 'Deshacer la corrección' : ($proc['tipo'] === 'escaneo' ? 'Deshacer el escaneo' : 'Deshacer la importación')) . " #{$id}",
             'texto' => "Se van a deshacer " . ($det ? implode(', ', $det) : 'sus cambios') . " (del {$proc['fuente']}, " . fecha($proc['iniciado_en']) . '). '
-                     . 'Las altas quedan dadas de baja y las modificaciones vuelven al valor anterior. '
+                     . ($proc['tipo'] === 'correccion'
+                        ? 'Cada celda corregida vuelve a su valor anterior y, si no estaba editada a mano, vuelve a tomarse del Excel. '
+                        : 'Las altas quedan dadas de baja y las modificaciones vuelven al valor anterior. ')
                      . 'Si algún dato se modificó después, no se aplica nada y se muestran los conflictos.',
             'migas' => [['Importaciones', App::url('procesos')]],
             'accion' => App::url('proceso_deshacer', ['id' => $id]),
-            'boton' => 'Deshacer la importación',
+            'boton' => $proc['tipo'] === 'correccion' ? 'Deshacer la corrección completa' : 'Deshacer la importación',
             'volver' => App::url('procesos'),
             'peligro' => true,
         ]);

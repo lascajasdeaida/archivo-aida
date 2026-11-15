@@ -118,6 +118,9 @@ final class Xlsx
             return (string)$node->t;
         }
         $s = '';
+        if (!isset($node->r)) {
+            return $s; // celda de texto vacía (la escriben así openpyxl y otras herramientas)
+        }
         foreach ($node->r as $run) {
             $s .= (string)$run->t;
         }

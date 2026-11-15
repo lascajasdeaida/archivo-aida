@@ -15,6 +15,7 @@
     <a href="<?= App::url('cajas') ?>" class="<?= in_array($sec, ['cajas', 'caja', 'registro', 'caja_nueva', 'registro_nuevo'], true) ? 'activo' : '' ?>">Cajas</a>
     <a href="<?= App::url('vocabularios') ?>" class="<?= in_array($sec, ['vocabularios', 'vocab_curar', 'vocab_informe', 'curaduria_deshacer'], true) ? 'activo' : '' ?>">Vocabularios</a>
     <a href="<?= App::url('procesos') ?>" class="<?= in_array($sec, ['procesos', 'importar', 'proceso_deshacer'], true) ? 'activo' : '' ?>">Importaciones</a>
+    <?php if ($u && App::puede('migraciones')): ?><a href="<?= App::url('base') ?>" class="<?= $sec === 'base' ? 'activo' : '' ?>">Base de datos</a><?php endif ?>
     <a href="<?= App::url('notificaciones') ?>" class="campana <?= $sec === 'notificaciones' ? 'activo' : '' ?>" title="Verificaciones pendientes">
       🔔 <span>Verificaciones</span><?php if ($pend): ?> <b class="contador"><?= $pend ?></b><?php endif ?>
     </a>
@@ -29,6 +30,12 @@
 </header>
 
 <main class="contenido">
+  <?php if ($u && App::puede('migraciones') && $sec !== 'base'):
+      try { $migPend = count((new \Aida\Migrador(aida_db()))->pendientes()); } catch (\Throwable $e) { $migPend = 0; }
+      if ($migPend): ?>
+    <div class="aviso aviso-error" role="alert"><b>La base tiene <?= $migPend ?> <?= $migPend === 1 ? 'actualización' : 'actualizaciones' ?> pendiente<?= $migPend === 1 ? '' : 's' ?>.</b>
+      Algunas pantallas pueden fallar hasta aplicarlas. <a href="<?= App::url('base') ?>">Ir a Base de datos</a></div>
+  <?php endif; endif ?>
   <?php foreach (App::avisos() as [$tipo, $texto]): ?>
     <div class="aviso aviso-<?= e($tipo) ?>" role="status"><?= e($texto) ?></div>
   <?php endforeach ?>

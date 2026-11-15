@@ -21,6 +21,7 @@ final class App
         'forzar'            => ['admin', 'editor'],
         'procesos'          => ['admin', 'editor'],
         'usuarios'          => ['admin'],
+        'migraciones'       => ['admin'],
         'ver'               => ['admin', 'editor', 'data_entry', 'qa'],
     ];
 

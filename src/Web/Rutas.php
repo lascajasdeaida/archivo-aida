@@ -1249,4 +1249,34 @@ final class Rutas
         }
         return $out;
     }
+
+    // ------------------------------------------------------------------
+    // Base de datos: migraciones pendientes (para hostings sin consola)
+    // ------------------------------------------------------------------
+
+    public static function base(): void
+    {
+        App::exigir('migraciones');
+        $m = new \Aida\Migrador(self::db());
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::verificarPost();
+            $hechas = [];
+            foreach ($m->pendientes() as $v => $f) {
+                try {
+                    $hechas[] = basename($f) . ' (' . $m->aplicar($v) . ' ms)';
+                } catch (\RuntimeException $e) {
+                    error_log('[aida-migrar] ' . $e->getMessage());
+                    App::aviso('error', 'No se pudo aplicar ' . basename($f) . '. Nada de esa migración quedó registrado; se puede reintentar. Detalle: '
+                        . mb_strimwidth($e->getMessage(), 0, 300, '…'));
+                    break;
+                }
+            }
+            if ($hechas) {
+                App::aviso('ok', 'Migraciones aplicadas: ' . implode(', ', $hechas) . '.');
+            }
+            App::redirigir('base');
+        }
+        App::render('base', ['archivos' => $m->archivos, 'aplicadas' => $m->aplicadas(), 'pendientes' => $m->pendientes(),
+            'modificadas' => $m->modificadas()]);
+    }
 }

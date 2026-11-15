@@ -128,3 +128,66 @@ button.link{background:none;border:0;padding:0;color:var(--accent-ink);text-deco
 .pagina-login{display:grid;place-items:center;min-height:100vh}
 .caja-login{background:var(--surface);border:1px solid var(--line);padding:32px;width:min(380px,92vw);border-radius:var(--radio)}
 .caja-login .btn{width:100%}
+
+/* ===================================================================
+   Contraste por zonas (nov 2026): cada módulo se distingue de un vistazo
+   =================================================================== */
+:root{--blanco:#FFFDF8;--lateral:#F4EBDB;--banda:#E3D3B8;--oscuro:#2A211A;--oscuro-2:#3B2F25}
+
+/* Barra superior oscura */
+.barra{background:var(--oscuro);border-bottom:3px solid var(--accent)}
+.marca{color:#F2E8D8}
+.sello{border-color:#E8A05C;color:#E8A05C}
+.barra nav a{color:#D9C9AE}
+.barra nav a:hover{background:var(--oscuro-2);color:#fff}
+.barra nav a.activo{background:var(--accent);color:#fff}
+.usuario{color:#B9A88E}
+.usuario button.link{color:#E8A05C}
+
+/* Encabezado de página */
+.cabecera{border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:20px}
+.migas{margin-bottom:10px}
+
+/* Módulos: fondo claro, sombra suave y barra de título */
+.panel{background:var(--blanco);border:1px solid #D2C0A2;box-shadow:0 1px 2px rgba(42,33,26,.06),0 8px 24px -18px rgba(42,33,26,.45)}
+.panel > h2:first-child{margin:-20px -24px 16px;padding:11px 24px;background:var(--banda);border-bottom:1px solid #CDB894;
+  font-size:1.1rem;border-radius:var(--radio) var(--radio) 0 0}
+.panel > h1:first-child{margin-top:0}
+
+/* Columna lateral: otro tono, para separar herramientas del contenido */
+aside .panel{background:var(--lateral)}
+aside .panel > h2:first-child{background:var(--oscuro-2);color:#F2E8D8;border-bottom-color:var(--oscuro)}
+aside table{background:transparent}
+aside input[type=text],aside textarea{background:#fff}
+
+/* Tablas: encabezado oscuro, filas alternadas */
+table{border:1px solid #D2C0A2;box-shadow:0 8px 24px -20px rgba(42,33,26,.5)}
+th{background:var(--oscuro-2);color:#E9DCC7;border-bottom:0}
+tbody tr:nth-child(even) td{background:#FAF4EA}
+tbody tr:nth-child(odd) td{background:var(--blanco)}
+.fila-link:hover td{background:var(--accent-soft)!important}
+td a{font-weight:700}
+.historial table{border:0;box-shadow:none}
+.historial td{background:transparent!important}
+aside table td{background:transparent!important}
+aside table{border:0;box-shadow:none}
+
+/* Filtros en su propia caja */
+.filtros{background:var(--surface-2);border:1px solid #D2C0A2;border-radius:var(--radio);padding:12px 14px}
+
+/* Alertas destacadas */
+#alertas{background:#FBF1D9;border-color:#E3C77E}
+#alertas > h2:first-child{background:#F1DDA6;border-bottom-color:#E3C77E}
+
+/* Pestañas */
+.tabs{border-bottom:2px solid var(--oscuro-2)}
+.tabs a.activo{background:var(--oscuro-2);color:#F2E8D8;border-color:var(--oscuro-2)}
+
+/* Ficha: bloque de publicación */
+fieldset.panel{background:var(--surface-2)!important}
+
+/* Tarjetas de verificaciones */
+.tarjeta{background:var(--blanco);box-shadow:0 6px 18px -16px rgba(42,33,26,.5)}
+
+/* Pie */
+.pie{border-top:1px solid var(--line);margin-top:24px}

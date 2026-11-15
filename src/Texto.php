@@ -27,7 +27,8 @@ final class Texto
         }
         $s = trim((string)$v);
         $s = (string)preg_replace('/[ \t]+/u', ' ', $s);
-        return ($s === '' || $s === '-') ? null : $s;
+        // Vacío o solo signos («-», «.», «?»): no es un dato
+        return ($s === '' || !preg_match('/[\p{L}\p{N}]/u', $s)) ? null : $s;
     }
 
     public static function entero(mixed $v): ?int

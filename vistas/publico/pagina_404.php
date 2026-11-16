@@ -10,7 +10,7 @@ ob_start(); ?>
   <p>La dirección no corresponde a ninguna página ni a ningún documento publicado del archivo. Si llegaste desde un enlace, puede estar mal escrito.</p>
   <form class="buscador" action="<?= H::e($enl->explorar()) ?>" role="search" aria-label="Buscar en el archivo" style="margin:24px 0">
     <?php if (!$enl->reescritura): ?><input type="hidden" name="ruta" value="explorar"><?php endif ?>
-    <div class="buscador__campo"><?= H::icono('buscar') ?><label class="solo-lector" for="q-404">Buscar en el archivo</label>
+    <div class="buscador__campo"><label class="solo-lector" for="q-404">Buscar en el archivo</label>
       <input type="search" id="q-404" name="q" placeholder="Título, persona, obra o código (C14R3)…"></div>
     <button class="boton boton--primario">Buscar</button>
   </form>

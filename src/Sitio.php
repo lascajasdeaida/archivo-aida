@@ -267,6 +267,7 @@ final class Sitio
                 'anios' => $anios[$id] ?? [],
                 'anio' => self::anio($anios[$id] ?? [], $x['anio_texto']),
                 'extracto' => mb_strlen($resumen) > self::EXTRACTO ? rtrim(mb_substr($resumen, 0, self::EXTRACTO)) . '…' : $resumen,
+                'resumen' => $resumen,   // completo: el sitio muestra el fragmento donde aparece lo buscado
                 'digital' => (bool)(int)$x['digital'],
                 'pedido' => $x['acceso'] === 'restringido',
             ] + (isset($x['caja_id']) ? ['caja' => ['id' => (int)$x['caja_id'], 'numero' => (int)$x['caja_numero'], 'nombre' => $x['caja_nombre']]] : [])

@@ -20,12 +20,12 @@ ob_start(); ?>
     <li><a class="acceso" href="#condiciones">Condiciones de uso</a></li><li><a class="acceso" href="#accesibilidad">Accesibilidad</a></li><li><a class="acceso" href="#contacto">Contacto</a></li>
   </ul>
   <div class="prosa">
-    <p class="hero__frase" style="color:inherit">Más de 70 cajas de un corpus creativo donde las palabras importan más que las imágenes y los sueños más que las ficciones.</p>
+    <p class="sobre__frase">Más de 70 cajas de un corpus creativo donde las palabras importan más que las imágenes y los sueños más que las ficciones.</p>
     <?= $pend('qué es el archivo, en una o dos oraciones (hoy se usa la frase del sitio actual).') ?>
     <h2 id="quien">Quién fue Aída Bortnik</h2>
     <?= $pend('biografía breve.') ?>
     <h2 id="catalogo">Cómo se armó el catálogo</h2>
-    <ul class="datos-caja" style="margin-top:8px">
+    <ul class="datos-caja datos-caja--lista">
       <li><b><?= H::numero($cifras['cajas']) ?></b> <?= $cifras['cajas'] === 1 ? 'caja publicada' : 'cajas publicadas' ?></li>
       <li><b><?= H::numero($cifras['documentos']) ?></b> documentos catalogados</li>
       <li><b><?= H::numero($cifras['digitales']) ?></b> ya digitalizados</li>

@@ -21,16 +21,18 @@ ob_start(); ?>
         data-json="<?= H::e($enl->explorarJson()) ?>" data-base="<?= H::e($enl->explorar()) ?>">
     <?php if (!$enl->reescritura): ?><input type="hidden" name="ruta" value="explorar"><?php endif ?>
     <div class="buscador" role="search" aria-label="Buscar en el archivo">
-      <div class="buscador__campo"><?= H::icono('buscar') ?>
+      <div class="buscador__campo">
         <label class="solo-lector" for="q">Buscar en el archivo</label>
-        <input type="search" id="q" name="q" value="<?= H::e($e['q']) ?>" placeholder="Título, persona, obra, tipo, año…" autocomplete="off"></div>
-      <button class="boton boton--primario">Buscar</button>
+        <input type="search" id="q" name="q" value="<?= H::e($e['q']) ?>" placeholder="Título, persona, obra, tipo, año o código" autocomplete="off" aria-keyshortcuts="/" aria-describedby="ayuda-q">
+        <span class="buscador__cursor" aria-hidden="true"></span></div>
+      <button class="boton boton--primario"><?= H::icono('buscar') ?>Buscar</button>
     </div>
+    <p class="ayuda ayuda--buscador" id="ayuda-q"><span class="solo-con-js">Los resultados se actualizan mientras escribís.</span><span class="solo-sin-js">Escribí y apretá Enter.</span><span class="ayuda__atajo"> Tecla <kbd>/</kbd> para volver acá.</span></p>
 
     <div class="explorar">
       <div>
         <button type="button" class="boton boton--secundario boton-filtros" id="boton-filtros" aria-expanded="false" aria-controls="panel-filtros">
-          <span style="display:inline-flex;gap:8px;align-items:center"><?= H::icono('filtro') ?>Filtros</span>
+          <span class="boton-filtros__texto"><?= H::icono('filtro') ?>Filtros</span>
           <span class="boton-filtros__n" id="boton-filtros-n"><?= $nFiltros ?: '' ?></span></button>
         <div class="panel-filtros" id="panel-filtros" role="region" aria-labelledby="h-filtros">
           <div class="panel-filtros__cabeza"><h2 id="h-filtros-movil">Filtrar</h2>
@@ -59,6 +61,7 @@ ob_start(); ?>
           <button class="boton boton--secundario boton--chico solo-sin-js">Ordenar</button>
         </div>
         <div id="chips"><?php if (!$error) { require __DIR__ . '/_explorar_chips.php'; } ?></div>
+        <div class="columnas" aria-hidden="true"><span>Código</span><span>Documento</span><span>Caja</span><span>Año</span><span>Acceso</span></div>
         <div id="resultados"><?php require __DIR__ . '/_explorar_resultados.php'; ?></div>
         <p class="solo-lector" aria-live="polite" id="anuncio"></p>
       </section>

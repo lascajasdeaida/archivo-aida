@@ -9,8 +9,8 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
   const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-  window.dataLayer = window.dataLayer || [];
-  const evento = (nombre, datos = {}) => window.dataLayer.push({ event: nombre, ...datos });
+  // Estadísticas (docs/medicion.md): solo si medicion.js está cargado. Nunca datos personales.
+  const evento = (nombre, datos = {}) => { if (window.aidaMedir) window.aidaMedir(nombre, datos); };
 
   document.addEventListener('DOMContentLoaded', () => {
     const form = $('#form-explorar');
@@ -19,6 +19,38 @@
     const zonas = { facetas: $('#facetas'), chips: $('#chips'), resultados: $('#resultados') };
     const conteo = $('#conteo'), anuncio = $('#anuncio');
     let pedido = 0, espera;
+
+    // ---- Medición de búsquedas (docs/medicion.md §Archivo) ----
+    // buscar_archivo: una vez por término (no por tecla): al confirmar (Enter) o después de 1,5 s sin escribir, con la
+    // cantidad de resultados. busqueda_sin_resultados: una vez por combinación de término y filtros que da 0.
+    const RESERVADOS = ['q', 'orden', 'pagina', 'primera', 'ruta'];
+    const filtrosDe = p => [...p].filter(([k]) => !RESERVADOS.includes(k)).map(([k, v]) => k + ':' + v).join('|');
+    const cantidadFiltros = p => [...p].filter(([k]) => !RESERVADOS.includes(k) && k !== 'hasta').reduce((n, [, v]) => n + v.split(',').length, 0);
+    const normQ = q => norm(q).replace(/\s+/g, ' ').trim();
+    let medidaQ = null, medidaSinRes = null, esperaMedicion;
+    try { medidaQ = sessionStorage.getItem('aida-busqueda-medida'); } catch (x) { /* sin sessionStorage */ }
+    function medirBusqueda(p, total, origen) {
+      const q = (p.get('q') || '').trim(), filtros = filtrosDe(p), n = cantidadFiltros(p);
+      if (q && normQ(q) !== medidaQ) {
+        medidaQ = normQ(q);
+        try { sessionStorage.setItem('aida-busqueda-medida', medidaQ); } catch (x) { /* nada */ }
+        evento('buscar_archivo', { search_term: q, resultados: total, origen_busqueda: origen, filtros_activos: filtros, cantidad_filtros: n });
+      }
+      const clave = normQ(q) + '§' + filtros;
+      if (total === 0 && (q || n) && clave !== medidaSinRes) {
+        medidaSinRes = clave;
+        evento('busqueda_sin_resultados', { search_term: q, origen_busqueda: origen, filtros_activos: filtros, cantidad_filtros: n });
+      }
+    }
+    // Al cargar Explorar con un término (búsqueda desde el inicio o una caja, enlace compartido, recarga)
+    if (zonas.resultados.dataset.total !== undefined) {
+      const p = new URLSearchParams(location.search);
+      let origen = null;
+      try { origen = sessionStorage.getItem('aida-busqueda-origen'); sessionStorage.removeItem('aida-busqueda-origen'); } catch (x) { /* nada */ }
+      // Recargar o volver a la misma búsqueda no la cuenta de nuevo; venir de otro buscador sí
+      if (origen) medidaQ = null;
+      medirBusqueda(p, Number(zonas.resultados.dataset.total), origen || 'enlace');
+    }
 
     // Estado del formulario → parámetros de la URL (listas con coma, sin vacíos, como las arma el servidor)
     function parametros(extra = {}) {
@@ -44,14 +76,15 @@
         + '<p>Hubo un problema de conexión con el archivo. Tus filtros siguen guardados.</p>'
         + '<button class="boton boton--primario" type="button" data-reintentar-js>Reintentar</button></div>';
       zonas.resultados.removeAttribute('aria-busy');
-      evento('error_resultados', { tipo: 'conexion' });
+      evento('error_resultados', { tipo_error: 'conexion' });
     }
 
     // Pide la página 1 con los filtros actuales y reemplaza facetas, chips y resultados
-    async function actualizar({ foco = null, url = null } = {}) {
+    async function actualizar({ foco = null, url = null, origen = 'filtros', demora = 0 } = {}) {
       const p = url ? new URLSearchParams(url.split('?')[1] || '') : parametros();
       p.delete('ruta');
       const n = ++pedido;
+      clearTimeout(esperaMedicion);
       zonas.resultados.setAttribute('aria-busy', 'true');
       if (!zonas.resultados.querySelector('.lista-registros')) zonas.resultados.innerHTML = '<ul class="lista-registros" aria-hidden="true">' + '<li class="esqueleto"></li>'.repeat(6) + '</ul>';
       try {
@@ -61,14 +94,11 @@
         if (!r.ok || d.error) throw new Error(d.error || r.status);
         pintar(d);
         history.replaceState({ explorar: true }, '', d.url);
-        if (d.total === 0) evento('busqueda_sin_resultados', { search_term: p.get('q') || '', filtros: filtrosTexto(p) });
+        esperaMedicion = setTimeout(() => medirBusqueda(p, Number(d.total), origen), demora);
         if (foco) foco();
       } catch (e) {
         if (n === pedido) mostrarError();
       }
-    }
-    function filtrosTexto(p) {
-      return [...p].filter(([k]) => !['q', 'orden', 'pagina'].includes(k)).map(([k, v]) => k + ':' + v).join('|');
     }
 
     function pintar(d) {
@@ -95,10 +125,10 @@
     form.addEventListener('change', e => {
       const i = e.target;
       if (i.matches('.opcion input[type=checkbox]')) {
-        evento(i.checked ? 'filtro_aplicado' : 'filtro_quitado', { filtro: i.name.replace('[]', ''), valor: i.value });
+        evento(i.checked ? 'aplicar_filtro' : 'quitar_filtro', { filtro: i.name.replace('[]', ''), filtro_valor: i.value });
         actualizar();
       } else if (i.id === 'orden') {
-        evento('orden_cambiado', { orden: i.value });
+        evento('ordenar_resultados', { orden_resultados: i.value });
         actualizar();
       }
     });
@@ -117,9 +147,9 @@
     });
 
     // Búsqueda mientras se escribe: espera 180 ms sin teclas (una consulta por pausa, no por letra). El código exacto
-    // (C14R3) no se busca acá: Enter lleva directo a la ficha. El evento “search” de Estadísticas sale recién tras
-    // 1,5 s quieto, una vez por término, para no contar cada letra.
-    let tecleo, quieto, ultimoTermino = $('#q').value.trim();
+    // (C14R3) no se busca acá: Enter lleva directo a la ficha. El evento buscar_archivo de Estadísticas sale recién tras
+    // 1,5 s quieto, una vez por término, para no contar cada letra (medirBusqueda).
+    let tecleo, ultimoTermino = $('#q').value.trim();
     // Si la persona no eligió un orden, al buscar se ordena por relevancia y sin búsqueda por caja (los defaults del servidor)
     let ordenElegido = new URLSearchParams(location.search).has('orden');
     $('#orden').addEventListener('change', () => { ordenElegido = true; });
@@ -130,15 +160,14 @@
       if (!ordenElegido || (!q && sel.value === 'relevancia')) sel.value = q ? 'relevancia' : 'caja';
     }
     function buscarMientrasEscribe() {
-      clearTimeout(tecleo); clearTimeout(quieto);
+      clearTimeout(tecleo); clearTimeout(esperaMedicion);
       const q = $('#q').value.trim();
       if (/^c\d+(r\d*)?$/i.test(q) || (q.length === 1)) return;
       tecleo = setTimeout(() => {
         if (q === ultimoTermino) return;
         ultimoTermino = q;
         ordenPorDefecto();
-        actualizar();
-        quieto = setTimeout(() => { if (q) evento('search', { search_term: q, origen: 'explorar_en_vivo' }); }, 1500);
+        actualizar({ origen: 'explorar_escritura', demora: 1500 });
       }, 180);
     }
     form.addEventListener('keydown', e => {
@@ -150,13 +179,19 @@
     form.addEventListener('submit', e => {
       const boton = e.submitter;
       if (boton && boton.id === 'ver-resultados') { e.preventDefault(); cerrarPanel(); return; }
-      if (boton && boton.id === 'aplicar-rango') { e.preventDefault(); actualizar(); return; }
+      if (boton && boton.id === 'aplicar-rango') {
+        e.preventDefault();
+        evento('aplicar_filtro', { filtro: 'anio_rango', filtro_valor: ($('#desde').value || '') + '-' + ($('#hasta').value || '') });
+        actualizar(); return;
+      }
       const q = $('#q').value.trim();
-      if (/^c\d+r\d+$/i.test(q)) { evento('search', { search_term: q, origen: 'explorar' }); return; } // navegación normal
+      if (/^c\d+r\d+$/i.test(q)) { // navegación normal a la ficha
+        evento('buscar_archivo', { search_term: q.toUpperCase(), origen_busqueda: 'explorar', tipo_busqueda: 'codigo' });
+        return;
+      }
       e.preventDefault();
-      clearTimeout(tecleo); clearTimeout(quieto); ultimoTermino = q; ordenPorDefecto();
-      evento('search', { search_term: q, origen: 'explorar' });
-      actualizar({ foco: () => conteo.focus() });
+      clearTimeout(tecleo); ultimoTermino = q; ordenPorDefecto();
+      actualizar({ foco: () => conteo.focus(), origen: 'explorar' });
     });
 
     // Chips, “Limpiar”, “Quitar…” de sin resultados: enlaces que se resuelven sin recargar
@@ -167,8 +202,9 @@
         const u = new URL(a.href, location.href);
         const p = new URLSearchParams(u.search);
         $('#q').value = p.get('q') || '';
-        if (a.matches('[data-limpiar-todo], [data-limpiar]')) evento('filtros_limpiados');
-        else evento('filtro_quitado', {});
+        if (a.matches('[data-limpiar-todo], [data-limpiar]')) evento('quitar_filtro', { filtro: 'todos' });
+        else evento('quitar_filtro', { filtro: a.dataset.filtro === 'q' ? 'busqueda' : (a.dataset.filtro || 'sugerencia'),
+          filtro_valor: a.dataset.filtro === 'q' ? undefined : a.dataset.valor, ubicacion_enlace: a.closest('#sin-resultados') ? 'sin_resultados' : 'chip' });
         actualizar({ url: u.search, foco: () => (($('#chips a') || conteo).focus()) });
         return;
       }
@@ -195,18 +231,21 @@
         const u = new URL(d.url, location.href);
         u.searchParams.set('primera', Math.max(1, primera));
         history.replaceState({ explorar: true }, '', u.pathname + u.search.replace(/%2C/g, ','));
-        evento('cargar_mas', { pagina });
+        evento('paginar_resultados', { pagina, resultados: Number(d.total) });
       } catch (e) {
         boton.removeAttribute('aria-disabled');
         boton.textContent = 'No se pudo cargar. Probá de nuevo';
-        evento('error_resultados', { tipo: 'cargar_mas' });
+        evento('error_resultados', { tipo_error: 'cargar_mas' });
       }
     }
 
     // Tarjeta clic → select_content
     document.addEventListener('click', e => {
       const a = e.target.closest('.registro h3 a, .registro h2 a');
-      if (a) evento('select_content', { content_type: 'registro', item_id: a.closest('[data-codigo]').dataset.codigo, origen: 'explorar' });
+      if (a) {
+        const codigo = a.closest('[data-codigo]').dataset.codigo;
+        evento('select_content', { content_type: 'registro', item_id: codigo, registro_codigo: codigo, origen_busqueda: 'explorar' });
+      }
     });
     // “Volver a los resultados” desde la ficha
     try { sessionStorage.setItem('aida-volver', location.href); } catch (e) { /* modo privado */ }
@@ -218,7 +257,7 @@
     function abrirPanel() {
       panel.classList.add('abierto'); document.body.classList.add('panel-abierto');
       panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-labelledby', 'h-filtros-movil');
-      abrir.setAttribute('aria-expanded', 'true'); $('.cerrar-panel', panel).focus(); evento('panel_filtros_abierto');
+      abrir.setAttribute('aria-expanded', 'true'); $('.cerrar-panel', panel).focus(); evento('abrir_filtros');
     }
     function cerrarPanel() {
       if (!panel.classList.contains('abierto')) return;

@@ -62,7 +62,7 @@ ob_start(); ?>
         </div>
         <div id="chips"><?php if (!$error) { require __DIR__ . '/_explorar_chips.php'; } ?></div>
         <div class="columnas" aria-hidden="true"><span>Código</span><span>Documento</span><span>Caja</span><span>Año</span><span>Acceso</span></div>
-        <div id="resultados"><?php require __DIR__ . '/_explorar_resultados.php'; ?></div>
+        <div id="resultados"<?= $error ? '' : ' data-total="' . (int)($r['total'] ?? 0) . '"' ?>><?php require __DIR__ . '/_explorar_resultados.php'; ?></div>
         <p class="solo-lector" aria-live="polite" id="anuncio"></p>
       </section>
     </div>

@@ -6,9 +6,11 @@
  */
 use Aida\Web\Enlaces;
 use Aida\Web\Html as H;
+use Aida\Web\Medicion;
 
 $r = $d['registro'];
 $caja = $d['caja'];
+$medicion = $medicion ?? null; // solo en el sitio público (docs/medicion.md); en la vista previa no se mide
 $codigo = (string)$r['codigo'];
 $anio = $d['anio'];
 $tituloPagina = "{$d['titulo']} ($codigo)";
@@ -70,11 +72,11 @@ ob_start(); ?>
           <?php $primero = true; foreach ($d['archivos'] as $i => $a): if (!$a['visor']) { continue; } $peso = H::peso($a['peso']); ?>
           <li><a class="boton <?= $primero ? 'boton--primario' : 'boton--secundario' ?> boton--ancho" href="<?= H::e($enl->archivo($a['id'])) ?>"
                data-visor="<?= H::e($enl->archivo($a['id'])) ?>" data-visor-titulo="<?= H::e($codigo . ($varias ? ', parte ' . ($i + 1) : '')) ?>"
-               data-descarga="<?= H::e($enl->archivo($a['id'], true)) ?>" aria-controls="visor" aria-expanded="false">
+               data-descarga="<?= H::e($enl->archivo($a['id'], true)) ?>" aria-controls="visor" aria-expanded="false"<?= Medicion::atributosArchivo($medicion, 'ver_archivo', $a, $i + 1, 'ficha') ?>>
               <?= H::icono('ver') ?><?= $varias ? 'Ver parte ' . ($i + 1) : 'Ver documento' ?><?php if (!$varias && $r['paginas']): ?> <span class="peso">(<?= (int)$r['paginas'] ?> págs.<?= $peso ? ', ' . H::e($peso) : '' ?>)</span><?php elseif ($peso): ?> <span class="peso">(<?= H::e($peso) ?>)</span><?php endif ?></a></li>
           <?php $primero = false; endforeach ?>
           <?php foreach ($d['archivos'] as $i => $a): $peso = H::peso($a['peso']); ?>
-          <li><a class="boton <?= !$a['visor'] && !$conVisor && $i === 0 ? 'boton--primario' : 'boton--secundario' ?> boton--ancho" href="<?= H::e($enl->archivo($a['id'], true)) ?>">
+          <li><a class="boton <?= !$a['visor'] && !$conVisor && $i === 0 ? 'boton--primario' : 'boton--secundario' ?> boton--ancho" href="<?= H::e($enl->archivo($a['id'], true)) ?>"<?= Medicion::atributosArchivo($medicion, 'descargar_archivo', $a, $i + 1, 'ficha') ?>>
               <?= H::icono('descargar') ?>Descargar <?= $etiquetaFormato($a) ?><?= $varias ? ' (parte ' . ($i + 1) . ')' : '' ?><?php if ($peso): ?> <span class="peso">(<?= H::e($peso) ?>)</span><?php endif ?></a></li>
           <?php endforeach ?>
         </ul>
@@ -138,7 +140,7 @@ ob_start(); ?>
       <div class="grupo"><button class="visor__boton" type="button" data-visor-pantalla aria-label="Pantalla completa"><?= H::icono('pantalla') ?></button></div>
       <span class="separador"></span>
       <div class="grupo">
-        <a class="visor__boton" href="<?= H::e($enl->archivo($conVisor[0]['id'], true)) ?>" data-visor-descargar
+        <a class="visor__boton" href="<?= H::e($enl->archivo($conVisor[0]['id'], true)) ?>" data-visor-descargar<?= Medicion::atributosArchivo($medicion, 'descargar_archivo', $conVisor[0], 1, 'visor') ?>
            aria-label="Descargar <?= $etiquetaFormato($conVisor[0]) ?><?= ($p = H::peso($conVisor[0]['peso'])) ? ' (' . H::e($p) . ')' : '' ?>"><?= H::icono('descargar') ?></a>
         <button class="visor__boton visor__boton--texto" type="button" data-visor-cerrar><?= H::icono('cerrar') ?>Cerrar</button>
       </div>

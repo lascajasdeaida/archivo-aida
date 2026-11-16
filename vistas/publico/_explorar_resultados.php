@@ -18,7 +18,7 @@ if (!empty($error)): ?>
   <h2>No encontramos documentos con esa combinación</h2>
   <?php if ($sugerencias): ?><p>Probá quitar alguno de los filtros:</p>
   <ul><?php foreach ($sugerencias as $s): ?>
-    <li><a class="boton boton--fantasma" href="<?= H::e($s['quitar']) ?>">Quitar “<?= H::e($s['titulo']) ?>: <?= H::e($s['valor']) ?>”</a> → <?= H::numero($s['n']) ?> <?= $s['n'] === 1 ? 'resultado' : 'resultados' ?></li>
+    <li><a class="boton boton--fantasma" href="<?= H::e($s['quitar']) ?>" data-filtro="<?= H::e($s['faceta'] ?? '') ?>" data-valor="<?= H::e($s['valor']) ?>">Quitar “<?= H::e($s['titulo']) ?>: <?= H::e($s['valor']) ?>”</a> → <?= H::numero($s['n']) ?> <?= $s['n'] === 1 ? 'resultado' : 'resultados' ?></li>
   <?php endforeach ?></ul><?php endif ?>
   <p>Muchos documentos no tienen título: buscar por tipo (“carta”, “guion”) o por la obra suele dar más resultados.</p>
   <?php endif ?>

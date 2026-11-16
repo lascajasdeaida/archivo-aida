@@ -73,11 +73,8 @@
       visor.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); });
     }
 
-    // Eventos para Estadísticas (docs/ux/sitio-publico.md §7). Nunca datos personales.
-    window.dataLayer = window.dataLayer || [];
-    const evento = (nombre, datos = {}) => window.dataLayer.push({ event: nombre, ...datos });
-    $$('[data-evento-busqueda]').forEach(f => f.addEventListener('submit', () =>
-      evento('search', { search_term: ($('input[type=search]', f) || {}).value || '', origen: f.dataset.eventoBusqueda })));
+    // Estadísticas (docs/medicion.md): solo si medicion.js está cargado (sitio público con GTM configurado). Nunca datos personales.
+    const evento = (nombre, datos = {}) => { if (window.aidaMedir) window.aidaMedir(nombre, datos); };
 
     // Foco en el resumen de errores (formulario de consulta) o en la confirmación
     const enfocar = $('[data-enfocar]') || $('#ok');
@@ -85,12 +82,12 @@
     const fc = $('#form-consulta');
     if (fc) {
       let iniciada = false;
-      fc.addEventListener('focusin', () => { if (!iniciada) { iniciada = true; evento('consulta_iniciada', { codigo: fc.dataset.codigo, origen: 'formulario' }); } });
+      // Solo qué campos fallaron (sus nombres), nunca lo que se escribió
+      fc.addEventListener('focusin', () => { if (!iniciada) { iniciada = true; evento('iniciar_consulta', { registro_codigo: fc.dataset.codigo }); } });
       const errores = $$('#resumen-errores li a').map(a => a.getAttribute('href').slice(1));
-      if (errores.length) evento('consulta_error_validacion', { codigo: fc.dataset.codigo, campos: errores.join(',') });
+      if (errores.length) evento('error_consulta', { registro_codigo: fc.dataset.codigo, campos_error: errores.join(',') });
     }
-    const enviada = $('[data-consulta-enviada]');
-    if (enviada) evento('consulta_enviada', { codigo: enviada.dataset.consultaEnviada, caja: enviada.dataset.caja });
+    // La consulta enviada (enviar_consulta) la mide medicion.js con los datos que manda el servidor en la confirmación
 
     // Las cajas: el filtro por nombre o número se aplica mientras se escribe (sin JS, con el botón “Aplicar”)
     const fcajas = $('[data-filtro-cajas]');
@@ -120,7 +117,10 @@
     const aviso = $('#copiado');
     $$('[data-copiar], [data-copiar-texto]').forEach(b => b.addEventListener('click', () => {
       const texto = b.dataset.copiarTexto || ($(b.dataset.copiar) || {}).textContent || '';
-      const ok = () => { if (aviso) aviso.textContent = b.dataset.copiado || 'Copiado.'; };
+      const ok = () => {
+        if (aviso) aviso.textContent = b.dataset.copiado || 'Copiado.';
+        evento('compartir_registro', { metodo_compartir: b.dataset.copiar === '#cita' ? 'copiar_cita' : 'copiar_enlace' });
+      };
       if (navigator.clipboard) navigator.clipboard.writeText(texto.trim()).then(ok, () => { if (aviso) aviso.textContent = 'No se pudo copiar: seleccioná el texto y copialo a mano.'; });
     }));
   });

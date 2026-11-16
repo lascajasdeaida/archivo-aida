@@ -23,7 +23,7 @@ $volver = App::url('consulta', ['id' => $c['id']]);
       <h2>Pedido</h2>
       <table>
         <tr><td style="width:30%">Recibida</td><td><?= fecha($c['creado_en']) ?></td></tr>
-        <tr><td>Documento</td><td><b><?= e($c['codigo']) ?></b><?= $c['titulo'] ? ' · ' . e($c['titulo']) : '' ?><?= $c['caja_numero'] ? '<br><span class="nota">Caja ' . (int)$c['caja_numero'] . ': ' . e($c['caja_nombre']) . '</span>' : '' ?>
+        <tr><td>Documento</td><td><b class="codigo"><?= e($c['codigo']) ?></b><?= $c['titulo'] ? ' · ' . e($c['titulo']) : '' ?><?= $c['caja_numero'] ? '<br><span class="nota">Caja ' . (int)$c['caja_numero'] . ': ' . e($c['caja_nombre']) . '</span>' : '' ?>
           <?php if ($c['acceso'] && $c['acceso'] !== 'publico'): ?><br><span class="chip chip-warn"><?= e(acceso_txt($c['acceso'])) ?></span><?php endif ?></td></tr>
         <tr><td>Nombre</td><td><?= e($c['nombre']) ?></td></tr>
         <tr><td>Correo</td><td><a href="mailto:<?= e($c['correo']) ?>?subject=<?= rawurlencode("Consulta $numero · {$c['codigo']} · Las cajas de Aída") ?>"><?= e($c['correo']) ?></a></td></tr>

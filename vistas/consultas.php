@@ -33,7 +33,7 @@ $titulo = 'Consultas';
     <tr class="fila-link" onclick="location.href='<?= $url ?>'">
       <td><a href="<?= $url ?>"><?= e(Consultas::numero($c)) ?></a></td>
       <td><?= fecha($c['creado_en']) ?></td>
-      <td><b><?= e($c['codigo']) ?></b><?php if ($c['titulo']): ?><br><span class="nota"><?= e(mb_strimwidth($c['titulo'], 0, 60, '…')) ?></span><?php endif ?>
+      <td><b class="codigo"><?= e($c['codigo']) ?></b><?php if ($c['titulo']): ?><br><span class="nota"><?= e(mb_strimwidth($c['titulo'], 0, 60, '…')) ?></span><?php endif ?>
         <?php if ($c['tipo'] === 'original'): ?><br><span class="chip">Consulta por el documento</span><?php endif ?></td>
       <td><?= e($c['nombre']) ?><br><span class="nota"><?= e($c['correo']) ?><?= $c['institucion'] ? ' · ' . e($c['institucion']) : '' ?></span></td>
       <td><?= e(Consultas::USOS[$c['uso']] ?? $c['uso']) ?><br><span class="nota"><?= e(Consultas::MODALIDADES[$c['modalidad']] ?? '') ?></span></td>

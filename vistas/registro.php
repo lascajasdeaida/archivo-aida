@@ -8,11 +8,11 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
 <div class="migas">
   <a href="<?= App::url('cajas') ?>">Cajas</a> /
   <a href="<?= App::url('caja', ['id' => $caja['id']]) ?>">Caja <?= (int)$caja['numero'] ?> · <?= e($caja['nombre']) ?></a> /
-  <?= e($r['codigo']) ?>
+  <span class="codigo"><?= e($r['codigo']) ?></span>
 </div>
 <div class="cabecera">
   <div>
-    <p class="eyebrow">Registro <?= (int)$r['numero'] ?> · <?= e($r['codigo']) ?></p>
+    <p class="eyebrow">Registro <?= (int)$r['numero'] ?> · <span class="codigo"><?= e($r['codigo']) ?></span></p>
     <h1><?= e($r['titulo'] ?: ($tipos ? implode(' · ', $tipos) : 'Sin título ni tipo cargado')) ?></h1>
     <div class="chips">
       <?= $r['digitalizado'] ? '<span class="chip chip-ok">Digitalizado</span>' : '<span class="chip">Sin digitalizar</span>' ?>
@@ -105,7 +105,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
       <?php
       $selector = function (string $nombre, string $titulo, array $lista, array $elegidos) use ($bloqueado, $puedeEditar) {
           $k = $nombre === 'tipos' ? 'tipos' : 'descriptores';
-          echo '<div class="' . ($bloqueado($k) ? 'campo-bloqueado' : '') . '" style="margin-bottom:12px"><span style="font-size:.85rem;color:var(--ink-2)">' . e($titulo) . '</span>';
+          echo '<div class="' . ($bloqueado($k) ? 'campo-bloqueado' : '') . '" style="margin-bottom:12px"><span class="etiqueta">' . e($titulo) . '</span>';
           echo '<div class="selector-terminos"><div class="elegidos" aria-live="polite"></div>';
           echo '<details' . ($puedeEditar ? '' : ' hidden') . '><summary>Agregar o quitar ' . mb_strtolower(e($titulo)) . ' (' . count($lista) . ')</summary>';
           echo '<input type="search" class="buscar" placeholder="Buscar…" aria-label="Buscar en ' . e($titulo) . '"><div class="lista">';

@@ -26,7 +26,7 @@
   <tbody>
   <?php foreach ($cajas as $c): $url = App::url('caja', ['id' => $c['id']]); ?>
     <tr class="fila-link <?= $c['eliminado_en'] ? 'baja' : '' ?>" onclick="location.href='<?= $url ?>'">
-      <td class="num"><a href="<?= $url ?>"><?= (int)$c['numero'] ?></a></td>
+      <td class="num"><a class="codigo" href="<?= $url ?>"><?= (int)$c['numero'] ?></a></td>
       <td><a href="<?= $url ?>" style="font-weight:400;color:inherit;text-decoration:none"><?= e($c['nombre']) ?></a></td>
       <td class="num"><?= (int)$c['registros'] ?></td>
       <td class="num"><?= (int)$c['digitalizados'] ?><?php if ($c['registros']): ?> <span class="nota">(<?= round($c['digitalizados'] * 100 / $c['registros']) ?>%)</span><?php endif ?></td>

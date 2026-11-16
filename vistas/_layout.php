@@ -11,8 +11,8 @@ $consNuevas = $u && App::puede('consultas') ? App::consultasNuevas() : 0; ?>
 </head>
 <body>
 <header class="barra">
-  <a class="marca" href="<?= App::url('cajas') ?>"><span class="sello">Archivo</span> Las cajas de Aída</a>
-  <nav>
+  <a class="marca" href="<?= App::url('cajas') ?>"><img src="img/logo-claro.svg" alt="Las cajas de Aída" width="87" height="38"><span class="rotulo">Backoffice</span></a>
+  <nav aria-label="Secciones del backoffice">
     <a href="<?= App::url('cajas') ?>" class="<?= in_array($sec, ['cajas', 'caja', 'registro', 'caja_nueva', 'registro_nuevo'], true) ? 'activo' : '' ?>">Cajas</a>
     <a href="<?= App::url('vocabularios') ?>" class="<?= in_array($sec, ['vocabularios', 'vocab_curar', 'vocab_informe', 'curaduria_deshacer'], true) ? 'activo' : '' ?>">Vocabularios</a>
     <a href="<?= App::url('procesos') ?>" class="<?= in_array($sec, ['procesos', 'importar', 'proceso_deshacer', 'correccion'], true) ? 'activo' : '' ?>">Importaciones</a>
@@ -92,9 +92,11 @@ document.addEventListener('keydown', function (ev) {
   if (ev.key === 'Escape') document.querySelectorAll('[data-armado="1"]').forEach(desarmar);
 });
 /* Tablas anchas: se envuelven para desplazarse en pantallas chicas */
+var nTablas = 0;
 document.querySelectorAll('.contenido table').forEach(function (t) {
   if (t.closest('.historial, aside, .tabla-scroll')) return;
-  var w = document.createElement('div'); w.className = 'tabla-scroll'; w.tabIndex = 0; w.setAttribute('role', 'region'); w.setAttribute('aria-label', 'Tabla (desplazable)');
+  nTablas++;
+  var w = document.createElement('div'); w.className = 'tabla-scroll'; w.tabIndex = 0; w.setAttribute('role', 'region'); w.setAttribute('aria-label', 'Tabla (desplazable)' + (nTablas > 1 ? ' ' + nTablas : ''));
   t.parentNode.insertBefore(w, t); w.appendChild(t);
 });
 /* Vista previa de PDF: el iframe se crea recién al pedirla, para no bajar el archivo con cada ficha */

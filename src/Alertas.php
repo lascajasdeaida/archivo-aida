@@ -150,6 +150,35 @@ final class Alertas
         'FORMATO_NO_RECONOCIDO'    => ['titulo' => 'Formato de archivo no admitido', 'leyenda' => 'La extensión no está entre las admitidas.', 'accion' => 'Convertirlo a un formato admitido.', 'valida' => true],
         'EXCEL_DICE_NO_DIGITALIZADO' => ['titulo' => 'Hay archivo pero el Excel dice «no digitalizado»', 'leyenda' => 'El archivo existe y se publicó; la planilla está desactualizada.', 'accion' => 'Avisar al equipo para que actualice la planilla.', 'valida' => false],
         'PENDIENTE_DE_SUBIR'       => ['titulo' => 'Digitalizado según el Excel, archivo pendiente', 'leyenda' => 'La planilla lo marca digitalizado pero el archivo todavía no está en la carpeta.', 'accion' => 'Ninguna: se asocia solo cuando lo suban.', 'valida' => false],
+
+        // --- Origen Drive (src/Archivos/Drive.php, docs/decisiones.md 16/11/2026) ---
+        'DRIVE_RESTRINGIDO_COMPARTIDO' => [
+            'titulo'  => 'Documento restringido compartido en Drive',
+            'leyenda' => 'El registro es restringido (o de acceso a revisar) y en el Drive del cliente el archivo está compartido con «cualquiera con el enlace». '
+                       . 'El sitio no lo muestra, pero quien tenga el enlace de Drive puede abrirlo.',
+            'accion'  => 'Pedirle al cliente que en Drive le saque «cualquiera con el enlace» (Compartir → Acceso general → Restringido) y volver a cargar el listado. '
+                       . 'Si en realidad es público, cambiar el acceso en la ficha.',
+            'valida'  => true,
+        ],
+        'DRIVE_PUBLICO_SIN_COMPARTIR' => [
+            'titulo'  => 'Documento público sin compartir en Drive',
+            'leyenda' => 'El registro es público y está publicado, pero en Drive el archivo no está compartido con «cualquiera con el enlace»: el visor de la ficha '
+                       . 'va a pedir iniciar sesión en Google y la descarga no va a andar.',
+            'accion'  => 'Pedirle al cliente que lo comparta con «cualquiera con el enlace» (lector) y volver a cargar el listado.',
+            'valida'  => false,
+        ],
+        'DRIVE_SIN_ID' => [
+            'titulo'  => 'Archivo sin id de Drive',
+            'leyenda' => 'El listado de Drive trae el archivo pero no su id. Cuenta como digitalizado, pero el sitio no lo puede mostrar ni descargar.',
+            'accion'  => 'Completar el id en el listado (columna drive_id) y volver a cargarlo.',
+            'valida'  => false,
+        ],
+        'LISTADO_LINEA_INVALIDA' => [
+            'titulo'  => 'Línea del listado de Drive que no se pudo leer',
+            'leyenda' => 'Una línea del listado tiene una ruta, un id o un peso que no son válidos. Se salteó; si el archivo ya estaba, pasa a «no presente».',
+            'accion'  => 'Corregir esa línea del listado y volver a cargarlo.',
+            'valida'  => false,
+        ],
     ];
 
     public static function requiereValidacion(string $codigo, string $nivel): bool

@@ -9,24 +9,43 @@
  *  - $robots     opcional (vista previa: «noindex,nofollow»)
  *  - $antes      opcional: HTML que va arriba de todo (banner de la vista previa)
  *  - $cabezaExtra opcional: <link>/<script> extra en el <head>
+ *  - $meta       opcional (sitio público): descripcion, canonical (absoluta), og_tipo ('website' por defecto)
  */
 use Aida\Web\Html as H;
+
+$meta = $meta ?? [];
+$tituloCompleto = $tituloPagina . ' · Las cajas de Aída';
 
 $actual = fn(string $s) => ($seccion ?? '') === $s ? ' aria-current="page"' : '';
 ?>
 <!doctype html>
-<html lang="es-AR">
+<html lang="es-AR" class="sin-js">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.className = document.documentElement.className.replace('sin-js', 'con-js');</script>
 <?php if (!empty($robots)): ?><meta name="robots" content="<?= H::e($robots) ?>">
 <?php endif ?>
-<title><?= H::e($tituloPagina) ?> · Las cajas de Aída</title>
+<title><?= H::e($tituloCompleto) ?></title>
+<?php if (!empty($meta['descripcion'])): ?><meta name="description" content="<?= H::e($meta['descripcion']) ?>">
+<?php endif ?>
+<?php if (!empty($meta['canonical'])): ?><link rel="canonical" href="<?= H::e($meta['canonical']) ?>">
+<meta property="og:type" content="<?= H::e($meta['og_tipo'] ?? 'website') ?>">
+<meta property="og:site_name" content="Las cajas de Aída">
+<meta property="og:locale" content="es_AR">
+<meta property="og:title" content="<?= H::e($tituloPagina) ?>">
+<meta property="og:url" content="<?= H::e($meta['canonical']) ?>">
+<?php if (!empty($meta['descripcion'])): ?><meta property="og:description" content="<?= H::e($meta['descripcion']) ?>">
+<meta name="twitter:card" content="summary">
+<?php endif ?>
+<?php endif ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="<?= H::e($enl->recurso('sitio/estilo.css')) ?>">
 <?= $cabezaExtra ?? '' ?>
 <script src="<?= H::e($enl->recurso('sitio/sitio.js')) ?>" defer></script>
+<?php foreach ($scripts ?? [] as $js): ?><script src="<?= H::e($enl->recurso($js)) ?>" defer></script>
+<?php endforeach ?>
 </head>
 <body>
 <?php require __DIR__ . '/_iconos.php'; ?>

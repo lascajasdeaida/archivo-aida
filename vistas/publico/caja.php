@@ -45,6 +45,7 @@ ob_start(); ?>
     </div>
     <?php endif ?>
     <form class="buscador" action="<?= H::e($enl->explorar()) ?>" role="search" aria-label="Buscar en esta caja" style="margin-top:24px">
+      <?php if (!$enl->reescritura): ?><input type="hidden" name="ruta" value="explorar"><?php endif ?>
       <input type="hidden" name="caja" value="<?= $n ?>">
       <div class="buscador__campo"><?= H::icono('buscar') ?><label class="solo-lector" for="q-caja">Buscar en la caja <?= $n ?></label>
         <input type="search" id="q-caja" name="q" placeholder="Buscar en esta caja…"></div>

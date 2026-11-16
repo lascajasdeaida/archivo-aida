@@ -60,6 +60,49 @@
       visor.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); });
     }
 
+    // Eventos para Estadísticas (docs/ux/sitio-publico.md §7). Nunca datos personales.
+    window.dataLayer = window.dataLayer || [];
+    const evento = (nombre, datos = {}) => window.dataLayer.push({ event: nombre, ...datos });
+    $$('[data-evento-busqueda]').forEach(f => f.addEventListener('submit', () =>
+      evento('search', { search_term: ($('input[type=search]', f) || {}).value || '', origen: f.dataset.eventoBusqueda })));
+
+    // Foco en el resumen de errores (formulario de consulta) o en la confirmación
+    const enfocar = $('[data-enfocar]') || $('#ok');
+    if (enfocar) enfocar.focus();
+    const fc = $('#form-consulta');
+    if (fc) {
+      let iniciada = false;
+      fc.addEventListener('focusin', () => { if (!iniciada) { iniciada = true; evento('consulta_iniciada', { codigo: fc.dataset.codigo, origen: 'formulario' }); } });
+      const errores = $$('#resumen-errores li a').map(a => a.getAttribute('href').slice(1));
+      if (errores.length) evento('consulta_error_validacion', { codigo: fc.dataset.codigo, campos: errores.join(',') });
+    }
+    const enviada = $('[data-consulta-enviada]');
+    if (enviada) evento('consulta_enviada', { codigo: enviada.dataset.consultaEnviada, caja: enviada.dataset.caja });
+
+    // Las cajas: el filtro por nombre o número se aplica mientras se escribe (sin JS, con el botón «Aplicar»)
+    const fcajas = $('[data-filtro-cajas]');
+    if (fcajas) {
+      const norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const input = $('#filtro-cajas', fcajas), items = $$('#lista-cajas > li'), cont = $('#conteo-cajas');
+      const total = items.length;
+      input.addEventListener('input', () => {
+        const q = norm(input.value.trim());
+        let n = 0;
+        items.forEach(li => { const ok = !q || norm(li.textContent).includes(q); li.hidden = !ok; if (ok) n++; });
+        cont.textContent = n === total ? total + (total === 1 ? ' caja' : ' cajas') : n + ' de ' + total + ' cajas';
+      });
+      $('#orden-cajas', fcajas).addEventListener('change', () => fcajas.submit());
+    }
+
+    // «Volver a los resultados» en la ficha si se llegó desde Explorar
+    const volver = $('[data-volver]');
+    if (volver) {
+      try {
+        const u = sessionStorage.getItem('aida-volver');
+        if (u && document.referrer && document.referrer.split('#')[0] === u.split('#')[0]) { volver.querySelector('a').href = u; volver.hidden = false; }
+      } catch (e) { /* sin sessionStorage */ }
+    }
+
     // Copiar cita / enlace
     const aviso = $('#copiado');
     $$('[data-copiar], [data-copiar-texto]').forEach(b => b.addEventListener('click', () => {

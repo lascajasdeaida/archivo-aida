@@ -28,9 +28,13 @@ namespace Aida;
  * década en la que tiene algún año. registro.anio (el menor) queda para ordenar. Los resultados traen anio_sin_confirmar
  * y anio_etiqueta con la lista tal cual («1998, 2006–2008», «1972 (sin confirmar)») para mostrar.
  *
- * Filtros: caja (número o lista), anio, anio_desde, anio_hasta, decada (1980 = 1980–1989), tipo y descriptor (id o lista de ids de vocabulario,
- * dentro de un mismo filtro alcanza con uno), acceso, digitalizado (0/1). En el backoffice además 'bajas' => true.
- * Las facetas se cuentan sin el filtro de la propia faceta (para poder sumar opciones).
+ * Filtros: caja (número o lista), anio, anio_desde, anio_hasta, decada (1980 = 1980–1989; también lista: [1980, 1990] = años 80
+ * o 90), sin_anio (true: los que no tienen año; con decada, suma), tipo y descriptor (id o lista de ids de vocabulario,
+ * dentro de un mismo filtro alcanza con uno), etapa (id o lista de ids de periodo: los registros de cajas de esa etapa),
+ * acceso, digitalizado (0/1). En el backoffice además 'bajas' => true.
+ * Las facetas se cuentan sin el filtro de la propia faceta (para poder sumar opciones). La de décadas sí respeta el rango
+ * desde/hasta (es otro filtro de la misma faceta «Año», que se aplica con su botón).
+ * Orden: relevancia (con texto), codigo (caja y número), anio, anio_desc, digital (con documento digital primero).
  */
 final class Buscador
 {
@@ -169,7 +173,7 @@ final class Buscador
         // 1. Candidatos: visibilidad + texto
         [$wSql, $wPar] = $this->where($this->condicionesTexto($consulta), $filtros);
         [$rel, $relPar] = $this->relevancia($consulta);
-        $candidatos = $this->filas("SELECT r.id, r.numero, r.anio, r.anio_hasta, r.anio_sin_confirmar, r.acceso, r.digitalizado, c.numero AS caja, c.nombre AS caja_nombre,
+        $candidatos = $this->filas("SELECT r.id, r.caja_id, r.numero, r.anio, r.anio_hasta, r.anio_sin_confirmar, r.acceso, r.digitalizado, c.numero AS caja, c.nombre AS caja_nombre,
                 $rel AS relevancia
             FROM registro r JOIN caja c ON c.id = r.caja_id WHERE $wSql", array_merge($relPar, $wPar));
 
@@ -201,8 +205,14 @@ final class Buscador
                 }
             }
         }
+        // 2c. Etapas de cada caja (caja_periodo: pocas filas)
+        $etapas = [];
+        foreach ($this->filas('SELECT caja_id, periodo_id FROM caja_periodo', []) as $cp) {
+            $etapas[(int)$cp['caja_id']][] = (int)$cp['periodo_id'];
+        }
         foreach ($candidatos as &$c) {
             $c['id'] = (int)$c['id'];
+            $c['etapa'] = $etapas[(int)$c['caja_id']] ?? [];
             $c['anios'] = $anios[$c['id']] ?? [];
             ksort($c['anios']);
             $c['caja'] = (int)$c['caja'];
@@ -221,12 +231,13 @@ final class Buscador
 
         // Orden y página
         $hayTexto = $rel !== '0';
-        $orden = in_array($orden, ['relevancia', 'anio', 'anio_desc', 'codigo'], true) ? $orden : ($hayTexto ? 'relevancia' : 'codigo');
+        $orden = in_array($orden, ['relevancia', 'anio', 'anio_desc', 'codigo', 'digital'], true) ? $orden : ($hayTexto ? 'relevancia' : 'codigo');
         $porCodigo = fn($a, $b) => [$a['caja'], $a['numero']] <=> [$b['caja'], $b['numero']];
         usort($final, match ($orden) {
             'relevancia' => fn($a, $b) => ($b['relevancia'] <=> $a['relevancia']) ?: $porCodigo($a, $b),
             'anio' => fn($a, $b) => [$a['anio'] === null, $a['anio']] <=> [$b['anio'] === null, $b['anio']] ?: $porCodigo($a, $b),
             'anio_desc' => fn($a, $b) => [$a['anio'] === null, -(int)$a['anio']] <=> [$b['anio'] === null, -(int)$b['anio']] ?: $porCodigo($a, $b),
+            'digital' => fn($a, $b) => ($b['digitalizado'] <=> $a['digitalizado']) ?: $porCodigo($a, $b),
             default => $porCodigo,
         });
         $total = count($final);
@@ -430,7 +441,7 @@ final class Buscador
         if (isset($f['caja']) && $f['caja'] !== '' && ($v = $ints($f['caja']))) {
             $out['caja'] = $v;
         }
-        foreach (['tipo', 'descriptor'] as $k) {
+        foreach (['tipo', 'descriptor', 'etapa'] as $k) {
             if (isset($f[$k]) && $f[$k] !== '' && ($v = $ints($f[$k]))) {
                 $out[$k] = $v;
             }
@@ -440,11 +451,12 @@ final class Buscador
                 $out[$k] = (int)$f[$k];
             }
         }
-        // Década (1980 = años 80): es el rango 1980–1989, cruzado con el que ya venga
-        if (isset($f['decada']) && $f['decada'] !== '' && (int)$f['decada'] > 0) {
-            $d = intdiv((int)$f['decada'], 10) * 10;
-            $out['anio_desde'] = max($out['anio_desde'] ?? $d, $d);
-            $out['anio_hasta'] = min($out['anio_hasta'] ?? $d + 9, $d + 9);
+        // Década (1980 = años 80) o lista de décadas (dentro de la faceta, O); se cruza con el rango desde/hasta (Y)
+        if (isset($f['decada']) && $f['decada'] !== '' && ($v = $ints($f['decada']))) {
+            $out['decada'] = array_values(array_unique(array_map(fn($d) => intdiv($d, 10) * 10, $v)));
+        }
+        if (!empty($f['sin_anio'])) {
+            $out['sin_anio'] = true;
         }
         $accesos = $this->modo === self::PUBLICO ? ['publico', 'restringido'] : ['publico', 'restringido', 'a_revisar'];
         if (isset($f['acceso']) && ($v = array_values(array_intersect((array)$f['acceso'], $accesos)))) {
@@ -489,27 +501,38 @@ final class Buscador
         if ($sin !== 'caja' && isset($f['caja']) && !in_array($c['caja'], $f['caja'], true)) {
             return false;
         }
-        if ($sin !== 'decada') {
-            // Solo los años del registro (registro_anio): una lista salteada no responde a los años del medio
-            if (isset($f['anio']) && !isset($c['anios'][$f['anio']])) {
+        if ($sin !== 'decada' && (isset($f['decada']) || isset($f['sin_anio']))) {
+            // Décadas elegidas (O entre ellas) y «Sin año»: el registro tiene algún año en alguna, o no tiene años
+            $toca = isset($f['sin_anio']) && !$c['anios'];
+            foreach ($c['anios'] as $a => $_) {
+                if (isset($f['decada']) && in_array(intdiv($a, 10) * 10, $f['decada'], true)) {
+                    $toca = true;
+                    break;
+                }
+            }
+            if (!$toca) {
                 return false;
             }
-            if (isset($f['anio_desde']) || isset($f['anio_hasta'])) {
-                $d = $f['anio_desde'] ?? PHP_INT_MIN;
-                $h = $f['anio_hasta'] ?? PHP_INT_MAX;
-                $toca = false;
-                foreach ($c['anios'] as $a => $_) {
-                    if ($a >= $d && $a <= $h) {
-                        $toca = true;
-                        break;
-                    }
-                }
-                if (!$toca) {
-                    return false;
+        }
+        // Solo los años del registro (registro_anio): una lista salteada no responde a los años del medio
+        if (isset($f['anio']) && !isset($c['anios'][$f['anio']])) {
+            return false;
+        }
+        if (isset($f['anio_desde']) || isset($f['anio_hasta'])) {
+            $d = $f['anio_desde'] ?? PHP_INT_MIN;
+            $h = $f['anio_hasta'] ?? PHP_INT_MAX;
+            $toca = false;
+            foreach ($c['anios'] as $a => $_) {
+                if ($a >= $d && $a <= $h) {
+                    $toca = true;
+                    break;
                 }
             }
+            if (!$toca) {
+                return false;
+            }
         }
-        foreach (['tipo', 'descriptor'] as $k) {
+        foreach (['tipo', 'descriptor', 'etapa'] as $k) {
             if ($sin !== $k && isset($f[$k]) && !array_intersect($c[$k], $f[$k])) {
                 return false;
             }
@@ -529,7 +552,7 @@ final class Buscador
      */
     private function facetas(array $candidatos, array $f, array $nombres): array
     {
-        $cuentas = ['caja' => [], 'decada' => [], 'tipo' => [], 'descriptor' => [], 'acceso' => [], 'digitalizado' => []];
+        $cuentas = ['caja' => [], 'decada' => [], 'tipo' => [], 'descriptor' => [], 'etapa' => [], 'acceso' => [], 'digitalizado' => []];
         $etiquetaCaja = [];
         foreach ($candidatos as $c) {
             if ($this->cumple($c, $f, 'caja')) {
@@ -545,7 +568,7 @@ final class Buscador
                     $cuentas['decada'][$d] = ($cuentas['decada'][$d] ?? 0) + 1;
                 }
             }
-            foreach (['tipo', 'descriptor'] as $k) {
+            foreach (['tipo', 'descriptor', 'etapa'] as $k) {
                 if ($this->cumple($c, $f, $k)) {
                     foreach (array_unique($c[$k]) as $id) {
                         $cuentas[$k][$id] = ($cuentas[$k][$id] ?? 0) + 1;
@@ -574,6 +597,11 @@ final class Buscador
             }
             usort($filas, fn($a, $b) => ($b['cantidad'] <=> $a['cantidad']) ?: strcmp(Texto::clave($a['etiqueta']), Texto::clave($b['etiqueta'])));
             $out[$k] = $filas;
+        }
+        ksort($cuentas['etapa']);
+        $out['etapa'] = [];
+        foreach ($cuentas['etapa'] as $v => $n) {
+            $out['etapa'][] = ['valor' => (int)$v, 'cantidad' => $n];
         }
         $etiquetas = ['acceso' => ['publico' => 'Público', 'restringido' => 'Restringido', 'a_revisar' => 'A revisar'],
                       'digitalizado' => [1 => 'Digitalizado', 0 => 'Sin digitalizar']];

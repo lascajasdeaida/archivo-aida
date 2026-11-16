@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Aida\Web;
 
 use Aida\Alertas;
+use Aida\Consultas;
 use Aida\Anios;
 use Aida\Correccion;
 use Aida\Curaduria;
@@ -83,17 +84,21 @@ final class Rutas
     {
         App::exigir('ver');
         $verBajas = !empty($_GET['bajas']);
+        $pub = in_array($_GET['pub'] ?? '', ['1', '0'], true) ? (string)$_GET['pub'] : '';
+        $where = array_filter([$verBajas ? '' : 'c.eliminado_en IS NULL', $pub !== '' ? 'c.publicada = ' . (int)$pub : '']);
         $sql = 'SELECT c.*,
                   (SELECT COUNT(*) FROM registro r WHERE r.caja_id = c.id AND r.eliminado_en IS NULL) registros,
                   (SELECT COUNT(*) FROM registro r WHERE r.caja_id = c.id AND r.eliminado_en IS NULL AND r.digitalizado = 1) digitalizados,
                   (SELECT COUNT(*) FROM registro r WHERE r.caja_id = c.id AND r.eliminado_en IS NULL AND r.acceso <> \'publico\') no_publicos,
                   (SELECT COUNT(*) FROM incidencia i WHERE i.caja = c.numero AND i.resuelta = 0 AND i.requiere_validacion = 1) alertas
-                FROM caja c ' . ($verBajas ? '' : 'WHERE c.eliminado_en IS NULL ') . 'ORDER BY c.numero';
+                FROM caja c ' . ($where ? 'WHERE ' . implode(' AND ', $where) . ' ' : '') . 'ORDER BY c.numero';
+        $publicadas = self::db()->query('SELECT SUM(publicada = 1), SUM(publicada = 0) FROM caja WHERE eliminado_en IS NULL')->fetch(\PDO::FETCH_NUM);
         $todas = self::db()->query('SELECT id, numero, nombre, resumen FROM caja WHERE eliminado_en IS NULL ORDER BY numero')->fetchAll();
         // Cuentan los grupos donde hay algo para corregir (no los de partes o versiones que ya están bien escritos)
         $paraRevisar = array_filter(self::gruposParecidos($todas), fn($g) => in_array($g['clase'], ['grafia', 'resumen'], true)
             || array_filter($g['cajas'], fn($c) => $c['propuesto'] !== $c['nombre']));
-        App::render('cajas', ['cajas' => self::db()->query($sql)->fetchAll(), 'verBajas' => $verBajas,
+        App::render('cajas', ['cajas' => self::db()->query($sql)->fetchAll(), 'verBajas' => $verBajas, 'pub' => $pub,
+                              'nPublicadas' => (int)$publicadas[0], 'nSinPublicar' => (int)$publicadas[1],
                               'parecidos' => count($paraRevisar)]);
     }
 
@@ -138,7 +143,41 @@ final class Rutas
             'filtros' => $f,
             'alertas' => self::alertasAbiertas((int)$c['numero'], null),
             'historial' => self::historialDe('caja', (int)$c['id']),
+            'publicacion' => self::publicacionCaja((int)$c['id']),
         ]);
+    }
+
+    /** Qué mostraría el sitio de la caja al publicarla (para el panel «Publicación en el sitio»). */
+    private static function publicacionCaja(int $id): array
+    {
+        $st = self::db()->prepare("SELECT SUM(eliminado_en IS NULL AND publicado = 1 AND acceso <> 'a_revisar') visibles,
+                SUM(eliminado_en IS NULL AND publicado = 1 AND acceso = 'restringido') a_pedido,
+                SUM(eliminado_en IS NULL AND publicado = 1 AND acceso = 'a_revisar') a_revisar,
+                SUM(eliminado_en IS NULL AND publicado = 0) no_publicados
+            FROM registro WHERE caja_id = ?");
+        $st->execute([$id]);
+        return array_map('intval', $st->fetch() ?: []);
+    }
+
+    /**
+     * Publicar o despublicar una caja en el sitio (decisión del PM: se publica caja por caja). Pasa por Historial
+     * (se deshace desde el historial de la caja) y no bloquea ningún campo: la importación no toca «publicada».
+     */
+    public static function caja_publicar(): void
+    {
+        App::exigir('publicar');
+        App::verificarPost();
+        $c = self::cargarCaja(self::int('id'));
+        $nuevo = empty($_POST['publicar']) ? 0 : 1;
+        if ($c['eliminado_en']) {
+            App::aviso('error', 'La caja está dada de baja: restaurala antes de publicarla.');
+        } elseif ((int)$c['publicada'] !== $nuevo) {
+            self::historial()->actualizar('caja', (int)$c['id'], ['publicada' => $nuevo], false);
+            App::aviso('ok', $nuevo
+                ? "Caja {$c['numero']} publicada: ya se ve en el sitio. Se puede deshacer desde el historial."
+                : "Caja {$c['numero']} despublicada: ni ella ni sus registros se ven en el sitio. Se puede deshacer desde el historial.");
+        }
+        App::redirigir('caja', ['id' => $c['id']]);
     }
 
     /**
@@ -406,7 +445,6 @@ final class Rutas
         $nuevos = [
             'nombre' => trim((string)($_POST['nombre'] ?? '')),
             'resumen' => trim((string)($_POST['resumen'] ?? '')) ?: null,
-            'publicada' => empty($_POST['publicada']) ? 0 : 1,
         ];
         if ($nuevos['nombre'] === '') {
             App::aviso('error', 'El nombre de la caja no puede quedar vacío.');
@@ -1318,6 +1356,44 @@ final class Rutas
      * público (vistas/publico/ficha.php y caja.php) con un banner arriba y, si hoy no aparece en el sitio,
      * los motivos. Solo lectura; no cuenta en evento_uso (el visor usa archivo.php con la sesión del backoffice).
      */
+    // ------------------------------------------------------------------
+    // Consultas a pedido del sitio público (src/Consultas.php)
+    // ------------------------------------------------------------------
+
+    public static function consultas(): void
+    {
+        App::exigir('consultas');
+        $estado = isset(Consultas::ESTADOS[$_GET['estado'] ?? '']) ? (string)$_GET['estado'] : null;
+        $q = trim((string)($_GET['q'] ?? ''));
+        $c = new Consultas(self::db());
+        App::render('consultas', ['consultas' => $c->lista($estado, $q), 'conteos' => $c->conteos(), 'estado' => $estado, 'q' => $q]);
+    }
+
+    public static function consulta(): void
+    {
+        App::exigir('consultas');
+        $c = (new Consultas(self::db()))->buscar(self::int('id'));
+        if (!$c || $c['eliminado_en']) {
+            self::noEncontrado('consulta');
+        }
+        App::render('consulta', ['c' => $c, 'historial' => self::historialDe('consulta', (int)$c['id'])]);
+    }
+
+    public static function consulta_guardar(): void
+    {
+        App::exigir('consultas');
+        App::verificarPost();
+        $id = self::int('id');
+        $estado = (string)($_POST['estado'] ?? '');
+        if (!isset(Consultas::ESTADOS[$estado])) {
+            App::aviso('error', 'Elegí un estado.');
+            App::redirigir('consulta', ['id' => $id]);
+        }
+        $cambio = (new Consultas(self::db()))->actualizar($id, $estado, (string)($_POST['notas'] ?? ''), (int)App::usuarioId());
+        App::aviso('ok', $cambio ? 'Consulta guardada.' : 'No había cambios para guardar.');
+        App::redirigir('consulta', ['id' => $id]);
+    }
+
     public static function vista_previa(): void
     {
         App::exigir('ver');

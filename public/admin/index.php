@@ -25,6 +25,7 @@ $rutas = [
     'registro', 'registro_guardar', 'registro_nuevo', 'registro_baja', 'registro_restaurar',
     'campo_desbloquear', 'origen_excel', 'archivo_baja', 'archivo_restaurar', 'deshacer',
     'notificaciones', 'validar', 'procesos', 'proceso_deshacer', 'importar', 'importar_confirmar', 'importar_descartar', 'correccion', 'correccion_aplicar', 'correccion_descartar', 'vocabularios', 'vocab_accion', 'vocab_curar', 'vocab_informe', 'curaduria_deshacer', 'base', 'vista_previa',
+    'caja_publicar', 'consultas', 'consulta', 'consulta_guardar',
 ];
 
 if (!in_array($ruta, $rutas, true)) {

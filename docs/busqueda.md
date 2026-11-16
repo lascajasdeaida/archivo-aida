@@ -9,7 +9,9 @@ $b = new Aida\Buscador(aida_db(), Aida\Buscador::BACKOFFICE);    // backoffice
 $r = $b->buscar('jovenes "historia oficial"', [
     'caja' => [2, 31], 'anio_desde' => 1980, 'anio_hasta' => 1989,
     'tipo' => 12, 'descriptor' => [3, 8], 'acceso' => 'publico', 'digitalizado' => 1,
-], pagina: 1, porPagina: 20, orden: null);      // orden: relevancia (con texto) | codigo | anio | anio_desc
+], pagina: 1, porPagina: 20, orden: null);      // orden: relevancia (con texto) | codigo | anio | anio_desc | digital
+// Además: 'decada' => [1980, 1990] (O entre décadas), 'sin_anio' => true (suma los que no tienen año),
+//         'etapa' => [ids de periodo] (registros de cajas de esa etapa; faceta 'etapa').
 $cajas = $b->cajas('secuestro');                // cajas por nombre/resumen, para mostrar arriba
 ```
 

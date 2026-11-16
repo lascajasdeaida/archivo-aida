@@ -9,9 +9,11 @@ $etiquetas = \Aida\Web\Rutas::CAMPOS_REGISTRO + [
     'excel_digitalizado' => 'Digitalizado según Excel', 'excel_nomenclatura' => 'Nomenclatura en Excel',
     'excel_privado' => 'PRIVADO en Excel', 'codigo' => 'Código', 'numero' => 'Número', 'caja_id' => 'Caja',
     'anio_hasta' => 'Año hasta (filtro)', 'anio_sin_confirmar' => 'Año sin confirmar',
+    'estado' => 'Estado', 'notas' => 'Notas internas', 'atendida_por' => 'Atendida por', 'atendida_en' => 'Atendida el',
+    'uso' => 'Uso previsto', 'modalidad' => 'Modalidad', 'tipo' => 'Tipo',
 ];
 $acciones = ['alta' => 'Alta', 'modificacion' => 'Modificación', 'baja' => 'Baja', 'restauracion' => 'Restauración', 'reversion' => 'Deshacer'];
-$origenes = ['backoffice' => 'backoffice', 'importacion' => 'importación del Excel', 'escaneo' => 'escaneo', 'reversion' => 'deshacer'];
+$origenes = ['backoffice' => 'backoffice', 'importacion' => 'importación del Excel', 'escaneo' => 'escaneo', 'reversion' => 'deshacer', 'sitio' => 'sitio público'];
 $mostrar = function ($v, string $campo = '') use (&$etiquetas) {
     if ($campo === 'campos_bloqueados') {
         $l = is_array($v) ? $v : (is_string($v) && $v !== '' ? (json_decode($v, true) ?: []) : []);
@@ -34,7 +36,7 @@ $mostrar = function ($v, string $campo = '') use (&$etiquetas) {
     $propio = $a['usuario_id'] !== null && (int)$a['usuario_id'] === App::usuarioId();
     $puede = App::puede($propio ? 'deshacer_propio' : 'deshacer_todo');
     $campos = $a['cambios'];
-    if ($a['accion'] === 'alta') { $campos = array_intersect_key($campos, array_flip(['titulo', 'nombre', 'numero', 'codigo', 'acceso'])); }
+    if ($a['accion'] === 'alta') { $campos = array_intersect_key($campos, array_flip(['titulo', 'nombre', 'numero', 'codigo', 'acceso', 'uso', 'estado'])); }
 ?>
   <li class="<?= $a['revertido_en'] ? 'deshecho' : '' ?>">
     <div class="meta">
@@ -50,6 +52,7 @@ $mostrar = function ($v, string $campo = '') use (&$etiquetas) {
       <?php if ($a['revertido_en']): ?><span class="chip chip-stop">deshecho <?= fecha($a['revertido_en']) ?></span>
       <?php elseif ($curaduria): ?>
         <a class="link" href="<?= App::url('vocab_informe') ?>" title="Un cambio de curaduría se deshace completo, para todos sus registros">Se deshace desde Cambios de curaduría</a>
+      <?php elseif ($a['accion'] === 'alta' && $a['entidad'] === 'consulta'): // un pedido recibido no se deshace: se descarta ?>
       <?php elseif ($a['accion'] === 'alta' && in_array($a['entidad'], ['registro', 'caja'], true)):
           $ent = $a['entidad'] === 'registro' ? ($r ?? null) : ($caja ?? null);
           if ($puede && App::puede('baja') && $ent && !$ent['eliminado_en']): ?>

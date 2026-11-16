@@ -507,3 +507,28 @@ body.panel-abierto { overflow: hidden; }
 .notas-maqueta > div { border: 1px dashed var(--c-borde); border-radius: var(--r-2); padding: var(--e-3) var(--e-4); background: var(--c-papel); }
 .notas-maqueta ul { margin: 0; }
 .pie + .notas-maqueta { background: var(--c-papel); }
+
+/* =========================================================
+   Sitio completo (Programación): sin JS, formulario de consulta, facetas largas
+   ========================================================= */
+/* Sin JS el panel de filtros es un formulario común, visible también en celular; con JS es el diálogo */
+.con-js .solo-sin-js { display: none !important; }
+.sin-js .solo-con-js { display: none !important; }
+@media (max-width: 899px) {
+  .sin-js .panel-filtros { display: block; }
+  .sin-js .boton-filtros { display: none; }
+  .sin-js .panel-filtros__pie { display: none; }
+}
+.panel-filtros .solo-sin-js { margin: var(--e-4) 0; }
+a.chip { text-decoration: none; }
+a.chip:focus-visible { outline: 3px solid var(--c-foco); outline-offset: 2px; }
+/* «Ver N más» dentro de una faceta: details, anda sin JS */
+.faceta-mas > summary { list-style: none; display: inline-flex; align-items: center; min-height: 40px; padding: 0 var(--e-2); margin-top: var(--e-1);
+  color: var(--c-naranja-800); font-weight: 600; font-size: var(--t-chico); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.faceta-mas > summary::-webkit-details-marker { display: none; }
+.faceta-mas[open] > summary { display: none; }
+/* Campo trampa del formulario de consulta: fuera de la vista y de la tabulación (no display:none, que algunos robots saltean) */
+.trampa { position: absolute !important; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.pendiente-cliente b { color: var(--c-tinta-2); }
+.paginacion a[rel="prev"] { font-size: var(--t-chico); }
+#resultados[aria-busy="true"] .lista-registros { opacity: .6; transition: opacity var(--m-medio) var(--m-curva); }

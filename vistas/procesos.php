@@ -19,13 +19,14 @@ $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevo
   <?php endif ?>
 </div>
 <table>
-  <thead><tr><th>#</th><th>Tipo</th><th>Fuente</th><th>Fecha</th><th>Resultado</th><th>Verificaciones</th><th>Acciones</th></tr></thead>
+  <thead><tr><th>#</th><th>Tipo</th><th>Fuente</th><th>Quién</th><th>Fecha</th><th>Resultado</th><th>Verificaciones</th><th>Acciones</th></tr></thead>
   <tbody>
   <?php foreach ($procesos as $p): $res = json_decode((string)$p['resumen'], true) ?: []; $vivos = (int)$p['cambios'] - (int)$p['deshechos']; ?>
     <tr>
       <td class="num"><?= (int)$p['id'] ?></td>
       <td><?= ['importacion' => 'Importación', 'escaneo' => 'Escaneo', 'correccion' => 'Corrección masiva', 'acceso_masivo' => 'Cambio de acceso'][$p['tipo']] ?? e($p['tipo']) ?></td>
       <td><?= e($p['fuente']) ?></td>
+      <td><?= $p['usuario_nombre'] !== null ? e($p['usuario_nombre']) : '<span class="nota">Consola</span>' ?></td>
       <td><?= fecha($p['iniciado_en']) ?></td>
       <td><div class="chips">
         <?php foreach ($etq as $k => $l): if (!empty($res[$k])): ?><span class="chip"><?= (int)$res[$k] ?> <?= $l ?></span><?php endif; endforeach ?>

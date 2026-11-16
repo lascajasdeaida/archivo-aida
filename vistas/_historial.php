@@ -12,7 +12,12 @@ $etiquetas = \Aida\Web\Rutas::CAMPOS_REGISTRO + [
 ];
 $acciones = ['alta' => 'Alta', 'modificacion' => 'Modificación', 'baja' => 'Baja', 'restauracion' => 'Restauración', 'reversion' => 'Deshacer'];
 $origenes = ['backoffice' => 'backoffice', 'importacion' => 'importación del Excel', 'escaneo' => 'escaneo', 'reversion' => 'deshacer'];
-$mostrar = function ($v, string $campo = '') {
+$mostrar = function ($v, string $campo = '') use (&$etiquetas) {
+    if ($campo === 'campos_bloqueados') {
+        $l = is_array($v) ? $v : (is_string($v) && $v !== '' ? (json_decode($v, true) ?: []) : []);
+        $l = array_values(array_unique(array_map(fn($c) => $etiquetas[$c] ?? $c, array_diff($l, ['anio', 'anio_hasta', 'anio_sin_confirmar']))));
+        return $l ? implode(', ', $l) : 'ninguno';
+    }
     if ($campo === 'acceso' && is_string($v) && $v !== '') return acceso_txt($v);
     if (in_array($campo, ['publicado', 'publicada', 'excel_digitalizado', 'anio_sin_confirmar'], true) && ($v === 0 || $v === 1 || $v === '0' || $v === '1' || is_bool($v))) return $v ? 'Sí' : 'No';
     if ($v === null || $v === '' || $v === []) return '—';

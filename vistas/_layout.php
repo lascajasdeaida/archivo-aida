@@ -91,7 +91,7 @@ document.addEventListener('keydown', function (ev) {
 /* Tablas anchas: se envuelven para desplazarse en pantallas chicas */
 document.querySelectorAll('.contenido table').forEach(function (t) {
   if (t.closest('.historial, aside, .tabla-scroll')) return;
-  var w = document.createElement('div'); w.className = 'tabla-scroll';
+  var w = document.createElement('div'); w.className = 'tabla-scroll'; w.tabIndex = 0; w.setAttribute('role', 'region'); w.setAttribute('aria-label', 'Tabla (desplazable)');
   t.parentNode.insertBefore(w, t); w.appendChild(t);
 });
 /* Vista previa de PDF: el iframe se crea recién al pedirla, para no bajar el archivo con cada ficha */

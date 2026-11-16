@@ -331,3 +331,6 @@ fieldset.destinos legend{font-weight:700;padding:0 4px}
 fieldset.destinos label.check{display:flex;gap:8px;align-items:baseline;margin:4px 0}
 .unificar-grupo .evidencia{font-size:.85rem;color:var(--ink-2)}
 [hidden]{display:none !important}
+
+/* QA: textos largos del historial no ensanchan la página en celular */
+.historial td, .historial li { overflow-wrap: anywhere; }

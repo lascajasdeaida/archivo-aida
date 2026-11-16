@@ -21,7 +21,9 @@ $vlinks = fn(array $terminos, string $faceta) => implode(', ', array_map(
 $etiquetaFormato = fn(array $a) => in_array($a['formato'], ['pdf'], true) ? 'PDF' : strtoupper($a['formato']);
 $citaAnio = $anio['etiqueta'] === null ? 's. f.'
     : ($anio['dudoso'] ? '[' . str_replace(' (sin confirmar)', '', $anio['etiqueta']) . '?]' : $anio['etiqueta']);
-$cita = 'Bortnik, Aída. ' . ($d['sinTitulo'] ? '[' . $d['titulo'] . ']' : $d['titulo']) . ". $citaAnio. Archivo «Las cajas de Aída», caja "
+$citaAutor = trim((string)($r['autor'] ?? ''));
+$citaAutor = ($citaAutor === '' || mb_stripos($citaAutor, 'bortnik') !== false || mb_strlen($citaAutor) > 80) ? 'Bortnik, Aída' : $citaAutor;
+$cita = rtrim($citaAutor, '.') . '. ' . rtrim(($d['sinTitulo'] ? '[' . $d['titulo'] . ']' : $d['titulo']), '.') . '. ' . rtrim($citaAnio, '.') . '. Archivo «Las cajas de Aída», caja '
     . $caja['numero'] . ", $codigo. " . Enlaces::canonica($codigo);
 $varias = count($d['archivos']) > 1;
 ob_start(); ?>

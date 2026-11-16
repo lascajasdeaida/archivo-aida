@@ -49,7 +49,7 @@ final class Entrega
         $st = $this->db->prepare('SELECT a.id, a.registro_id, a.ruta, a.nombre_archivo, a.formato, a.presente,
                 a.eliminado_en archivo_baja, a.modificado_en,
                 r.codigo, r.titulo, r.acceso, r.publicado, r.eliminado_en registro_baja,
-                c.numero caja_numero, c.nombre caja_nombre, c.eliminado_en caja_baja
+                c.numero caja_numero, c.nombre caja_nombre, c.eliminado_en caja_baja, c.publicada caja_publicada
             FROM archivo_digital a JOIN registro r ON r.id = a.registro_id JOIN caja c ON c.id = r.caja_id
             WHERE a.id = ?');
         $st->execute([$archivoId]);
@@ -72,7 +72,7 @@ final class Entrega
         if ($interno) {
             return self::SERVIR;
         }
-        if (!(int)$a['publicado']) {
+        if (!(int)$a['publicado'] || !(int)($a['caja_publicada'] ?? 0)) {
             return self::NO_ENCONTRADO;
         }
         return $a['acceso'] === 'publico' ? self::SERVIR : self::A_PEDIDO;

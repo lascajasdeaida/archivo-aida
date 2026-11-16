@@ -153,7 +153,7 @@ final class Rutas
      */
     public static function cajas_unificar(): void
     {
-        App::exigir('editar');
+        App::exigir('correccion');   // renombra varias cajas a la vez: mismos perfiles que la corrección masiva
         $cajas = self::db()->query('SELECT id, numero, nombre, resumen, campos_bloqueados FROM caja WHERE eliminado_en IS NULL ORDER BY numero')->fetchAll();
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             App::verificarPost();
@@ -782,11 +782,12 @@ final class Rutas
     public static function procesos(): void
     {
         App::exigir('ver');
-        $rows = self::db()->query("SELECT p.*,
+        $rows = self::db()->query("SELECT p.*, u.nombre usuario_nombre,
               (SELECT COUNT(*) FROM auditoria a WHERE a.proceso_id = p.id AND a.accion <> 'reversion') cambios,
               (SELECT COUNT(*) FROM auditoria a WHERE a.proceso_id = p.id AND a.accion <> 'reversion' AND a.revertido_en IS NOT NULL) deshechos,
               (SELECT COUNT(*) FROM incidencia i WHERE i.proceso_id = p.id AND i.resuelta = 0 AND i.requiere_validacion = 1) pendientes
-            FROM proceso p WHERE p.simulacion = 0 AND p.tipo <> 'curaduria' ORDER BY p.id DESC LIMIT 200")->fetchAll();
+            FROM proceso p LEFT JOIN usuario u ON u.id = p.usuario_id
+            WHERE p.simulacion = 0 AND p.tipo <> 'curaduria' ORDER BY p.id DESC LIMIT 200")->fetchAll();
         App::render('procesos', ['procesos' => $rows]);
     }
 

@@ -47,10 +47,10 @@ final class Reporte
     public ?int $procesoId = null;
 
     /** Crea el proceso al empezar, para que los cambios del historial queden asociados a él. */
-    public function abrir(\PDO $db): int
+    public function abrir(\PDO $db, ?int $usuarioId = null): int
     {
-        $db->prepare('INSERT INTO proceso (tipo, fuente, simulacion, iniciado_en) VALUES (?,?,?,?)')
-           ->execute([$this->tipo, $this->fuente, (int)$this->simulacion, $this->iniciado]);
+        $db->prepare('INSERT INTO proceso (tipo, fuente, simulacion, usuario_id, iniciado_en) VALUES (?,?,?,?,?)')
+           ->execute([$this->tipo, $this->fuente, (int)$this->simulacion, $usuarioId, $this->iniciado]);
         return $this->procesoId = (int)$db->lastInsertId();
     }
 

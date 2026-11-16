@@ -180,7 +180,7 @@ fieldset.campo { border: 0; padding: 0; margin: 0 0 var(--e-5); }
 .etq--tipo { background: var(--c-papel); border-color: var(--c-filete); }
 
 /* Año sin confirmar: subrayado punteado + «?» en círculo, nunca solo color */
-.anio-dudoso { color: var(--c-duda); text-decoration: underline dotted 1.5px; text-underline-offset: .22em; white-space: nowrap; }
+.anio-dudoso { color: var(--c-duda); text-decoration: underline dotted 1.5px; text-underline-offset: .22em; }
 .anio-dudoso .icono { width: 1em; height: 1em; vertical-align: -.12em; margin-left: 2px; }
 
 /* =========================================================
@@ -383,6 +383,7 @@ body.panel-abierto { overflow: hidden; }
 .vecinos a:hover { border-color: var(--c-borde); box-shadow: var(--s-1); }
 .vecinos small { display: block; color: var(--c-apagado); font-size: var(--t-mini); font-family: var(--f-maquina); letter-spacing: .1em; text-transform: uppercase; }
 .vecinos .sig { justify-content: flex-end; text-align: right; }
+.vecinos a, .vecinos a > * { min-width: 0; overflow-wrap: anywhere; }
 @media (min-width: 700px) { .vecinos { grid-template-columns: 1fr 1fr; } .vecinos .sig { grid-column: 2; } }
 
 /* =========================================================

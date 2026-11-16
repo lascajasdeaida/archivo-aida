@@ -75,7 +75,7 @@ final class Importador
     /** @var list<string> ídem para los campos de la caja (se juntan antes de procesar sus registros) */
     private array $corregidosCaja = [];
 
-    public function __construct(private readonly \PDO $db)
+    public function __construct(private readonly \PDO $db, private readonly ?int $usuarioId = null)
     {
     }
 
@@ -105,8 +105,8 @@ final class Importador
 
         $this->db->beginTransaction();
         try {
-            $this->rep->abrir($this->db);
-            $this->hist = new Historial($this->db, null, 'importacion', $this->rep->procesoId);
+            $this->rep->abrir($this->db, $this->usuarioId);
+            $this->hist = new Historial($this->db, $this->usuarioId, 'importacion', $this->rep->procesoId);
             $this->voc = new Vocabulario($this->db);
             $this->vocab = [];
             foreach ($x->sheetNames() as $hoja) {

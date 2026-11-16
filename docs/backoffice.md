@@ -266,7 +266,7 @@ C6R5;PRIVADO;;VERLO
 
 **Cerrar el circuito:** cuando el equipo corrige lo mismo en su planilla, la importación ve que el Excel trae el mismo valor que
 la base, desbloquea el campo y lo informa (`CORREGIDO_EN_PLANILLA`). Así base y Excel no quedan distintos. Si solo difieren
-mayúsculas o espacios, se desbloquea pero queda la versión de la base (el aviso lo aclara campo por campo).
+mayúsculas o espacios, queda la versión de la base y el campo **sigue bloqueado** (el aviso lo aclara campo por campo).
 
 **Años de registros cargados a mano:** `php bin/recalcular-anios.php --simular` muestra qué cambia (con `--todos`, también los del
 Excel: sirve después de la migración 004 sin volver a importar); sin `--simular` lo aplica

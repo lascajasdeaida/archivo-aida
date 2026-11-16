@@ -193,7 +193,7 @@ final class CargaExcel
         session_write_close();
         $t = microtime(true);
         try {
-            $rep = (new Importador($db))->importar($ruta, $cajas, $simulacion, $fuente);
+            $rep = (new Importador($db, App::usuarioId()))->importar($ruta, $cajas, $simulacion, $fuente);
         } finally {
             App::iniciarSesion();
         }

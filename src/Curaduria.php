@@ -368,6 +368,12 @@ final class Curaduria
         };
     }
 
+    /** Evita que una planilla interprete como fórmula una celda que empieza con = + - @ (inyección CSV). */
+    private static function celda(mixed $v): mixed
+    {
+        return is_string($v) && $v !== '' && strpbrk($v[0], "=+-@\t\r") !== false ? "'" . $v : $v;
+    }
+
     /** CSV (separado por «;», UTF-8 con BOM, como lo abre Excel en castellano). */
     public function csv(): string
     {
@@ -376,11 +382,11 @@ final class Curaduria
         fputcsv($f, ['N.º', 'Fecha', 'Usuario', 'Acción', 'Vocabulario', 'Término', 'Destino', 'Vocabulario destino', 'Motivo',
                      'Registros afectados', 'Códigos', 'Quedan sin tipo/descriptor', 'Estado'], ';');
         foreach ($this->informe() as $x) {
-            fputcsv($f, [$x['id'], date('d/m/Y H:i', strtotime((string)$x['fecha'])), $x['usuario'], $x['accion_txt'],
+            fputcsv($f, array_map([self::class, 'celda'], [$x['id'], date('d/m/Y H:i', strtotime((string)$x['fecha'])), $x['usuario'], $x['accion_txt'],
                 Vocabulario::NOMBRES[$x['tipo']] ?? $x['tipo'], $x['termino'], $x['destino'] ?? '',
                 $x['destino_tipo'] ? Vocabulario::NOMBRES[$x['destino_tipo']] : '', $x['motivo'] ?? '', $x['registros'],
                 implode(', ', $x['codigos']), implode(', ', $x['solo_este']),
-                $x['deshecho'] ? 'Deshecho el ' . date('d/m/Y H:i', strtotime($x['deshecho']['en'])) . ' por ' . $x['deshecho']['usuario'] : 'Vigente'], ';');
+                $x['deshecho'] ? 'Deshecho el ' . date('d/m/Y H:i', strtotime($x['deshecho']['en'])) . ' por ' . $x['deshecho']['usuario'] : 'Vigente']), ';');
         }
         rewind($f);
         return (string)stream_get_contents($f);

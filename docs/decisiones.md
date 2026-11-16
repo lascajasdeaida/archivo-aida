@@ -60,9 +60,6 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   ignorando mayúsculas y espacios** («aída  BORTNIK» vs «Aída Bortnik»), queda el valor de la base y el campo **sigue
   bloqueado**, para que ninguna importación posterior lo pise. Se informa en `CORREGIDO_EN_PLANILLA` como «difiere solo en
   mayúsculas o espacios: se conserva la versión de la base». Solo una coincidencia exacta desbloquea el campo.
-  *Pendiente:* como el campo queda libre, la **importación siguiente** sí toma la grafía del Excel. Ver la pregunta al PM en la
-  entrega (opciones: dejarlo bloqueado hasta que coincida exacto, o que el importador nunca pise un campo libre por una diferencia
-  solo de mayúsculas y espacios).
 
 ## ABM desde el backoffice (14/11/2026)
 

@@ -143,8 +143,9 @@ de los mismos controles, y los de más de 100 MB solo se descargan (la ficha lo 
   los PDF pesados de a partes.
 - Usuario del backoffice = cookie de sesión `aida_bo` con un usuario con permiso `ver`. Al público no se le crea sesión.
   La sesión se cierra antes de transmitir, así un PDF grande no bloquea el resto del backoffice.
-- **Métricas:** cada apertura suma una fila en `evento_uso` (`vista` o `descarga`) con registro, archivo y fecha. Sin IP,
-  usuario ni datos del navegador. Se cuenta solo el primer pedido (sin `Range`), no cada tramo del visor, y **no se cuentan
+- **Métricas:** cada apertura suma una fila en `evento_uso` (`vista` o `descarga`) con registro, archivo y fecha, la página que
+  lo pidió (`referer`: ruta del sitio o solo el dominio de afuera) y un `sesion_hash` del día (HMAC de fecha, IP y navegador,
+  16 caracteres: cuenta personas distintas por día sin guardar la IP; migración 007, `docs/medicion.md`). Sin IP ni usuario. Se cuenta solo el primer pedido (sin `Range`), no cada tramo del visor, y **no se cuentan
   las consultas del equipo** desde el backoffice.
 - **En la ficha del registro**, cada archivo presente tiene «Ver PDF ↗» (pestaña nueva, visor del navegador), «Descargar» y
   «Vista previa ↓» (panel a todo el ancho debajo de la ficha; el iframe se crea recién al pedirlo). Si el registro no se puede

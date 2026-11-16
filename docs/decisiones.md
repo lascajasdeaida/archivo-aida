@@ -233,6 +233,21 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   lectores de pantalla desde el principio, cursor que titila 4 veces y queda fijo.
 - Fotos en blanco y negro solo como ambiente (hero); los documentos nunca llevan filtro ni grano.
 
+## Diseño del archivo: lenguaje de sistema (16/11/2026)
+
+- **El archivo (catálogo en línea) usa un lenguaje de sistema, distinto del inmersivo del sitio institucional** (decisión del PM, 16/11/2026).
+  El sitio institucional sigue con la dirección B; los dos comparten **logo, paleta y el cursor** de la máquina de escribir.
+  Detalle en `docs/diseno/sistema.md` «Archivo: sistema».
+- **Menos variables:** dos familias (Inter para todo; Courier Prime solo para códigos `C2R5` y el texto del buscador), tres niveles de lectura
+  (título de pantalla, texto, dato secundario), fondo blanco neutro. La condensada (Oswald) queda solo en el logo. Sin rótulos en caja alta espaciada.
+- **Azul y rojo-naranja como acentos funcionales:** azul para acción, enlace, foco y selección; rojo-naranja para el cursor del buscador y el
+  resaltado del término buscado. Sin bandas, sombras ni grano.
+- **Búsqueda primero:** el inicio es el buscador (con el cursor) + cifras en una línea + accesos rápidos; Explorar muestra una fila por registro
+  (código, título y tipos, caja, año, acceso) con conteo y orden arriba, busca mientras se escribe (180 ms después de la última tecla) y resalta el
+  término; atajo `/` para ir al buscador desde cualquier página.
+- **Ficha y caja como vista de registro:** metadatos en lista compacta, acciones agrupadas (ver, descargar, pedir consulta, copiar cita, copiar enlace),
+  anterior/siguiente y volver a los resultados. **Sin tipeo animado de títulos**: el cursor queda solo en el buscador.
+
 ## Pendientes
 
 - Versiones livianas para web de los PDF pesados (hay archivos de 500–780 MB).

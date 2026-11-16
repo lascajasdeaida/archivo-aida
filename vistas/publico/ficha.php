@@ -27,7 +27,7 @@ $cita = rtrim($citaAutor, '.') . '. ' . rtrim(($d['sinTitulo'] ? '[' . $d['titul
     . $caja['numero'] . ", $codigo. " . Enlaces::canonica($codigo);
 $varias = count($d['archivos']) > 1;
 ob_start(); ?>
-<div class="contenedor">
+<div class="banda"><div class="contenedor">
   <nav class="migas" aria-label="Estás en"><ol>
     <li><a href="<?= H::e($enl->inicio()) ?>">Inicio</a></li>
     <li><a href="<?= H::e($enl->caja($caja)) ?>">Caja <?= (int)$caja['numero'] ?>: <?= H::e($caja['nombre']) ?></a></li>
@@ -37,7 +37,7 @@ ob_start(); ?>
   <p class="volver" data-volver hidden><a href="<?= H::e($enl->explorar()) ?>"><?= H::icono('flechaIzq') ?>Volver a los resultados</a></p>
   <div class="cabeza-pagina">
     <p class="kicker">Caja <?= (int)$caja['numero'] ?> · Registro <?= (int)$r['numero'] ?> · Código <span class="codigo"><?= H::e($codigo) ?></span></p>
-    <h1><?= H::nombre($d) ?></h1>
+    <h1 data-tipeo<?= mb_strlen((string)$d['titulo']) > 60 ? ' class="largo"' : '' ?>><?= H::nombre($d) ?></h1>
     <?php if ($d['sinTitulo']): ?><p class="meta">Este documento no tiene título en el catálogo; se lo nombra por su tipo.</p><?php endif ?>
     <div class="etqs">
       <?= $d['digital'] ? '<span class="etq etq--digital">' . H::icono('documento') . 'Documento digital</span>'
@@ -47,7 +47,9 @@ ob_start(); ?>
       <?php if ($anio['dudoso']): ?><span class="etq etq--duda"><?= H::icono('duda') ?>Año sin confirmar</span><?php endif ?>
     </div>
   </div>
+</div></div>
 
+<div class="contenedor">
   <div class="ficha">
     <aside class="ficha__documento documento" aria-labelledby="h-doc">
       <h2 id="h-doc">Documento</h2>
@@ -98,12 +100,14 @@ ob_start(); ?>
         <?= $fila('Acceso', $d['documento'] === 'pedido' ? 'Consulta a pedido' : 'Libre') ?>
       </dl>
 
-      <h2 style="margin-top:40px">Descripción</h2>
+      <h2>Descripción</h2>
+      <div class="ficha__texto">
       <?php $resumen = trim((string)$r['resumen']); ?>
       <?php if ($resumen !== ''): foreach (preg_split('/\R{2,}/u', $resumen) as $parrafo): ?>
         <p><?= nl2br(H::e(trim($parrafo))) ?></p>
       <?php endforeach; else: ?><p class="meta">Sin descripción.</p><?php endif ?>
       <?php if (trim((string)$r['obs_editorial']) !== ''): ?><h3>Observaciones</h3><p><?= nl2br(H::e(trim((string)$r['obs_editorial']))) ?></p><?php endif ?>
+      </div>
 
       <h2 id="citar" style="margin-top:40px">Cómo citar</h2>
       <p class="cita" id="cita"><?= H::e($cita) ?></p>
@@ -126,7 +130,7 @@ ob_start(); ?>
         <button class="visor__boton visor__boton--texto" type="button" data-visor-cerrar><?= H::icono('cerrar') ?>Cerrar</button>
       </div>
     </div>
-    <div class="visor__zona" data-visor-zona><!-- el iframe se crea al abrir el visor: los PDF pesan hasta 780 MB --></div>
+    <div class="visor__zona" data-visor-zona tabindex="0" role="region" aria-label="Página del documento (se desplaza con las flechas)"><!-- el iframe se crea al abrir el visor: los PDF pesan hasta 780 MB --></div>
     <p class="visor__pie"><kbd>Esc</kbd> cerrar</p>
   </section>
   <?php endif ?>

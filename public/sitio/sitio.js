@@ -5,6 +5,59 @@
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
+  // Títulos que se tipean (h1[data-tipeo]): una sola vez por carga y nunca con movimiento reducido.
+  // El lector de pantalla tiene el título completo desde el principio (copia .solo-lector); la copia que se tipea es
+  // aria-hidden y las letras ocupan su lugar desde el inicio (opacity), así la página no salta. Al terminar se
+  // restituye el marcado original.
+  const tipear = h => {
+    const original = h.innerHTML;
+    const lector = document.createElement('span');
+    lector.className = 'solo-lector';
+    lector.innerHTML = original;
+    const visual = document.createElement('span');
+    visual.className = 'tipeo';
+    visual.setAttribute('aria-hidden', 'true');
+    visual.innerHTML = original;
+    visual.querySelectorAll('.solo-lector').forEach(n => n.remove());
+    const letras = [];
+    const recorrer = nodo => {
+      Array.from(nodo.childNodes).forEach(n => {
+        if (n.nodeType === 3) {
+          const f = document.createDocumentFragment();
+          for (const ch of n.textContent) {
+            const s = document.createElement('span');
+            s.className = 'tl';
+            s.textContent = ch;
+            f.appendChild(s);
+            letras.push(s);
+          }
+          n.replaceWith(f);
+        } else if (n.nodeType === 1) recorrer(n);
+      });
+    };
+    recorrer(visual);
+    if (!letras.length) { h.classList.add('tipeado'); return; }
+    h.textContent = '';
+    h.append(lector, visual);
+    h.classList.add('tipeando');
+    const total = Math.min(1400, letras.length * 38), paso = total / letras.length;
+    let t0 = null, hechas = 0;
+    const cuadro = t => {
+      if (t0 === null) t0 = t;
+      const k = Math.min(letras.length, Math.floor((t - t0) / paso) + 1);
+      for (; hechas < k; hechas++) letras[hechas].classList.add('ok');
+      letras.forEach(l => l.classList.remove('cursor'));
+      if (k < letras.length) { letras[k - 1].classList.add('cursor'); requestAnimationFrame(cuadro); }
+      else { h.innerHTML = original; h.classList.remove('tipeando'); h.classList.add('tipeado'); }
+    };
+    requestAnimationFrame(cuadro);
+  };
+  const movimiento = !window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (movimiento) {
+    const iniciar = () => $$('[data-tipeo]').forEach(tipear);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     // Menú en celular
     const mb = $('.menu-boton'), nav = $('#nav-principal');

@@ -1,6 +1,17 @@
 # Componentes del sitio público
 
-Diseño web · 15/11/2026. HTML de referencia para que Programación lo integre en las vistas PHP.
+Diseño web · 15/11/2026, actualizado el 16/11/2026 a la **dirección B · Museografía con el cursor de C** ([`sistema.md`](sistema.md)).
+HTML de referencia para que Programación lo integre en las vistas PHP. Los fragmentos de abajo siguen valiendo: las clases no cambiaron, cambió la hoja.
+Cambios de marcado de la dirección B (ya aplicados en `vistas/publico/`):
+
+- **Cabecera y pie:** la marca es el logo de cajas (`public/sitio/img/logo-tinta.svg` en la cabecera, `logo-calado-blanco.svg` + `.pie__logo` en el pie).
+  `.marca__sello` y `.marca__texto` quedan solo para las maquetas.
+- **Hero del inicio:** la ilustración SVG se reemplaza por `<figure class="hero__foto" aria-hidden="true"><img … alt=""></figure>` (foto en blanco y negro).
+- **Banda de título** (`.banda`, caja y ficha): `<div class="banda"><div class="contenedor">` migas + `.cabeza-pagina` `</div></div>`, y el resto de la página
+  en otro `.contenedor`. Pared azul de borde a borde con filete rojo; adentro, texto y foco en blanco. En la caja, el resumen y el buscador quedan fuera de la banda (se leen sobre crema).
+- **Título que se tipea:** `<h1 data-tipeo>` (inicio, caja, ficha). En la ficha, `class="largo"` si el título pasa de 60 caracteres. Comportamiento en `sitio.js`; reglas en `sistema.md` §5.
+- **Lectura larga:** envolver en `.lectura`, `.prosa` o `.ficha__texto` (Inter 17/18 px, interlínea 1,65, 66 caracteres).
+- **Visor:** `.visor__zona` lleva `tabindex="0" role="region" aria-label="…"` (se desplaza con el teclado).
 Estilos en [`public/sitio/estilo.css`](../../public/sitio/estilo.css) (usa solo [`tokens.css`](../../public/sitio/tokens.css); el sitio y las maquetas usan el mismo archivo). Catálogo vivo: [`maquetas/componentes.html`](maquetas/componentes.html).
 Las plantillas JS equivalentes están en [`maquetas/maqueta.js`](maquetas/maqueta.js) (`tarjeta`, `tarjetaCaja`, `etiquetas`, `anioHTML`…).
 

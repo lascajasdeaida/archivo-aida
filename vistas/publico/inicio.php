@@ -15,8 +15,8 @@ ob_start(); ?>
 <section class="hero" aria-labelledby="h-hero">
   <div class="contenedor">
     <div>
-      <p class="kicker">Archivo digital</p>
-      <h1 id="h-hero">Las cajas <em>de Aída</em></h1>
+      <p class="kicker">Archivo digital · Aída Bortnik</p>
+      <h1 id="h-hero" data-tipeo>Las cajas <em>de Aída</em></h1>
       <p class="hero__frase"><?= H::e($frase) ?></p>
       <?php if ($hay): ?>
       <form class="buscador" action="<?= H::e($enl->explorar()) ?>" role="search" aria-label="Buscar en el archivo" data-evento-busqueda="inicio">
@@ -34,7 +34,7 @@ ob_start(); ?>
       </ul>
       <?php endif ?>
     </div>
-    <?php require __DIR__ . '/_hero_ilustracion.php'; ?>
+    <figure class="hero__foto" aria-hidden="true"><img src="<?= H::e($enl->recurso('sitio/img/cajas-deposito.jpg')) ?>" alt="" width="1000" height="563"></figure>
   </div>
 </section>
 

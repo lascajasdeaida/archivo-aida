@@ -220,6 +220,19 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 - **Front controller `public/sitio.php`**, no `index.php`, para convivir con el WordPress de Local en la Mac del PM
   (`docs/despliegue.md`).
 
+## Diseño del sitio público (15/11/2026)
+
+- **Dirección visual: B · Museografía con la máquina de escribir y el cursor de C** (decisión del PM, 15/11/2026; primero eligió C · Sala oscura y
+  ese mismo día pasó a B conservando de C la máquina de escribir y el cursor). Reemplaza el sistema anterior (papel sepia, banda marrón, Playfair Display).
+  Detalle en `docs/diseno/sistema.md`; tokens en `public/sitio/tokens.css`.
+- Paleta de las paredes de la muestra: azul #0D5C9E, rojo-naranja #EF6A3A, crema #F5F0E4 y tinta #1D1815. Títulos en Oswald (la condensada del logo),
+  lectura en Inter, Courier Prime para citas, códigos, rótulos, metadatos y buscador. Logo nuevo de cajas en cabecera (tinta) y pie (calado blanco).
+- **Lectura larga fuera de la monoespaciada** (advertencia aceptada por el PM): descripciones, resúmenes y «Sobre» en Inter 17/18 px, interlínea 1,65,
+  66 caracteres, tinta #2B231C (no la máxima).
+- **Título que se tipea con cursor** solo en el inicio, la caja y la ficha: una vez, sin movimiento con `prefers-reduced-motion`, título completo para
+  lectores de pantalla desde el principio, cursor que titila 4 veces y queda fijo.
+- Fotos en blanco y negro solo como ambiente (hero); los documentos nunca llevan filtro ni grano.
+
 ## Pendientes
 
 - Versiones livianas para web de los PDF pesados (hay archivos de 500–780 MB).

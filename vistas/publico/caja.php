@@ -13,7 +13,7 @@ $tituloPagina = "Caja $n: {$c['nombre']}";
 $seccion = 'cajas';
 $resumen = trim((string)$c['resumen']);
 ob_start(); ?>
-<div class="contenedor">
+<div class="banda"><div class="contenedor">
   <nav class="migas" aria-label="Estás en"><ol>
     <li><a href="<?= H::e($enl->inicio()) ?>">Inicio</a></li>
     <li><a href="<?= H::e($enl->cajas()) ?>">Las 70 cajas</a></li>
@@ -22,7 +22,7 @@ ob_start(); ?>
 
   <div class="cabeza-pagina">
     <p class="kicker">Caja <?= $n ?><?= $d['total_cajas'] ? ' de ' . (int)$d['total_cajas'] : '' ?></p>
-    <h1><?= H::e($c['nombre']) ?></h1>
+    <h1 data-tipeo><?= H::e($c['nombre']) ?></h1>
     <ul class="datos-caja">
       <li><b><?= H::numero($cf['documentos']) ?></b> documentos</li>
       <li><b><?= H::numero($cf['digitales']) ?></b> con documento digital</li>
@@ -36,6 +36,11 @@ ob_start(); ?>
       <span><?= $cf['digitales'] ? H::numero($cf['digitales']) . ' de ' . H::numero($cf['documentos']) . ' digitalizados' : 'Sin digitalizar todavía' ?></span>
     </div>
     <?php endif ?>
+  </div>
+</div></div>
+
+<div class="contenedor">
+  <div class="cabeza-pagina">
     <?php if ($resumen !== ''): ?>
     <div class="texto-plegable plegado" data-plegable>
       <div class="cuerpo" id="cuerpo-resumen">
@@ -44,7 +49,7 @@ ob_start(); ?>
       <button type="button" class="boton boton--fantasma" aria-expanded="false" aria-controls="cuerpo-resumen" data-leer-mas hidden>Leer más</button>
     </div>
     <?php endif ?>
-    <form class="buscador" action="<?= H::e($enl->explorar()) ?>" role="search" aria-label="Buscar en esta caja" style="margin-top:24px">
+    <form class="buscador" action="<?= H::e($enl->explorar()) ?>" role="search" aria-label="Buscar en esta caja" style="margin-top:16px">
       <?php if (!$enl->reescritura): ?><input type="hidden" name="ruta" value="explorar"><?php endif ?>
       <input type="hidden" name="caja" value="<?= $n ?>">
       <div class="buscador__campo"><?= H::icono('buscar') ?><label class="solo-lector" for="q-caja">Buscar en la caja <?= $n ?></label>

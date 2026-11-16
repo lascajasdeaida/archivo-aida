@@ -4,6 +4,7 @@ Diseño web · 16/11/2026.
 
 - **El archivo (catálogo en línea, `vistas/publico/` + `public/sitio/`) usa un lenguaje de sistema**: sección «Archivo: sistema», abajo.
   Rama `diseno/archivo-sistema`. Decisión del PM del 16/11/2026 ([`../decisiones.md`](../decisiones.md) «Diseño del archivo: lenguaje de sistema»).
+- **El backoffice usa el mismo lenguaje de sistema, contrastado por colorimetría**: sección «Backoffice: sistema», abajo.
 - **El sitio institucional sigue con la dirección B inmersiva** (Museografía con la máquina de escribir y el cursor de C), documentada en §1–§11.
   Esos tokens ya no están en `public/sitio/tokens.css` (el archivo los reemplazó); quedan en la historia de git (`35b0f85`) y en la rama del sitio institucional.
 - Lo que comparten: el **logo** de cajas, la **paleta** (azul `#0D5C9E`, rojo-naranja `#EF6A3A`, tinta `#1D1815`) y el **cursor** de la máquina de escribir.
@@ -177,6 +178,129 @@ errores.** Foco: 30 tabulaciones en Las cajas e inicio, todas con anillo (el ani
 - Las maquetas estáticas de `docs/diseno/maquetas/` siguen con el marcado de B (hero, bandas): usan esta hoja y se ven a medio camino. Las plantillas PHP son la referencia.
 - Medir los tiempos contra el servidor real con la base completa publicada (acá: 135 registros publicados).
 - Si el PM quiere, atajos `j`/`k` o flechas para recorrer la lista y `[`/`]` para anterior/siguiente en la ficha.
+
+
+## Backoffice: sistema
+
+Pedido del PM (16/11/2026): «El back quedó con el formato anterior que habíamos trabajado. Llevarlo al mismo eje del front, pero contrastarlo desde
+la colorimetría. El login ponerlo con el logo de AIDA, lo mismo que el encabezado.» Rama `diseno/backoffice-sistema`.
+Tokens: [`public/admin/tokens.css`](../../public/admin/tokens.css) (copia de los del archivo + colorimetría propia; el back no carga la hoja del sitio).
+Hoja: [`public/admin/estilo.css`](../../public/admin/estilo.css), reescrita entera (ya no hay capas de ajustes encimadas).
+
+### B.1 Mismo eje que el archivo
+
+- **Familias:** Inter en toda la interfaz (menú, tablas, rótulos, campos, botones). Courier Prime solo en `.codigo` (C14R3 en migas, eyebrow,
+  listas de la caja y de verificaciones, consultas; número de caja en la lista de cajas) y en `<code>` (rutas, ids de Drive, columnas de la planilla).
+  Sale Playfair Display y sale el Courier general.
+- **Escala y pesos:** los tres niveles del archivo (título 24/28 px, texto 16 px, dato 14 px), 400 y 600. Títulos de tarjeta como los títulos de
+  bloque del archivo: 16 px 600 con línea de 2 px en tinta. Sin rótulos en caja alta espaciada (el eyebrow es dato secundario).
+- **Forma:** radio de 2 px, líneas de 1 px, sin sombras ni bandas. Foco: anillo azul de 3 px con 2 px de separación; celeste `barra-foco` sobre la barra.
+- **Tablas:** como las listas del archivo: encabezado 14 px 600 en `texto-2` sobre `fondo-2`, filas con línea de 1 px, hover en `azul-suave`,
+  cifras tabulares. En celular cada tabla se desplaza dentro de su propia región (con foco y nombre únicos), nunca la página.
+- **Controles:** 40 px de alto (densidad de herramienta; el sitio usa 44), chicos de 32 px. Borde `borde` (4,3:1 o más en todos los fondos).
+
+### B.2 Contraste por colorimetría
+
+| Zona | Color | Por qué |
+|---|---|---|
+| Barra superior y navegación | `barra` #141B24, texto `barra-texto-2` #B9C3CF, activo blanco 600 sobre `barra-2` #243142 con **filete inferior de 3 px rojo-naranja** | De un vistazo: “estoy en la herramienta”. El sitio tiene cabecera blanca. |
+| Contadores (verificaciones, consultas, parecidos) | `rojo` #EF6A3A con tinta encima | Rojo-naranja = dónde estás y cuánto falta. Nunca texto rojo sobre claro. |
+| Área de trabajo | `area` #EDF0F3 (gris frío) | Separa las tarjetas sin sombras; el sitio es blanco con paneles cálidos. |
+| Tarjetas, tablas, filtros | `fondo` #FFFFFF; encabezados y fieldset en `fondo-2` #F5F7F9 | |
+| Acciones y enlaces | `azul` #0D5C9E | Igual que el archivo. Guardar pasa de naranja a azul. |
+| Crear / recuperar · baja / deshacer | `digital` #2F5A2A · `error` #A12A1A | Se conservan los colores por intención del back. |
+| Ingreso | Fondo `barra`, logo grande en blanco, formulario en tarjeta blanca con filete rojo-naranja | Misma colorimetría que la barra. |
+
+**Estados, forma + color** (ninguno depende solo del color):
+
+- Chips: ok = **círculo lleno**, borde lleno, verde · atención (no públicos, parcial, propuesto, no publicado) = **rombo** y **borde discontinuo**,
+  ocre · error / baja / año no confirmado / conflicto = **triángulo**, rojo · acción pendiente (🔔 N, consulta nueva, se aplican) = **cuadrado**, azul.
+  Neutro: sin marca. Las marcas son `::before` sin texto (no las lee el lector de pantalla).
+- Año no confirmado en texto: rojo con **subrayado punteado**. Campo editado a mano: **barra interior de 4 px** ocre + candado.
+- Avisos y leyendas: **barra izquierda de 4 px** (ok verde, error rojo, atención ocre, restringido rojo-ladrillo `pedido`, neutra gris).
+- Verificaciones: barra izquierda ocre (pendiente), gris (informativa), verde (resuelta). Zona de riesgo y confirmaciones: filete superior rojo de 4 px.
+- Doble validación: botón rojo con pulso (sin pulso con `prefers-reduced-motion`) y aviso rojo al lado.
+
+### B.3 Logo
+
+- Encabezado: [`public/admin/img/logo-claro.svg`](../../public/admin/img/logo-claro.svg) (38 px de alto), con el rótulo chico “Backoffice” separado
+  por un filete. Es el logo calado (cajas blancas, letras que dejan ver el fondo), derivado de `sitio/img/logo-calado-blanco.svg`; el archivo usa
+  `logo-tinta.svg` sobre blanco. Enlaza a Cajas.
+- Ingreso: el mismo SVG, 300 px de ancho (72 % del ancho en celular), centrado, como `h1` con texto alternativo; “Archivo · Backoffice” debajo.
+  El formulario ahora está dentro de `<main>` (antes axe marcaba la falta de región principal).
+
+### B.4 Contrastes
+
+Medidos con `node docs/diseno/contraste.js admin` sobre `public/admin/tokens.css`.
+
+| Texto / elemento | Fondo | Uso | Contraste | Mínimo AA |
+|---|---|---|---|---|
+| `barra-texto` #FFFFFF | `barra` #141B24 | Logo, ítem activo y Salir en la barra | 17,33:1 ✔ | 4,5:1 |
+| `barra-texto` #FFFFFF | `barra-2` #243142 | Ítem activo y hover de la barra | 13,18:1 ✔ | 4,5:1 |
+| `barra-texto-2` #B9C3CF | `barra` #141B24 | Ítems de navegación, rótulo “Backoffice”, usuario; rótulo del login | 9,71:1 ✔ | 4,5:1 |
+| `barra-texto-2` #B9C3CF | `barra-2` #243142 | Ítem en hover antes de aclararse | 7,39:1 ✔ | 4,5:1 |
+| `texto` #1D1815 | `rojo` #EF6A3A | Contador (verificaciones, consultas, parecidos) | 5,69:1 ✔ | 4,5:1 |
+| `rojo` #EF6A3A | `barra` #141B24 | Marca del ítem activo (3 px) y filete del login | 5,60:1 ✔ | 3:1 |
+| `rojo` #EF6A3A | `barra-2` #243142 | Marca del ítem activo sobre su fondo | 4,26:1 ✔ | 3:1 |
+| `barra-foco` #8CC8FF | `barra` #141B24 | Anillo de foco en la barra y el fondo del login | 9,75:1 ✔ | 3:1 |
+| `barra-foco` #8CC8FF | `barra-2` #243142 | Anillo de foco en el ítem activo | 7,42:1 ✔ | 3:1 |
+| `texto` #1D1815 | `area` #EDF0F3 | Títulos y texto sobre el área de trabajo | 15,38:1 ✔ | 4,5:1 |
+| `texto-2` #5A544D | `area` #EDF0F3 | Migas, eyebrow, pie, nota sobre el área | 6,53:1 ✔ | 4,5:1 |
+| `azul` #0D5C9E | `area` #EDF0F3 | Enlaces sobre el área (migas en hover, avisos) | 6,04:1 ✔ | 4,5:1 |
+| `texto` #1D1815 | `fondo` #FFFFFF | Texto en tarjetas y tablas | 17,59:1 ✔ | 4,5:1 |
+| `texto-2` #5A544D | `fondo` #FFFFFF | Dato secundario en tarjetas | 7,47:1 ✔ | 4,5:1 |
+| `texto-2` #5A544D | `fondo-2` #F5F7F9 | Encabezado de columnas, fieldset | 6,96:1 ✔ | 4,5:1 |
+| `texto` #1D1815 | `azul-suave` #EAF1F8 | Fila en hover, término elegido | 15,44:1 ✔ | 4,5:1 |
+| `azul` #0D5C9E | `fondo` #FFFFFF | Enlaces, códigos en tablas | 6,90:1 ✔ | 4,5:1 |
+| `azul-osc` #0A4A80 | `azul-suave` #EAF1F8 | Enlace en fila con hover, chip de acción pendiente | 8,00:1 ✔ | 4,5:1 |
+| `blanco` #FFFFFF | `azul` #0D5C9E | Botón primario (Guardar, Ingresar) | 6,90:1 ✔ | 4,5:1 |
+| `blanco` #FFFFFF | `digital` #2F5A2A | Botón crear o recuperar | 8,03:1 ✔ | 4,5:1 |
+| `blanco` #FFFFFF | `error` #A12A1A | Botón de baja y doble validación armada | 7,34:1 ✔ | 4,5:1 |
+| `error` #A12A1A | `fondo` #FFFFFF | Botón de borde rojo, “Zona de riesgo”, aviso de doble validación | 7,34:1 ✔ | 4,5:1 |
+| `digital` #2F5A2A | `digital-suave` #E6EEDF | Chip ok (círculo) | 6,75:1 ✔ | 4,5:1 |
+| `duda` #7A5A0E | `duda-suave` #F4E8C4 | Chip atención (rombo, borde discontinuo), leyenda | 5,21:1 ✔ | 4,5:1 |
+| `error` #A12A1A | `error-suave` #F9E1DA | Chip error/baja/sin confirmar (triángulo), aviso de error | 5,87:1 ✔ | 4,5:1 |
+| `pedido` #A8361A | `pedido-suave` #FDEDE5 | Leyenda “Restringido” | 5,74:1 ✔ | 4,5:1 |
+| `duda` #7A5A0E | `fondo` #FFFFFF | Candado de campo editado a mano | 6,37:1 ✔ | 4,5:1 |
+| `error` #A12A1A | `fondo` #FFFFFF | Año no confirmado (subrayado punteado) | 7,34:1 ✔ | 4,5:1 |
+| `texto` #1D1815 | `digital-suave` #E6EEDF | Texto en aviso ok | 14,79:1 ✔ | 4,5:1 |
+| `texto` #1D1815 | `error-suave` #F9E1DA | Texto en aviso de error y leyenda de baja | 14,08:1 ✔ | 4,5:1 |
+| `borde` #767069 | `fondo` #FFFFFF | Borde de controles (1.4.11) | 4,89:1 ✔ | 3:1 |
+| `borde` #767069 | `fondo-2` #F5F7F9 | Borde de controles en fieldset | 4,56:1 ✔ | 3:1 |
+| `borde` #767069 | `area` #EDF0F3 | Borde de controles sobre el área | 4,28:1 ✔ | 3:1 |
+| `azul` #0D5C9E | `fondo` #FFFFFF | Anillo de foco en el área | 6,90:1 ✔ | 3:1 |
+| `azul` #0D5C9E | `area` #EDF0F3 | Anillo de foco sobre el área | 6,04:1 ✔ | 3:1 |
+| `duda` #7A5A0E | `fondo` #FFFFFF | Barra de 4 px del campo bloqueado | 6,37:1 ✔ | 3:1 |
+
+### B.5 Cambios de marcado (sin cambios de comportamiento ni de textos)
+
+- `_layout.php`: logo + “Backoffice” en lugar de “Archivo · Las cajas de Aída”; `aria-label` en la navegación; las regiones de tabla desplazable
+  se numeran cuando hay más de una en la página (axe: `landmark-unique` en Unificar).
+- `login.php`: logo grande y `<main>`; sale el título “Las cajas de *Aída*” (lo dice el logo).
+- Pestañas de Verificaciones y Vocabularios con `aria-label` propio; encabezado vacío de Unificar con texto para lector de pantalla.
+- Clase `.codigo` en códigos y números de caja (registro, caja, cajas, consultas, consulta, verificaciones); `.etiqueta` en los rótulos de
+  Tipo de documento y Descriptores (antes estilo en línea con variables viejas); `correccion.php` usa `--c-error-suave`.
+
+### B.6 Verificación (16/11/2026)
+
+Playwright + Chrome y axe-core 4.11 (WCAG 2.0/2.1/2.2 A y AA + buenas prácticas), base `aida_bk` (esquema + demo + migraciones, 2 consultas de
+prueba, C14R4 con campos bloqueados, C14R2 dado de baja), puerto 8105, sesión creada directamente. Script `/home/claude/qa/backoffice-sistema/scripts/qa.py`;
+capturas en `/home/claude/qa/backoffice-sistema/antes/` y `despues/`, informes `informe-antes.json` e `informe-despues.json`.
+
+- 32 vistas a 390 y 1366: ingreso (y con error), cajas (y filtrada), caja 14 y 2, nueva caja, unificar, confirmar baja de caja, registro editar
+  (C14R4, bloqueado), registro C2R5, registro dado de baja, nuevo registro, confirmar baja de registro, procesos, importar, corrección masiva,
+  verificaciones (pendientes, informativas, resueltas), consultas y consulta, vocabularios (tipos y descriptores), curaduría, informe de curaduría,
+  almacenamiento, base de datos, vista previa de registro y de caja, 404, doble validación armada.
+- **Antes:** axe con hallazgos en 9 vistas por ancho (región principal en el ingreso, `landmark-unique` en verificaciones, vocabularios y unificar, encabezado vacío en unificar), desborde a 390 px en consultas (53 px) y
+  verificaciones, una región sin anillo de foco. **Después: axe 0, desborde 0, errores de JS 0.** Familias en uso: solo Inter y Courier Prime.
+- Foco: 30 tabulaciones en cajas, registro y verificaciones y 8 en el ingreso, a 390 y 1366: todas con anillo visible.
+
+### B.7 Pendientes
+
+- Algunos detalles de verificaciones guardados en la base traen comillas « » (por ejemplo “PRIVADO dice «VERLO»”): vienen del texto de la
+  incidencia guardada antes del cambio de comillas, no de la plantilla ni de `src/` (que ya no genera « »). Quedan así en las incidencias viejas.
+- La vista previa (banner gris pizarra, `public/sitio/vista-previa.css`) no se tocó: es del sitio.
+- El emoji 🔔 del menú y de los chips sigue (es texto): si el PM quiere, reemplazarlo por un ícono SVG del sistema.
 
 ---
 

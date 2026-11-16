@@ -250,6 +250,11 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 - **Las cajas como módulos-caja** (decisión del PM, 16/11/2026): cada caja se muestra como el frente de una caja de archivo en línea fina (tapa,
   troquel, rótulo con número a máquina, obra y años; registros y digitalización al pie), en Las cajas, en el inicio y junto al título de cada caja:
   el anclaje físico de lo que se relevó. Las cajas se ordenan también por año.
+- **Backoffice: mismo eje que el archivo, contrastado por colorimetría** (decisión del PM, 16/11/2026): mismas familias (Inter; mono solo para
+  códigos, números de caja/registro y campos técnicos), escala, pesos, radio y foco que el archivo. Se distingue por el color: barra y login en tinta
+  oscura azulada con el logo de cajas en blanco, ítem activo y contadores en rojo-naranja, área gris fría con tarjetas y tablas blancas; azul para
+  acciones y enlaces. Intención de los botones: azul = guardar/acción principal (antes naranja), verde = crear o recuperar, rojo = baja o deshacer.
+  Detalle en `docs/diseno/sistema.md` “Backoffice: sistema”.
 
 ## Origen de los archivos: Drive del cliente, provisorio (16/11/2026, decisión del PM)
 

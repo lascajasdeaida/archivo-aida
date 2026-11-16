@@ -4,6 +4,11 @@ declare(strict_types=1);
 namespace Aida\Web;
 
 use Aida\Alertas;
+use Aida\Archivos\Drive;
+use Aida\Archivos\Espacio;
+use Aida\Archivos\ListadoDrive;
+use Aida\Archivos\Origenes;
+use Aida\Escaner;
 use Aida\Consultas;
 use Aida\Anios;
 use Aida\Correccion;
@@ -529,6 +534,7 @@ final class Rutas
             'descriptores' => $h->leerLista((int)$r['id'], 'descriptores'),
             'vocab' => self::vocabularioParaSelect(),
             'archivos' => $st->fetchAll(),
+            'origen' => Origenes::desdeConfig(aida_config()),
             'bloqueados' => $bloq,
             'bloqueadoPor' => $quien,
             'alertas' => self::alertasAbiertas((int)$c['numero'], (int)$r['numero']),
@@ -1569,5 +1575,160 @@ final class Rutas
         }
         App::render('base', ['archivos' => $m->archivos, 'aplicadas' => $m->aplicadas(), 'pendientes' => $m->pendientes(),
             'modificadas' => $m->modificadas()]);
+    }
+
+    // ------------------------------------------------------------------
+    // Almacenamiento: origen de los archivos, listado de Drive e informe de espacio
+    // ------------------------------------------------------------------
+
+    private const LISTADO_MAX_MB = 5;
+
+    /**
+     * Informe de espacio (para dimensionar el hosting) y carga del listado de Drive. Subir el listado lo simula;
+     * se guarda recién con «Cargar el listado» (drive_listado_aplicar), sobre el mismo archivo.
+     */
+    public static function almacenamiento(): void
+    {
+        App::exigir('ver');
+        $cfg = aida_config();
+        $origen = Origenes::desdeConfig($cfg);
+        $drive = Origenes::drive($cfg);
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::exigir('procesos');
+            App::verificarPost();
+            $f = $_FILES['listado'] ?? null;
+            $err = match (true) {
+                !is_array($f) || ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE => 'Elegí el archivo del listado.',
+                ($f['error'] ?? 0) === UPLOAD_ERR_INI_SIZE || ($f['error'] ?? 0) === UPLOAD_ERR_FORM_SIZE
+                    || (int)($f['size'] ?? 0) > self::LISTADO_MAX_MB * 1048576 => 'El listado supera los ' . self::LISTADO_MAX_MB . ' MB.',
+                ($f['error'] ?? 0) !== UPLOAD_ERR_OK || !is_uploaded_file((string)$f['tmp_name']) => 'No se pudo subir el archivo. Probá de nuevo.',
+                !preg_match('/\.(tsv|csv|txt)$/i', (string)$f['name']) => 'El listado tiene que ser .tsv, .csv o .txt (texto separado por tabulaciones, comas o punto y coma).',
+                default => null,
+            };
+            if ($err) {
+                App::aviso('error', $err);
+                App::redirigir('almacenamiento');
+            }
+            $dir = CargaExcel::directorio();
+            self::descartarListado();
+            $nombre = 'sim-drive-' . bin2hex(random_bytes(12)) . '.tsv';
+            if (!move_uploaded_file($f['tmp_name'], "$dir/$nombre")) {
+                App::aviso('error', 'No se pudo guardar el archivo en el servidor. Avisá al equipo técnico.');
+                App::redirigir('almacenamiento');
+            }
+            @chmod("$dir/$nombre", 0640);
+            $original = CargaExcel::nombreOriginal((string)$f['name']);
+            try {
+                $rep = (new Escaner(self::db()))->escanear($drive->conListado("$dir/$nombre"), true);
+            } catch (\RuntimeException $e) {
+                @unlink("$dir/$nombre");
+                App::aviso('error', 'No se pudo leer el listado: ' . $e->getMessage());
+                App::redirigir('almacenamiento');
+            }
+            $_SESSION['listado_drive'] = CargaExcel::resumen($rep) + [
+                'token' => bin2hex(random_bytes(16)), 'archivo' => $nombre, 'original' => $original,
+                'sha1' => sha1_file("$dir/$nombre"), 'bytes' => (int)filesize("$dir/$nombre"), 'en' => time(),
+            ];
+            unset($_SESSION['listado_drive_hecho']);
+            App::redirigir('almacenamiento');
+        }
+        $sim = self::listadoVigente();
+        App::render('almacenamiento', [
+            'origen' => $origen,
+            'drive' => $drive,
+            'informe' => (new Espacio(self::db(), Origenes::cajasTotal($cfg), $drive->visorMaxBytes()))->informe(),
+            'sim' => $sim,
+            'hecho' => $sim ? null : ($_SESSION['listado_drive_hecho'] ?? null),
+            'maxMb' => self::LISTADO_MAX_MB,
+            'conIds' => (int)self::db()->query('SELECT COUNT(*) FROM archivo_digital WHERE drive_id IS NOT NULL AND eliminado_en IS NULL AND presente = 1')->fetchColumn(),
+        ]);
+    }
+
+    /** Carga de verdad el listado que se acaba de simular: escanea con él y lo deja como listado vigente. */
+    public static function drive_listado_aplicar(): void
+    {
+        App::exigir('procesos');
+        App::verificarPost();
+        $sim = self::listadoVigente();
+        if (!$sim || !hash_equals($sim['token'], (string)($_POST['simulacion'] ?? ''))) {
+            App::aviso('error', 'La simulación venció o ya se usó. Subí el listado de nuevo.');
+            App::redirigir('almacenamiento');
+        }
+        $cfg = aida_config();
+        if (Origenes::desdeConfig($cfg)->nombre() !== Origenes::DRIVE) {
+            App::aviso('error', 'El origen de los archivos configurado es «disco»: el listado de Drive se puede simular, pero cargarlo cambiaría '
+                . 'qué archivos figuran presentes. Para cargarlo hay que pasar el origen a «drive» (docs/despliegue.md).');
+            App::redirigir('almacenamiento');
+        }
+        $drive = Origenes::drive($cfg);
+        $ruta = CargaExcel::directorio() . '/' . $sim['archivo'];
+        try {
+            $rep = (new Escaner(self::db()))->escanear($drive->conListado($ruta), false);
+            $drive->guardarListado($ruta, $sim['original']);
+        } catch (\Throwable $e) {
+            error_log('[aida-bo] listado de Drive: ' . $e);
+            App::aviso('error', 'No se pudo cargar el listado. Ya quedó registrado; avisá al equipo técnico.');
+            App::redirigir('almacenamiento');
+        }
+        @rename($ruta, sprintf('%s/drive-%d-%s.tsv', CargaExcel::directorio(), (int)$rep->procesoId, date('Ymd-His')));
+        unset($_SESSION['listado_drive']);
+        $_SESSION['listado_drive_hecho'] = CargaExcel::resumen($rep) + ['proceso' => $rep->procesoId, 'original' => $sim['original']];
+        App::aviso('ok', "Listado de Drive cargado (escaneo #{$rep->procesoId}).");
+        App::redirigir('almacenamiento');
+    }
+
+    public static function drive_listado_descartar(): void
+    {
+        App::exigir('procesos');
+        App::verificarPost();
+        self::descartarListado();
+        unset($_SESSION['listado_drive_hecho']);
+        App::aviso('info', 'Simulación descartada. No se cargó nada.');
+        App::redirigir('almacenamiento');
+    }
+
+    /** Vuelve a escanear con el último listado de Drive (por ejemplo, después de cambiar accesos), para poner al día las alertas. */
+    public static function drive_reescanear(): void
+    {
+        App::exigir('procesos');
+        App::verificarPost();
+        $origen = Origenes::desdeConfig(aida_config());
+        if ($origen->nombre() !== Origenes::DRIVE) {
+            App::aviso('error', 'El origen de los archivos configurado no es Drive.');
+            App::redirigir('almacenamiento');
+        }
+        try {
+            $rep = (new Escaner(self::db()))->escanear($origen, false);
+        } catch (\RuntimeException $e) {
+            App::aviso('error', $e->getMessage());
+            App::redirigir('almacenamiento');
+        }
+        unset($_SESSION['listado_drive']);
+        $_SESSION['listado_drive_hecho'] = CargaExcel::resumen($rep) + ['proceso' => $rep->procesoId, 'original' => 'último listado cargado'];
+        App::aviso('ok', "Controles de Drive al día (escaneo #{$rep->procesoId}).");
+        App::redirigir('almacenamiento');
+    }
+
+    private static function listadoVigente(): ?array
+    {
+        $s = $_SESSION['listado_drive'] ?? null;
+        if (!$s) {
+            return null;
+        }
+        $ruta = CargaExcel::directorio() . '/' . basename((string)$s['archivo']);
+        if (time() - (int)$s['en'] > CargaExcel::VIGENCIA || !is_file($ruta) || sha1_file($ruta) !== $s['sha1']) {
+            self::descartarListado();
+            return null;
+        }
+        return $s;
+    }
+
+    private static function descartarListado(): void
+    {
+        $s = $_SESSION['listado_drive'] ?? null;
+        if ($s && preg_match('/^sim-drive-[0-9a-f]{24}\.tsv$/', (string)$s['archivo'])) {
+            @unlink(CargaExcel::directorio() . '/' . $s['archivo']);
+        }
+        unset($_SESSION['listado_drive']);
     }
 }

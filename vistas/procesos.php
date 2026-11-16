@@ -14,6 +14,7 @@ $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevo
   <?php if (App::puede('procesos')): ?>
     <div class="acciones">
       <?php if (App::puede('correccion')): ?><a class="btn" href="<?= App::url('correccion') ?>">Corrección masiva…</a><?php endif ?>
+      <?php if (App::puede('procesos')): ?><a class="btn" href="<?= App::url('almacenamiento') ?>#listado">Listado de Drive…</a><?php endif ?>
       <a class="btn btn-crear" href="<?= App::url('importar') ?>">Subir Excel e importar…</a>
     </div>
   <?php endif ?>

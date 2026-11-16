@@ -7,7 +7,9 @@ $consNuevas = $u && App::puede('consultas') ? App::consultasNuevas() : 0; ?>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title><?= e($titulo ?? 'Backoffice') ?> · Las cajas de Aída</title>
-<link rel="stylesheet" href="estilo.css">
+<?php $v = (int)@filemtime(dirname(__DIR__) . "/public/admin/estilo.css") + (int)@filemtime(dirname(__DIR__) . "/public/admin/tokens.css"); ?>
+<link rel="stylesheet" href="tokens.css?v=<?= $v ?>">
+<link rel="stylesheet" href="estilo.css?v=<?= $v ?>">
 </head>
 <body>
 <header class="barra">

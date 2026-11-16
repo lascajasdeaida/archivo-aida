@@ -2,7 +2,7 @@
    Inter en toda la interfaz, mono solo para códigos y campos técnicos, 3 niveles de lectura, 2 pesos, radio de 2 px, foco azul de 3 px.
    Se distingue del sitio por la colorimetría: barra en tinta oscura con el ítem activo en rojo-naranja, área gris fría, tarjetas blancas.
    Usa solo los tokens de tokens.css. Mobile first; escritorio desde 900 px. */
-@import url("tokens.css");
+/* tokens.css se enlaza aparte desde las vistas, con versión para que el navegador no use una copia vieja. */
 
 /* =========================================================
    Base

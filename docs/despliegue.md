@@ -79,3 +79,43 @@ dejan de ser de WordPress en esa máquina.
    en `var/` para que se cree `var/secreto`.
 3. Publicar las cajas desde el backoffice (Cajas → caja → «Publicar la caja»). Sin ninguna publicada el inicio lo avisa.
 4. Dar de alta el sitemap (`/sitemap.xml`) en Search Console cuando haya cajas publicadas.
+
+## Origen de los archivos: disco o Drive (16/11/2026)
+
+En `config/config.php` (ver `config/config.example.php`):
+
+```php
+'archivos' => [
+    'origen' => 'drive',                  // 'disco' (por defecto) o 'drive'
+    'raiz'   => '/var/www/aida-archivos', // disco: carpeta con C1/, C2/, …
+    'drive'  => ['listado' => '/var/www/aida-privado/drive-listado.tsv', 'visor_max_mb' => 100],
+    'cajas_total' => 70,                  // proyección del informe de espacio
+],
+```
+
+Sin `'archivos'` vale la forma anterior (`'archivos_raiz'`, origen disco). El listado de Drive conviene fuera de `public/`
+(por defecto `var/drive/listado.tsv`, que no se versiona).
+
+### Servir desde Drive (provisorio)
+
+1. `php bin/migrar.php` (la 006 agrega `drive_id` y `drive_compartido`).
+2. Armar el listado de la carpeta «Selección de Cajas»: ruta, id de Drive, bytes y si está compartido (formato en
+   `src/Archivos/ListadoDrive.php`). Los archivos públicos tienen que estar compartidos «cualquiera con el enlace», como lector.
+3. Poner `'origen' => 'drive'`.
+4. `php bin/drive-listado.php listado.tsv --simular`, revisar, y otra vez sin `--simular` (o en el backoffice, Almacenamiento →
+   Listado de Drive). Revisar las alertas `DRIVE_*` en Verificaciones.
+5. Cada vez que el equipo sube archivos, cargar un listado nuevo (el escaneo es incremental, como con el disco).
+
+### Volver a servir desde disco propio
+
+No hace falta tocar código ni la base: los registros, los archivos y sus id de Drive se conservan.
+
+1. Copiar la carpeta «Selección de Cajas» de Drive al servidor **con la misma estructura** (`C1/C1R31.pdf`), por ejemplo con
+   `rclone copy` o la descarga de Drive, fuera de `public/`.
+2. Verificar el tamaño con `php bin/espacio.php` (o Almacenamiento) contra lo copiado (`du -sh`).
+3. En `config/config.php`: `'origen' => 'disco'` y `'raiz'` apuntando a esa carpeta.
+4. `php bin/escanear.php --simular` y después `php bin/escanear.php`: asocia por ruta; lo que no se copió queda «no presente»
+   (`ARCHIVO_DESAPARECIDO`) y no se muestra. Los PDF de más de 100 MB vuelven a verse en línea.
+5. Probar una ficha pública: «Ver documento» abre el PDF del servidor (`archivo.php` responde 200, no 302).
+
+Para volver a Drive alcanza con poner `'origen' => 'drive'` y `php bin/escanear.php` (usa el último listado guardado).

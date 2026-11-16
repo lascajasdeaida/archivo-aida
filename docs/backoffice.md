@@ -123,8 +123,10 @@ modificaciones y bajas a través de esa clase.
 ## 7. Ver y entregar archivos (`public/archivo.php`)
 
 Un solo punto de entrega para el sitio y el backoffice: `/archivo.php?id={id de archivo_digital}` (`&descargar=1` para bajarlo).
-Nunca recibe una ruta: la saca de la base y la resuelve con `realpath` dentro de `archivos_raiz`. La lógica está en
-`src/Entrega.php` (`buscar()`, `decidir()`, `rutaSegura()`, `enviar()`), lista para que el sitio público la reuse.
+Nunca recibe una ruta: solo el id. Las reglas de acceso están en `src/Entrega.php` (`buscar()`, `decidir()`); cómo se entrega lo
+resuelve el origen de archivos (`src/Archivos/`, `docs/decisiones.md` 16/11/2026): **disco** resuelve la ruta con `realpath`
+dentro de la carpeta y transmite el archivo (`Disco::rutaSegura()`); **drive** redirige al visor o a la descarga de Drive después
+de los mismos controles, y los de más de 100 MB solo se descargan (la ficha lo avisa con el peso).
 
 | Situación | Público | Usuario del backoffice |
 |---|---|---|
@@ -135,7 +137,7 @@ Nunca recibe una ruta: la saca de la base y la resuelve con `realpath` dentro de
 | Público y publicado | Lo ve | Lo ve |
 
 - Formatos que se entregan: PDF, imágenes, audio y video (lista en `Entrega::MIME`). Otro formato → 404.
-- Encabezados: `Content-Type`, `Content-Disposition: inline` (o `attachment` con `descargar=1`), `Accept-Ranges`,
+- Encabezados (origen disco): `Content-Type`, `Content-Disposition: inline` (o `attachment` con `descargar=1`), `Accept-Ranges`,
   `X-Content-Type-Options: nosniff`, `ETag`/`Last-Modified` (responde 304), `Cache-Control: private` (`no-cache` para el backoffice),
   `X-Frame-Options: SAMEORIGIN`. Soporta `Range` de un tramo (206 / 416) e `If-Range`: el visor del navegador pide
   los PDF pesados de a partes.
@@ -325,3 +327,23 @@ El alta queda en el historial **sin datos personales** (código, tipo, uso, moda
 Todavía no se manda ningún correo: falta definir con el cliente quién responde (`docs/consultas-cliente.md` §2). Punto de
 extensión: `Aida\NotificadorConsultas` (ver `docs/sitio-publico.md`).
 
+
+## 16. Almacenamiento: origen de los archivos y espacio (16/11/2026)
+
+Menú **Almacenamiento** (ver: todos; cargar el listado: permiso `procesos`, admin y editor). También desde Importaciones →
+**Listado de Drive…**.
+
+- **Origen de los archivos:** dice si se sirven del disco propio o del Drive del cliente (se cambia en la configuración), cuándo se
+  cargó el último listado de Drive y cuántos archivos tienen id. «Revisar de nuevo con el último listado» (naranja) vuelve a
+  escanear para poner al día las alertas de Drive, por ejemplo después de cambiar el acceso de un registro.
+- **Listado de Drive:** se sube el TSV/CSV (hasta 5 MB) y se **simula** (mismo resumen que la importación del Excel: contadores y
+  avisos agrupados). **Cargar el listado** (naranja, `data-doble`) escanea con ese mismo archivo y lo deja como listado vigente;
+  solo con origen `drive`. Queda en la lista de Importaciones como escaneo y se puede deshacer. El archivo subido se guarda
+  fuera de `public/` (`importaciones_dir`) como `drive-{proceso}-{fecha}.tsv`.
+- **Espacio:** GB por caja (registros, digitalizados, archivos, promedio por registro, el mayor y cuántos pasan de 100 MB), total
+  actual y **proyección a todas las cajas** por dos caminos (promedio por registro × registros; promedio por caja × cajas) para
+  dimensionar el hosting. Lo mismo por consola: `php bin/espacio.php` (`--json`).
+- **Ficha del registro (backoffice):** cada archivo muestra su id de Drive y si está compartido; en rojo si un restringido está
+  compartido con cualquiera con el enlace, en amarillo si un público no lo está. Sin «Vista previa» para los que solo se descargan.
+- **Verificaciones:** `DRIVE_RESTRINGIDO_COMPARTIDO` (pendiente de validar), `DRIVE_PUBLICO_SIN_COMPARTIR`, `DRIVE_SIN_ID` y
+  `LISTADO_LINEA_INVALIDA` (informativas), con leyenda y acción sugerida en `src/Alertas.php`.

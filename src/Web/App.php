@@ -21,6 +21,8 @@ final class App
         'forzar'            => ['admin', 'editor'],
         'procesos'          => ['admin', 'editor'],
         'correccion'        => ['admin', 'editor'],
+        'publicar'          => ['admin', 'editor'],   // publicar / despublicar una caja en el sitio
+        'consultas'         => ['admin', 'editor'],   // consultas a pedido del sitio (con datos personales)
         'usuarios'          => ['admin'],
         'migraciones'       => ['admin'],
         'ver'               => ['admin', 'editor', 'data_entry', 'qa'],
@@ -140,6 +142,20 @@ final class App
             return;
         }
         require dirname(__DIR__, 2) . '/vistas/_layout.php';
+    }
+
+    /** Consultas del sitio sin atender (chip del menú). 0 si la tabla todavía no existe (migración 005 pendiente). */
+    public static function consultasNuevas(): int
+    {
+        static $n = null;
+        if ($n === null) {
+            try {
+                $n = (new \Aida\Consultas(aida_db()))->pendientes();
+            } catch (\PDOException) {
+                $n = 0;
+            }
+        }
+        return $n;
     }
 
     public static function pendientes(): int

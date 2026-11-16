@@ -1,4 +1,5 @@
-<?php use Aida\Web\App; $u = App::usuario(); $pend = $u ? App::pendientes() : 0; $sec = $_GET['r'] ?? 'cajas'; ?>
+<?php use Aida\Web\App; $u = App::usuario(); $pend = $u ? App::pendientes() : 0; $sec = $_GET['r'] ?? 'cajas';
+$consNuevas = $u && App::puede('consultas') ? App::consultasNuevas() : 0; ?>
 <!doctype html>
 <html lang="es">
 <head>
@@ -15,6 +16,7 @@
     <a href="<?= App::url('cajas') ?>" class="<?= in_array($sec, ['cajas', 'caja', 'registro', 'caja_nueva', 'registro_nuevo'], true) ? 'activo' : '' ?>">Cajas</a>
     <a href="<?= App::url('vocabularios') ?>" class="<?= in_array($sec, ['vocabularios', 'vocab_curar', 'vocab_informe', 'curaduria_deshacer'], true) ? 'activo' : '' ?>">Vocabularios</a>
     <a href="<?= App::url('procesos') ?>" class="<?= in_array($sec, ['procesos', 'importar', 'proceso_deshacer', 'correccion'], true) ? 'activo' : '' ?>">Importaciones</a>
+    <?php if ($u && App::puede('consultas')): ?><a href="<?= App::url('consultas', ['estado' => 'nueva']) ?>" class="<?= in_array($sec, ['consultas', 'consulta'], true) ? 'activo' : '' ?>" title="Consultas a pedido del sitio">Consultas<?php if ($consNuevas): ?> <b class="contador" aria-label="<?= $consNuevas ?> sin atender"><?= $consNuevas ?></b><?php endif ?></a><?php endif ?>
     <?php if ($u && App::puede('migraciones')): ?><a href="<?= App::url('base') ?>" class="<?= $sec === 'base' ? 'activo' : '' ?>">Base de datos</a><?php endif ?>
     <a href="<?= App::url('notificaciones') ?>" class="campana <?= $sec === 'notificaciones' ? 'activo' : '' ?>" title="Verificaciones pendientes">
       🔔 <span>Verificaciones</span><?php if ($pend): ?> <b class="contador"><?= $pend ?></b><?php endif ?>

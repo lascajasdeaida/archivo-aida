@@ -75,6 +75,36 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
   </section>
 
   <aside>
+    <?php $pubUrl = (new \Aida\Web\Enlaces('../', false, (aida_config()['sitio']['reescritura'] ?? true) !== false))->caja($caja); ?>
+    <section class="panel" id="publicacion">
+      <h2>Publicación en el sitio</h2>
+      <?php if ($caja['publicada']): ?>
+        <p><span class="chip chip-ok">Publicada</span> La caja y sus registros se ven en el sitio.</p>
+        <p class="nota"><?= (int)$publicacion['visibles'] ?> registros visibles<?= $publicacion['a_pedido'] ? ', ' . (int)$publicacion['a_pedido'] . ' de consulta a pedido' : '' ?>.
+          <a href="<?= e($pubUrl) ?>" target="_blank" rel="noopener">Ver en el sitio ↗</a></p>
+      <?php else: ?>
+        <p><span class="chip">Sin publicar</span> Ni la caja ni sus registros se ven en el sitio.</p>
+        <p class="nota">Al publicarla se van a ver <?= (int)$publicacion['visibles'] ?> registros<?= $publicacion['a_pedido'] ? ' (' . (int)$publicacion['a_pedido'] . ' de consulta a pedido: la ficha sí, el documento no)' : '' ?>.</p>
+      <?php endif ?>
+      <?php if ($publicacion['a_revisar'] || $publicacion['no_publicados']): ?>
+        <p class="nota">No entran: <?= implode(', ', array_filter([
+            $publicacion['a_revisar'] ? $publicacion['a_revisar'] . ' con acceso «a revisar»' : '',
+            $publicacion['no_publicados'] ? $publicacion['no_publicados'] . ' marcados como no publicados' : ''])) ?>.</p>
+      <?php endif ?>
+      <?php if (App::puede('publicar') && !$caja['eliminado_en']): ?>
+      <form method="post" action="<?= App::url('caja_publicar', ['id' => $caja['id']]) ?>" class="acciones">
+        <?= App::campoToken() ?>
+        <?php if ($caja['publicada']): ?>
+          <button class="btn btn-peligro-borde" data-doble="La caja y sus <?= (int)$publicacion['visibles'] ?> registros dejan de verse en el sitio (sus enlaces responden «ya no está disponible»). ¿Confirmar?">Despublicar la caja</button>
+        <?php else: ?>
+          <input type="hidden" name="publicar" value="1">
+          <button class="btn btn-crear">Publicar la caja</button>
+        <?php endif ?>
+        <a class="btn" href="<?= App::url('vista_previa', ['caja' => $caja['id']]) ?>" target="_blank" rel="noopener">Vista previa ↗</a>
+      </form>
+      <?php endif ?>
+    </section>
+
     <section class="panel">
       <h2>Datos de la caja</h2>
       <form method="post" action="<?= App::url('caja_guardar', ['id' => $caja['id']]) ?>">
@@ -88,7 +118,6 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
             <div class="candado">✎ Editado a mano: la planilla ya no actualiza este campo.</div>
           <?php endif ?>
         <?php endforeach ?>
-        <label class="check"><input type="checkbox" name="publicada" value="1" <?= $caja['publicada'] ? 'checked' : '' ?>> Publicada en el sitio</label>
         <?php if (App::puede('editar')): ?><div class="acciones"><button class="btn btn-primario">Guardar</button></div><?php endif ?>
       </form>
       <?php foreach (array_intersect($bloq, ['nombre', 'resumen']) as $k): ?>

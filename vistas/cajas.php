@@ -12,9 +12,16 @@
   </div>
 </div>
 
+<div class="tabs" role="navigation" aria-label="Publicación en el sitio">
+  <?php $base = $verBajas ? ['bajas' => 1] : []; ?>
+  <a href="<?= App::url('cajas', $base) ?>" class="<?= $pub === '' ? 'activo' : '' ?>">Todas</a>
+  <a href="<?= App::url('cajas', $base + ['pub' => 1]) ?>" class="<?= $pub === '1' ? 'activo' : '' ?>">Publicadas en el sitio (<?= $nPublicadas ?>)</a>
+  <a href="<?= App::url('cajas', $base + ['pub' => 0]) ?>" class="<?= $pub === '0' ? 'activo' : '' ?>">Sin publicar (<?= $nSinPublicar ?>)</a>
+</div>
+
 <table>
   <thead><tr>
-    <th>Caja</th><th>Nombre</th><th class="num">Registros</th><th class="num">Digitalizados</th><th>Acceso</th><th>Verificaciones</th><th>Estado</th>
+    <th>Caja</th><th>Nombre</th><th class="num">Registros</th><th class="num">Digitalizados</th><th>Acceso</th><th>Verificaciones</th><th>Estado</th><th>Sitio</th>
   </tr></thead>
   <tbody>
   <?php foreach ($cajas as $c): $url = App::url('caja', ['id' => $c['id']]); ?>
@@ -31,7 +38,9 @@
         <?php elseif ((int)$c['digitalizados'] > 0): ?><span class="chip chip-warn">Digitalización parcial</span>
         <?php else: ?><span class="chip">Sin digitalizar</span><?php endif ?>
       </td>
+      <td class="no-tachar"><?= $c['publicada'] ? '<span class="chip chip-ok">Publicada</span>' : '<span class="chip">Sin publicar</span>' ?></td>
     </tr>
   <?php endforeach ?>
+  <?php if (!$cajas): ?><tr><td colspan="8" class="nota"><?= $pub === '1' ? 'Todavía no hay cajas publicadas. Se publican desde la página de cada caja.' : 'No hay cajas con este filtro.' ?></td></tr><?php endif ?>
   </tbody>
 </table>

@@ -167,16 +167,30 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
           <div>
             <b><?= e($a['nombre_archivo']) ?></b><br>
             <span class="nota"><?= e(strtoupper($a['formato'])) ?><?= $a['peso_bytes'] ? ' · ' . number_format($a['peso_bytes'] / 1048576, 1, ',', '.') . ' MB' : '' ?> · <?= e($a['ruta']) ?></span><br>
+            <?php if ($origen->nombre() === 'drive' || $a['drive_id'] !== null): ?>
+              <span class="nota">Drive: <?= $a['drive_id'] !== null ? '<code>' . e($a['drive_id']) . '</code>' : 'sin id en el listado' ?>
+                · <?= $a['drive_compartido'] === null ? 'compartido: sin dato' : ((int)$a['drive_compartido'] ? 'compartido con «cualquiera con el enlace»' : 'no compartido') ?></span><br>
+            <?php endif ?>
+            <?php if (!$quitado && $a['presente'] && $a['drive_compartido'] !== null): $comp = (int)$a['drive_compartido'] === 1; ?>
+              <?php if ($comp && $r['acceso'] !== 'publico'): ?>
+                <span class="chip chip-stop">En Drive cualquiera con el enlace lo abre, y el registro es <?= $r['acceso'] === 'restringido' ? 'restringido' : 'a revisar' ?></span><br>
+              <?php elseif (!$comp && $r['acceso'] === 'publico' && $r['publicado'] && $origen->nombre() === 'drive'): ?>
+                <span class="chip chip-warn">Público, pero en Drive no está compartido: el visor del sitio no lo va a mostrar</span><br>
+              <?php endif ?>
+            <?php endif ?>
             <?php if ($quitado): ?><span class="nota">Quitado desde el backoffice el <?= fecha($a['eliminado_en']) ?>. El escaneo no lo vuelve a asociar.</span>
             <?php elseif (!$a['presente']): ?><span class="nota">No apareció en el último escaneo.</span><?php endif ?>
             <?php if (!$quitado && $a['presente']): $url = '../archivo.php?id=' . (int)$a['id']; ?>
               <div class="acciones" style="margin-top:6px">
                 <a class="btn btn-chico" href="<?= e($url) ?>" target="_blank" rel="noopener">Ver <?= e(strtoupper($a['formato'])) ?> ↗</a>
                 <a class="btn btn-chico" href="<?= e($url) ?>&amp;descargar=1">Descargar</a>
-                <?php if (strtolower($a['formato']) === 'pdf'): ?>
+                <?php if (strtolower($a['formato']) === 'pdf' && $origen->admiteVisor($a)): ?>
                   <button type="button" class="btn btn-chico" data-vista="<?= e($url) ?>" data-nombre="<?= e($a['nombre_archivo']) ?>" aria-controls="vista-previa">Vista previa ↓</button>
                 <?php endif ?>
               </div>
+              <?php if (!$origen->admiteVisor($a)): ?>
+                <span class="nota">Pesa más de lo que abre el visor de Drive: en el sitio se ofrece solo la descarga.</span>
+              <?php endif ?>
               <?php if ($r['acceso'] !== 'publico' || !$r['publicado']): ?>
                 <span class="nota">En el sitio no se puede ver: <?= !$r['publicado'] ? 'el registro no está publicado' : 'se consulta a pedido' ?>. Vos lo ves porque estás en el backoffice.</span>
               <?php endif ?>
@@ -191,7 +205,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
           <?php endif ?>
         </div>
       <?php endforeach ?>
-      <p class="nota">Los archivos se asocian solos con el escaneo de carpetas (nombre C<?= (int)$caja['numero'] ?>R<?= (int)$r['numero'] ?>.pdf).</p>
+      <p class="nota">Los archivos se asocian solos con el escaneo <?= $origen->nombre() === 'drive' ? 'del listado de Drive' : 'de carpetas' ?> (nombre C<?= (int)$caja['numero'] ?>R<?= (int)$r['numero'] ?>.pdf).</p>
     </section>
 
     <section class="panel">

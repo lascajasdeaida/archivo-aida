@@ -182,6 +182,10 @@ Primeros 20 resultados y botón «Mostrar 20 más» con «Mostrando 40 de 99» y
 
 ## 7. Eventos para Estadísticas (GA4)
 
+> **16/11/2026:** lo implementado está en [`docs/medicion.md`](../medicion.md), con los nombres del plan de medición
+> (`buscar_archivo`, `aplicar_filtro`, `ver_archivo`, `descargar_archivo`, `enviar_consulta`…) y `registro_codigo` /
+> `caja_numero` en lugar de `codigo` / `caja`. Esta tabla queda como propuesta original de UX.
+
 Se cargan con `dataLayer.push`. **Nunca datos personales** (ni nombre, ni correo, ni mensaje de la consulta). En los wireframes, el botón «Eventos GA4» muestra lo que se enviaría.
 
 | Evento | Cuándo | Parámetros |

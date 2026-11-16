@@ -33,6 +33,8 @@ final class Historial
         // Curaduría de vocabularios (src/Curaduria.php): mover, fusionar, renombrar, descartar
         'vocabulario' => ['tipo', 'nombre', 'clave', 'estado', 'fusionado_en', 'regla', 'motivo', 'eliminado_en', 'eliminado_por'],
         'vocabulario_alias' => ['tipo', 'clave', 'nombre', 'vocabulario_id', 'eliminado_en', 'eliminado_por'],
+        // Consultas a pedido del sitio (src/Consultas.php): el seguimiento en el backoffice. Los datos personales no se editan acá.
+        'consulta' => ['estado', 'notas', 'atendida_por', 'atendida_en', 'eliminado_en', 'eliminado_por'],
     ];
 
     private const LISTAS = ['tipos' => 'tipo_documento', 'descriptores' => 'descriptor'];
@@ -371,6 +373,7 @@ final class Historial
             'archivo_digital' => 'SELECT nombre_archivo FROM archivo_digital WHERE id = ?',
             'vocabulario' => "SELECT CONCAT('«', nombre, '» (', IF(tipo = 'descriptor', 'descriptor', 'tipo de documento'), ')') FROM vocabulario WHERE id = ?",
             'vocabulario_alias' => "SELECT CONCAT('grafía «', nombre, '»') FROM vocabulario_alias WHERE id = ?",
+            'consulta' => "SELECT CONCAT('Consulta ', YEAR(creado_en), '-', LPAD(id, 4, '0')) FROM consulta WHERE id = ?",
             default => null,
         };
         if ($sql === null) {

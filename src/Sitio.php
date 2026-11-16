@@ -220,7 +220,37 @@ final class Sitio
     /** Tarjetas de los registros que el sitio muestra en una caja, en el orden físico. */
     private function tarjetas(int $cajaId): array
     {
-        $lista = $this->listaCaja($cajaId, true);
+        return $this->armarTarjetas($this->listaCaja($cajaId, true));
+    }
+
+    /**
+     * Tarjetas de una lista de registros (resultados del Buscador), en el orden pedido. Solo los que el sitio muestra
+     * (en vista previa, también los de cajas sin publicar). Cada tarjeta trae su caja (id, numero, nombre).
+     * @param list<int> $ids
+     */
+    public function tarjetasDe(array $ids): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        if (!$ids) {
+            return [];
+        }
+        $st = $this->db->prepare('SELECT r.id, r.numero, r.codigo, r.titulo, r.resumen, r.anio_texto, r.acceso,
+                c.id caja_id, c.numero caja_numero, c.nombre caja_nombre,
+                EXISTS (SELECT 1 FROM archivo_digital a WHERE a.registro_id = r.id AND a.eliminado_en IS NULL AND a.presente = 1) digital
+            FROM registro r JOIN caja c ON c.id = r.caja_id
+            WHERE r.id IN (' . implode(',', array_fill(0, count($ids), '?')) . ') AND '
+            . ($this->vistaPrevia ? self::VISIBLE_EN_CAJA . ' AND c.eliminado_en IS NULL' : self::VISIBLE));
+        $st->execute($ids);
+        $filas = [];
+        foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $f) {
+            $filas[(int)$f['id']] = $f;
+        }
+        return $this->armarTarjetas(array_values(array_filter(array_map(fn($id) => $filas[$id] ?? null, $ids))));
+    }
+
+    /** @param list<array> $lista filas con id, numero, codigo, titulo, resumen, anio_texto, acceso, digital (y caja_* opcional) */
+    private function armarTarjetas(array $lista): array
+    {
         $ids = array_map(fn($x) => (int)$x['id'], $lista);
         $voc = $this->vocabularios($ids);
         $anios = $this->anios($ids);
@@ -239,7 +269,8 @@ final class Sitio
                 'extracto' => mb_strlen($resumen) > self::EXTRACTO ? rtrim(mb_substr($resumen, 0, self::EXTRACTO)) . '…' : $resumen,
                 'digital' => (bool)(int)$x['digital'],
                 'pedido' => $x['acceso'] === 'restringido',
-            ] + self::nombre($x['titulo'], $tipos);
+            ] + (isset($x['caja_id']) ? ['caja' => ['id' => (int)$x['caja_id'], 'numero' => (int)$x['caja_numero'], 'nombre' => $x['caja_nombre']]] : [])
+              + self::nombre($x['titulo'], $tipos);
         }
         return $out;
     }
@@ -255,6 +286,164 @@ final class Sitio
             FROM registro r WHERE r.caja_id = ? AND ' . self::VISIBLE_EN_CAJA . ' ORDER BY r.numero');
         $st->execute([$cajaId]);
         return $st->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    // ------------------------------------------------------------------
+    // Inicio, listado de cajas, etapas, vocabularios y sitemap (solo modo público)
+    // ------------------------------------------------------------------
+
+    /**
+     * Etapas del sitio actual (docs/diseno/referencias/identidad-sitio-actual.md). Se muestran mientras la tabla
+     * `periodo` esté vacía, todas «sin asignar». Cuando se carguen períodos en el backoffice, mandan ellos.
+     */
+    public const ETAPAS_SITIO_ACTUAL = [
+        ['nombre' => 'Inicios', 'desde' => 1963, 'hasta' => 1976],
+        ['nombre' => 'Exilio', 'desde' => 1976, 'hasta' => 1979],
+        ['nombre' => 'Regreso', 'desde' => 1979, 'hasta' => 2013],
+        ['nombre' => 'Caos Creativo', 'desde' => 1963, 'hasta' => 2009],
+        ['nombre' => 'Sobre Aída', 'desde' => 1938, 'hasta' => 2013],
+    ];
+
+    /**
+     * Etapas para la línea de tiempo y la faceta. `documentos` cuenta los registros visibles de las cajas publicadas
+     * asignadas a la etapa; 0 = «sin asignar».
+     * @return list<array{id:?int, nombre:string, slug:string, desde:?int, hasta:?int, documentos:int}>
+     */
+    public function etapas(): array
+    {
+        $filas = $this->db->query('SELECT p.id, p.nombre, p.anio_desde desde, p.anio_hasta hasta,
+                (SELECT COUNT(*) FROM caja_periodo cp JOIN caja c ON c.id = cp.caja_id JOIN registro r ON r.caja_id = c.id
+                  WHERE cp.periodo_id = p.id AND ' . self::VISIBLE . ') documentos
+            FROM periodo p ORDER BY p.orden, p.anio_desde, p.nombre')->fetchAll(\PDO::FETCH_ASSOC);
+        if (!$filas) {
+            $filas = array_map(fn($e) => $e + ['id' => null, 'documentos' => 0], self::ETAPAS_SITIO_ACTUAL);
+        }
+        return array_map(fn($e) => [
+            'id' => $e['id'] !== null ? (int)$e['id'] : null, 'nombre' => $e['nombre'], 'slug' => self::slug($e['nombre']),
+            'desde' => $e['desde'] !== null ? (int)$e['desde'] : null, 'hasta' => $e['hasta'] !== null ? (int)$e['hasta'] : null,
+            'documentos' => (int)$e['documentos'],
+        ], $filas);
+    }
+
+    /**
+     * Cajas publicadas con sus cifras (lo que el sitio muestra de cada una).
+     * @return list<array{id:int, numero:int, nombre:string, documentos:int, digitales:int, a_pedido:int, desde:?int, hasta:?int, avance:int}>
+     */
+    public function cajas(): array
+    {
+        $vis = $this->vistaPrevia ? 'c.eliminado_en IS NULL' : 'c.eliminado_en IS NULL AND c.publicada = 1';
+        $filas = $this->db->query("SELECT c.id, c.numero, c.nombre,
+                COUNT(r.id) documentos,
+                COALESCE(SUM(EXISTS (SELECT 1 FROM archivo_digital a WHERE a.registro_id = r.id AND a.eliminado_en IS NULL AND a.presente = 1)), 0) digitales,
+                COALESCE(SUM(r.acceso = 'restringido'), 0) a_pedido,
+                (SELECT MIN(ra.anio) FROM registro_anio ra JOIN registro r2 ON r2.id = ra.registro_id
+                  WHERE r2.caja_id = c.id AND r2.eliminado_en IS NULL AND r2.publicado = 1 AND r2.acceso <> 'a_revisar') desde,
+                (SELECT MAX(ra.anio) FROM registro_anio ra JOIN registro r2 ON r2.id = ra.registro_id
+                  WHERE r2.caja_id = c.id AND r2.eliminado_en IS NULL AND r2.publicado = 1 AND r2.acceso <> 'a_revisar') hasta
+            FROM caja c LEFT JOIN registro r ON r.caja_id = c.id AND r.eliminado_en IS NULL AND r.publicado = 1 AND r.acceso <> 'a_revisar'
+            WHERE $vis GROUP BY c.id, c.numero, c.nombre ORDER BY c.numero")->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map(function ($c) {
+            $n = (int)$c['documentos'];
+            $d = (int)$c['digitales'];
+            return ['id' => (int)$c['id'], 'numero' => (int)$c['numero'], 'nombre' => $c['nombre'], 'documentos' => $n,
+                    'digitales' => $d, 'a_pedido' => (int)$c['a_pedido'],
+                    'desde' => $c['desde'] !== null ? (int)$c['desde'] : null, 'hasta' => $c['hasta'] !== null ? (int)$c['hasta'] : null,
+                    'avance' => $n ? (int)round($d / $n * 100) : 0];
+        }, $filas);
+    }
+
+    /** Cantidad total de cajas del archivo (sin bajas), publicadas o no: «Las 70 cajas». */
+    public function totalCajasArchivo(): int
+    {
+        return (int)$this->db->query('SELECT COUNT(*) FROM caja WHERE eliminado_en IS NULL')->fetchColumn();
+    }
+
+    /**
+     * Cifras del sitio: cajas publicadas, documentos visibles, digitalizados y años que abarcan.
+     * @return array{cajas:int, documentos:int, digitales:int, desde:?int, hasta:?int}
+     */
+    public function cifras(): array
+    {
+        $f = $this->db->query('SELECT COUNT(DISTINCT c.id) cajas, COUNT(r.id) documentos,
+                COALESCE(SUM(r.digitalizado), 0) digitales,
+                (SELECT MIN(ra.anio) FROM registro_anio ra JOIN registro r ON r.id = ra.registro_id JOIN caja c ON c.id = r.caja_id WHERE ' . self::VISIBLE . ') desde,
+                (SELECT MAX(ra.anio) FROM registro_anio ra JOIN registro r ON r.id = ra.registro_id JOIN caja c ON c.id = r.caja_id WHERE ' . self::VISIBLE . ') hasta
+            FROM registro r JOIN caja c ON c.id = r.caja_id WHERE ' . self::VISIBLE)->fetch(\PDO::FETCH_ASSOC);
+        return ['cajas' => (int)$this->db->query('SELECT COUNT(*) FROM caja WHERE eliminado_en IS NULL AND publicada = 1')->fetchColumn(),
+                'documentos' => (int)$f['documentos'], 'digitales' => (int)$f['digitales'],
+                'desde' => $f['desde'] !== null ? (int)$f['desde'] : null, 'hasta' => $f['hasta'] !== null ? (int)$f['hasta'] : null];
+    }
+
+    /**
+     * Documentos digitalizados de consulta libre y con título para «Ya podés leerlos»: el primero de cada caja.
+     * @return list<array> tarjetas (con su caja)
+     */
+    public function destacadosDigitales(int $max = 6): array
+    {
+        $ids = $this->db->query('SELECT MIN(r.id) FROM registro r JOIN caja c ON c.id = r.caja_id
+            WHERE ' . self::VISIBLE . " AND r.acceso = 'publico' AND r.digitalizado = 1 AND TRIM(COALESCE(r.titulo, '')) <> ''
+            GROUP BY c.numero ORDER BY c.numero LIMIT " . max(1, min(24, $max)))->fetchAll(\PDO::FETCH_COLUMN);
+        return $this->tarjetasDe(array_map('intval', $ids));
+    }
+
+    /**
+     * Términos que el sitio muestra (aprobados y propuestos; sin descartados, fusionados, bajas ni basura sin letras),
+     * agrupados por slug: el slug es lo que va en la URL (/explorar?tipo=guion).
+     * @return array{tipo_documento: array<string, array{nombre:string, ids:list<int>}>, descriptor: array<string, array{nombre:string, ids:list<int>}>}
+     */
+    public function terminos(): array
+    {
+        $out = ['tipo_documento' => [], 'descriptor' => []];
+        $st = $this->db->query("SELECT id, tipo, nombre FROM vocabulario
+            WHERE estado IN ('aprobado', 'propuesto') AND eliminado_en IS NULL AND fusionado_en IS NULL ORDER BY estado = 'aprobado' DESC, id");
+        foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $v) {
+            $slug = self::slug($v['nombre']);
+            if ($slug === '' || !preg_match('/[\p{L}\p{N}]/u', (string)$v['nombre'])) {
+                continue;
+            }
+            $out[$v['tipo']][$slug] ??= ['nombre' => $v['nombre'], 'ids' => []];
+            $out[$v['tipo']][$slug]['ids'][] = (int)$v['id'];
+        }
+        return $out;
+    }
+
+    /**
+     * Estado de un código en el sitio: 'visible', 'oculto' (existe pero no se muestra: baja, no publicado, caja sin
+     * publicar o «a revisar») o null (no existe). Con la caja, si está publicada, para el enlace de la página 410.
+     * @return array{estado:string, caja:?array}|null
+     */
+    public function estadoCodigo(string $codigo): ?array
+    {
+        $p = Texto::parsearCodigo($codigo);
+        if ($p === null || $p[2] !== 0) {
+            return null;
+        }
+        $st = $this->db->prepare('SELECT r.eliminado_en, r.publicado, r.acceso, r.excel_privado, c.id caja_id, c.numero caja_numero, c.nombre caja_nombre,
+                c.publicada caja_publicada, c.eliminado_en caja_baja
+            FROM registro r JOIN caja c ON c.id = r.caja_id WHERE c.numero = ? AND r.numero = ?');
+        $st->execute([$p[0], $p[1]]);
+        $r = $st->fetch(\PDO::FETCH_ASSOC);
+        if (!$r) {
+            return null;
+        }
+        $cajaVisible = $r['caja_baja'] === null && (int)$r['caja_publicada'];
+        return [
+            'estado' => self::motivosRegistro($r) ? 'oculto' : 'visible',
+            'caja' => $cajaVisible ? ['id' => (int)$r['caja_id'], 'numero' => (int)$r['caja_numero'], 'nombre' => $r['caja_nombre']] : null,
+        ];
+    }
+
+    /**
+     * Lo que va al sitemap: cajas publicadas y registros visibles, con su última modificación.
+     * @return array{cajas: list<array{id:int, numero:int, nombre:string, modificado:string}>, registros: list<array{codigo:string, modificado:string}>}
+     */
+    public function sitemap(): array
+    {
+        $cajas = $this->db->query('SELECT id, numero, nombre, actualizado_en modificado FROM caja
+            WHERE eliminado_en IS NULL AND publicada = 1 ORDER BY numero')->fetchAll(\PDO::FETCH_ASSOC);
+        $regs = $this->db->query('SELECT r.codigo, GREATEST(r.actualizado_en, c.actualizado_en) modificado
+            FROM registro r JOIN caja c ON c.id = r.caja_id WHERE ' . self::VISIBLE . ' ORDER BY c.numero, r.numero')->fetchAll(\PDO::FETCH_ASSOC);
+        return ['cajas' => $cajas, 'registros' => $regs];
     }
 
     // ------------------------------------------------------------------

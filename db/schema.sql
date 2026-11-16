@@ -1,6 +1,7 @@
 -- =====================================================================
 -- Archivo AIDA BORTNIK · Las cajas de Aída
 -- Esquema MySQL / MariaDB · InnoDB · utf8mb4
+-- Versión 0.9 (15/11/2026) — consultas a pedido del sitio público (consulta) y publicación por caja
 -- Versión 0.8 (15/11/2026) — años de cada registro (registro_anio): las listas salteadas filtran solo sus años
 -- Versión 0.7 (15/11/2026) — corrección masiva por planilla (proceso 'correccion')
 -- Versión 0.6 (15/11/2026) — curaduría de vocabularios (mover, descartar, alias) y años con rango
@@ -258,9 +259,9 @@ CREATE TABLE IF NOT EXISTS usuario (
 CREATE TABLE IF NOT EXISTS auditoria (
   id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   usuario_id   INT UNSIGNED NULL,
-  origen       ENUM('backoffice','importacion','escaneo','reversion') NOT NULL DEFAULT 'backoffice',
+  origen       ENUM('backoffice','importacion','escaneo','reversion','sitio') NOT NULL DEFAULT 'backoffice', -- sitio: alta de una consulta
   proceso_id   INT UNSIGNED NULL,                   -- si lo hizo una importación o un escaneo
-  entidad      ENUM('caja','registro','archivo_digital','vocabulario','vocabulario_alias','periodo','usuario') NOT NULL,
+  entidad      ENUM('caja','registro','archivo_digital','vocabulario','vocabulario_alias','periodo','usuario','consulta') NOT NULL,
   entidad_id   INT UNSIGNED NOT NULL,
   accion       ENUM('alta','modificacion','baja','restauracion','reversion') NOT NULL,
   cambios      JSON NULL,                           -- {campo: [antes, después]}
@@ -271,6 +272,34 @@ CREATE TABLE IF NOT EXISTS auditoria (
   KEY idx_aud_entidad (entidad, entidad_id),
   KEY idx_aud_proceso (proceso_id),
   KEY idx_aud_fecha (creado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Consultas a pedido del sitio público (/consulta/C2R5). Datos personales: solo acá y en el backoffice.
+CREATE TABLE IF NOT EXISTS consulta (
+  id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  registro_id   INT UNSIGNED NULL,                    -- documento pedido (NULL si después se borró el registro)
+  codigo        VARCHAR(20)  NOT NULL,                -- código del documento al momento del pedido (C2R5)
+  tipo          ENUM('a_pedido','original') NOT NULL DEFAULT 'a_pedido', -- a_pedido: restringido; original: sin digitalizar u otro
+  nombre        VARCHAR(120) NOT NULL,
+  correo        VARCHAR(190) NOT NULL,
+  institucion   VARCHAR(160) NULL,
+  uso           ENUM('investigacion','prensa','produccion','personal','otro') NOT NULL, -- uso previsto
+  modalidad     ENUM('digital','presencial') NOT NULL DEFAULT 'digital',
+  motivo        TEXT         NOT NULL,                -- qué busca y por qué (mensaje del formulario)
+  estado        ENUM('nueva','respondida','descartada') NOT NULL DEFAULT 'nueva',
+  notas         TEXT         NULL,                    -- notas internas del equipo (no se le muestran a quien pidió)
+  atendida_por  INT UNSIGNED NULL,
+  atendida_en   DATETIME     NULL,
+  ip_hash       CHAR(64)     NULL,                    -- HMAC de la IP: solo para limitar envíos seguidos; no se muestra
+  eliminado_en  DATETIME     NULL,
+  eliminado_por INT UNSIGNED NULL,
+  creado_en     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  actualizado_en TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_consulta_estado (estado, creado_en),
+  KEY idx_consulta_registro (registro_id),
+  KEY idx_consulta_ip (ip_hash, creado_en),
+  CONSTRAINT fk_consulta_registro FOREIGN KEY (registro_id) REFERENCES registro(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Métricas propias (complementan GA4)
@@ -300,6 +329,7 @@ INSERT IGNORE INTO migracion (version, nombre) VALUES
   ('001', '001_busqueda_fulltext.sql'),
   ('002', '002_curaduria_y_anios.sql'),
   ('003', '003_correccion_masiva.sql'),
-  ('004', '004_registro_anio.sql');
+  ('004', '004_registro_anio.sql'),
+  ('005', '005_consultas_y_sitio.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

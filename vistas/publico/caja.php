@@ -31,6 +31,7 @@ ob_start(); ?>
     <div class="cabeza-caja__texto">
     <p class="cabeza-registro__codigo">Caja <?= $n ?><?= $d['total_cajas'] ? ' de ' . (int)$d['total_cajas'] : '' ?></p>
     <h1><?= H::e($c['nombre']) ?></h1>
+    <?php if (!empty($equipo)): ?><p class="barra-equipo"><a class="boton boton--fantasma" href="<?= H::e($equipo['admin'] . '?r=caja&id=' . (int)$c['id']) ?>">Editar en el backoffice</a> <span class="meta">Lo ves porque tenés abierta la sesión del backoffice (<?= H::e($equipo['nombre']) ?>).</span></p><?php endif ?>
     <p class="datos-caja">
       <span><b><?= H::numero($cf['documentos']) ?></b> documentos</span>
       <span><b><?= H::numero($cf['digitales']) ?></b> digitalizados</span>

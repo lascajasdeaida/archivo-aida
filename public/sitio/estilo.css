@@ -562,3 +562,6 @@ body.panel-abierto { overflow: hidden; }
 .notas-maqueta { margin: 0 auto; max-width: var(--ancho); padding: var(--e-4) var(--margen) var(--e-6); font-size: var(--t-dato); color: var(--c-texto-2); }
 .notas-maqueta summary { cursor: pointer; min-height: var(--toque); display: flex; align-items: center; }
 .notas-maqueta > div { border: 1px dashed var(--c-borde); padding: var(--e-3) var(--e-4); background: var(--c-fondo); }
+
+/* Botón de edición para quien tiene sesión del backoffice (ficha y caja) */
+.barra-equipo{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:8px 0 0}

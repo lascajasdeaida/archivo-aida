@@ -46,6 +46,7 @@ ob_start(); ?>
   <header class="cabeza-registro">
     <p class="cabeza-registro__codigo"><span class="codigo"><?= H::e($codigo) ?></span> · Caja <?= (int)$caja['numero'] ?>, registro <?= (int)$r['numero'] ?></p>
     <h1><?= H::nombre($d) ?></h1>
+    <?php if (!empty($equipo)): ?><p class="barra-equipo"><a class="boton boton--fantasma" href="<?= H::e($equipo['admin'] . '?r=registro&id=' . (int)$d['registro']['id']) ?>">Editar en el backoffice</a> <span class="meta">Lo ves porque tenés abierta la sesión del backoffice (<?= H::e($equipo['nombre']) ?>).</span></p><?php endif ?>
     <?php if ($d['sinTitulo']): ?><p class="meta">Este documento no tiene título en el catálogo; se lo nombra por su tipo.</p><?php endif ?>
     <div class="etqs">
       <?= $d['digital'] ? '<span class="etq etq--digital">' . H::icono('documento') . 'Documento digital</span>'

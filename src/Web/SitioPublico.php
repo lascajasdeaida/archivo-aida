@@ -745,8 +745,34 @@ final class SitioPublico
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'HEAD') {
             exit;
         }
-        echo self::parcial("publico/$vista", $datos + ['enl' => self::$enl]);
+        $equipo = self::equipo();
+        if ($equipo !== null) {
+            header('Cache-Control: private, no-store'); // la página lleva el botón de edición: no se guarda en cachés compartidas
+        }
+        echo self::parcial("publico/$vista", $datos + ['enl' => self::$enl, 'equipo' => $equipo]);
         exit;
+    }
+
+    /**
+     * Si quien mira el sitio tiene abierta una sesión del backoffice con permiso de edición, sus datos y la URL del
+     * backoffice (para el botón “Editar en el backoffice” de la ficha y la caja). Sin la cookie de sesión no se abre
+     * ninguna sesión: el público no recibe cookies.
+     *
+     * @return array{nombre:string, admin:string}|null
+     */
+    private static function equipo(): ?array
+    {
+        if (empty($_COOKIE['aida_bo']) || !is_string($_COOKIE['aida_bo'])) {
+            return null;
+        }
+        App::iniciarSesion();
+        $u = App::usuario();
+        $puede = App::puede('editar');
+        session_write_close();
+        if ($u === null || !$puede) {
+            return null;
+        }
+        return ['nombre' => (string)($u['nombre'] ?: $u['email']), 'admin' => self::$enl->base . 'admin/'];
     }
 
     private static function parcial(string $vista, array $datos): string

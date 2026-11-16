@@ -48,6 +48,9 @@ $actual = fn(string $s) => ($seccion ?? '') === $s ? ' aria-current="page"' : ''
 <?php endif ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="icon" href="<?= H::e($enl->recurso('sitio/img/favicon.svg')) ?>" type="image/svg+xml">
+<link rel="icon" href="<?= H::e($enl->recurso('sitio/img/favicon-32.png')) ?>" sizes="32x32">
+<link rel="apple-touch-icon" href="<?= H::e($enl->recurso('sitio/img/apple-touch-icon.png')) ?>">
 <link rel="stylesheet" href="<?= H::e($enl->recurso('sitio/estilo.css')) ?>">
 <?= $cabezaExtra ?? '' ?>
 <?php if ($medicion): ?><script src="<?= H::e($enl->recurso('sitio/medicion.js')) ?>" defer></script>

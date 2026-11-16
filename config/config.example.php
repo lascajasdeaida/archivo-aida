@@ -17,4 +17,12 @@ return [
     // 'importaciones_dir' => '/var/www/aida-privado/importaciones',
     // Tamaño máximo del Excel que se puede subir, en MB (también lo limitan upload_max_filesize y post_max_size de PHP).
     // 'importar_max_mb' => 40,
+    // Sitio público (docs/despliegue.md). url: dominio para canonical, Open Graph, sitemap y citas.
+    // reescritura: forzar la forma de los enlaces (true = /explorar; false = sitio.php?ruta=explorar). Sin definir, el sitio
+    // la detecta sola; el backoffice («Ver en el sitio») la toma de acá y por defecto usa URLs legibles.
+    // 'sitio' => ['url' => 'https://lascajasdeaida.com.ar', 'reescritura' => false],
+    // Secreto para firmar el formulario de consulta (64 caracteres al azar). Si falta, se crea solo en var/secreto.
+    // 'secreto' => 'cambiar-por-64-caracteres-al-azar',
+    // Consultas a pedido: clase que avisa cuando llega una (implementa Aida\NotificadorConsultas). Por ahora ninguna.
+    // 'consultas' => ['notificador' => null],
 ];

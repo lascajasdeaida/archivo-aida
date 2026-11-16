@@ -1,5 +1,5 @@
 /* Vista previa del backoffice: las fichas y las cajas navegan dentro de la vista previa (sus enlaces ya apuntan
-   a ?r=vista_previa). Las páginas del sitio que todavía no existen (inicio, explorar, consulta…) se avisan acá
+   a ?r=vista_previa). Las demás páginas del sitio (inicio, explorar, consulta…) se avisan acá
    en vez de llevar a un 404. */
 (function () {
   'use strict';
@@ -8,7 +8,7 @@
     const avisar = () => {
       if (!estado) return;
       estado.textContent = '';
-      setTimeout(() => { estado.textContent = 'Esa página del sitio todavía no está hecha: en la vista previa solo se navega entre fichas y cajas.'; }, 50);
+      setTimeout(() => { estado.textContent = 'En la vista previa solo se navega entre fichas y cajas: el resto del sitio se ve en el sitio (solo con cajas publicadas).'; }, 50);
       estado.scrollIntoView({ block: 'nearest' });
     };
     const interna = a => {

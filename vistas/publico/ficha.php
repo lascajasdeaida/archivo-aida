@@ -32,6 +32,7 @@ ob_start(); ?>
     <li aria-current="page"><?= H::e($codigo) ?></li>
   </ol></nav>
 
+  <p class="volver" data-volver hidden><a href="<?= H::e($enl->explorar()) ?>"><?= H::icono('flechaIzq') ?>Volver a los resultados</a></p>
   <div class="cabeza-pagina">
     <p class="kicker">Caja <?= (int)$caja['numero'] ?> · Registro <?= (int)$r['numero'] ?> · Código <span class="codigo"><?= H::e($codigo) ?></span></p>
     <h1><?= H::nombre($d) ?></h1>

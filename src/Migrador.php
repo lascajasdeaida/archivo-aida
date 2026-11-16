@@ -5,7 +5,7 @@ namespace Aida;
 
 /**
  * Migraciones de db/migraciones/ (NNN_descripcion.sql). Lo usan bin/migrar.php y la pantalla
- * «Base de datos» del backoffice (para hostings sin consola). Cada migración es idempotente.
+ * “Base de datos” del backoffice (para hostings sin consola). Cada migración es idempotente.
  */
 final class Migrador
 {
@@ -121,7 +121,7 @@ final class Migrador
 
     /**
      * Parte un archivo SQL en sentencias. Respeta comillas y comentarios (-- y /* *\/),
-     * así un «;» dentro de un texto no corta la sentencia. No admite DELIMITER (no usamos
+     * así un “;” dentro de un texto no corta la sentencia. No admite DELIMITER (no usamos
      * triggers ni procedimientos: muchos hostings no los permiten).
      * @return list<string>
      */

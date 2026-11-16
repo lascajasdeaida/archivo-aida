@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Aida;
 
 /**
- * Tabla registro_anio: los años a los que responde cada registro (docs/decisiones.md, «Años»).
+ * Tabla registro_anio: los años a los que responde cada registro (docs/decisiones.md, “Años”).
  * Es lo que usan el filtro por año, rango y década y la faceta de décadas (src/Buscador.php).
  *
  * Se deriva de la columna Año (registro.anio_texto) con Texto::anio(), y nunca contradice el resumen

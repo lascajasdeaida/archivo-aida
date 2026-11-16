@@ -1,12 +1,12 @@
 /* Las cajas de Aída — tokens del ARCHIVO (catálogo en línea). Lenguaje de sistema (decisión del PM, 16/11/2026;
-   docs/decisiones.md «Diseño del archivo: lenguaje de sistema»). El sitio institucional sigue con la dirección B inmersiva;
+   docs/decisiones.md “Diseño del archivo: lenguaje de sistema”). El sitio institucional sigue con la dirección B inmersiva;
    el archivo comparte con él el logo, la paleta (azul y rojo-naranja como acentos funcionales) y el cursor de la máquina.
 
    Pocas variables, a propósito:
    - 2 familias: Inter para todo; Courier Prime solo para códigos (C2R5) y el texto del buscador (con su cursor rojo).
    - 3 niveles de lectura: título de pantalla, texto, dato secundario.
    - Fondo blanco y neutro; azul = acción, enlace, foco y selección; rojo-naranja = cursor y resaltado del término buscado.
-   Contrastes medidos en docs/diseno/sistema.md «Archivo: sistema» (node docs/diseno/contraste.js). */
+   Contrastes medidos en docs/diseno/sistema.md “Archivo: sistema” (node docs/diseno/contraste.js). */
 
 @import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:ital,wght@0,400;0,600;1,400&display=swap");
 
@@ -31,7 +31,7 @@
   /* ---------- Estados del documento (forma + color, nunca solo color) ---------- */
   --c-digital: #2F5A2A;  --c-digital-suave: #E6EEDF;   /* borde lleno + hoja */
   --c-pedido: #A8361A;   --c-pedido-suave: #FDEDE5;    /* borde rayado + candado */
-  --c-duda: #7A5A0E;     --c-duda-suave: #F4E8C4;      /* borde y subrayado punteados + «?» */
+  --c-duda: #7A5A0E;     --c-duda-suave: #F4E8C4;      /* borde y subrayado punteados + “?” */
   --c-error: #A12A1A;    --c-error-suave: #F9E1DA;     /* barra de 4 px + ícono */
 
   /* ---------- Tipografía: 2 familias, 3 niveles ---------- */

@@ -1,4 +1,4 @@
-/* Las cajas de Aída — hoja del ARCHIVO (catálogo en línea). Lenguaje de sistema (docs/diseno/sistema.md «Archivo: sistema»):
+/* Las cajas de Aída — hoja del ARCHIVO (catálogo en línea). Lenguaje de sistema (docs/diseno/sistema.md “Archivo: sistema”):
    dos familias, tres niveles de lectura, fondo neutro, azul y rojo-naranja solo como acentos funcionales, densidad de herramienta.
    Usa solo los tokens de tokens.css. Mobile first; escritorio desde 900 px.
    Cada bloque lleva el nombre del componente de docs/diseno/componentes.md. */
@@ -197,7 +197,7 @@ fieldset.campo { border: 0; padding: 0; margin: 0 0 var(--e-4); }
 .etq--duda { background: var(--c-duda-suave); border: 1px dotted var(--c-duda); color: var(--c-duda); }
 .etq--tipo { color: var(--c-texto); }
 
-/* Año sin confirmar: subrayado punteado + «?», nunca solo color */
+/* Año sin confirmar: subrayado punteado + “?”, nunca solo color */
 .anio-dudoso { color: var(--c-duda); text-decoration: underline dotted 1.5px; text-underline-offset: .22em; }
 .anio-dudoso .icono { width: 1em; height: 1em; vertical-align: -.12em; margin-left: 2px; }
 
@@ -272,7 +272,7 @@ fieldset.campo { border: 0; padding: 0; margin: 0 0 var(--e-4); }
 .mcaja__avance { margin-top: var(--e-1); }
 .mcaja__avance .avance__barra { flex: 1; width: auto; }
 .mcaja__avance span { min-width: 3.2em; text-align: right; }
-/* Hover y foco: la tapa se levanta apenas (la caja «se abre»); con movimiento reducido solo cambia el color */
+/* Hover y foco: la tapa se levanta apenas (la caja “se abre”); con movimiento reducido solo cambia el color */
 .mcaja:hover .mcaja__tapa, .mcaja:has(a:focus-visible) .mcaja__tapa { transform: translateY(-5px) rotate(-1.5deg); border-color: var(--c-azul); }
 .mcaja:hover .mcaja__frente, .mcaja:has(a:focus-visible) .mcaja__frente { border-color: var(--c-azul); }
 .mcaja:hover .mcaja__titulo a { color: var(--c-azul-osc); text-decoration: underline; }
@@ -388,7 +388,7 @@ body.panel-abierto { overflow: hidden; }
 .estado ul { list-style: none; padding: 0; display: grid; gap: var(--e-1); }
 .estado--error { border-color: var(--c-error); background: var(--c-error-suave); }
 
-/* Paginación / «Mostrar más» */
+/* Paginación / “Mostrar más” */
 .paginacion { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-2) var(--e-4); margin: var(--e-4) 0 var(--e-5); }
 .paginacion progress { width: 120px; height: 6px; appearance: none; -webkit-appearance: none; border: 1px solid var(--c-borde); border-radius: var(--r); background: var(--c-fondo); overflow: hidden; }
 .paginacion progress::-webkit-progress-bar { background: var(--c-fondo); }

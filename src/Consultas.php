@@ -113,7 +113,7 @@ final class Consultas
         return $id;
     }
 
-    /** Número que ve quien pidió y el equipo: «2026-0007». */
+    /** Número que ve quien pidió y el equipo: “2026-0007”. */
     public static function numero(array $c): string
     {
         $anio = !empty($c['creado_en']) ? date('Y', strtotime((string)$c['creado_en'])) : date('Y');
@@ -171,7 +171,7 @@ final class Consultas
 
     /**
      * Cambia estado y notas desde el backoffice, por Historial (se deshace desde la ficha de la consulta).
-     * Al salir de «nueva» se anota quién y cuándo la atendió; al volver a «nueva», se limpia.
+     * Al salir de “nueva” se anota quién y cuándo la atendió; al volver a “nueva”, se limpia.
      */
     public function actualizar(int $id, string $estado, ?string $notas, int $usuarioId): ?int
     {

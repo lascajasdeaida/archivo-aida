@@ -4,20 +4,20 @@ declare(strict_types=1);
 namespace Aida;
 
 /**
- * Importa el Excel del catálogo («Catálogo Aída Parte 1 BACKUP CONSERVACIÓN»).
+ * Importa el Excel del catálogo (“Catálogo Aída Parte 1 BACKUP CONSERVACIÓN”).
  *
  * Reglas (ver docs/decisiones.md):
- *  - Una pestaña «Caja N …» por caja. Fila 1 = encabezados, fila 2 = subencabezados, datos desde la fila 3.
+ *  - Una pestaña “Caja N …” por caja. Fila 1 = encabezados, fila 2 = subencabezados, datos desde la fila 3.
  *  - Columnas A–S fijas en todas las pestañas. Desde la T se ubican por el nombre del encabezado,
- *    y «Digitalización» / «Nombre de archivo digital» además se verifican por contenido
+ *    y “Digitalización” / “Nombre de archivo digital” además se verifican por contenido
  *    (en algunas pestañas el encabezado está invertido respecto de los datos).
  *  - La clave del registro es caja + n.º de registro → C{caja}R{registro}. La columna de nomenclatura
  *    del Excel solo se usa como control cruzado.
- *  - Acceso: «Nivel de Acceso» si dice Público/Restringido; si no, PRIVADO = VERDADERO → restringido,
- *    «VERLO» → a_revisar; en cualquier otro caso, público.
+ *  - Acceso: “Nivel de Acceso” si dice Público/Restringido; si no, PRIVADO = VERDADERO → restringido,
+ *    “VERLO” → a_revisar; en cualquier otro caso, público.
  *  - Es incremental: crea lo nuevo, actualiza lo que cambió y respeta los campos bloqueados
  *    (editados a mano en el backoffice). Nunca borra registros.
- *  - El estado «digitalizado» no lo toca: lo define el escaneo de carpetas.
+ *  - El estado “digitalizado” no lo toca: lo define el escaneo de carpetas.
  *  - Lo dado de baja desde el backoffice (eliminado_en) no se vuelve a crear, y los registros
  *    creados desde el backoffice (origen = 'backoffice') no se modifican.
  *  - Año (col. K): Texto::anio() da la lista de años (registro_anio, src/Anios.php) y el resumen
@@ -70,7 +70,7 @@ final class Importador
     private Vocabulario $voc;
     /** @var array<string,array{codigo:string,detalle:string,registros:list<int>}> reglas de curaduría aplicadas en la caja actual */
     private array $reglas = [];
-    /** @var list<string> campos bloqueados que la planilla ya trae corregidos, en la caja actual («R2 Autor») */
+    /** @var list<string> campos bloqueados que la planilla ya trae corregidos, en la caja actual (“R2 Autor”) */
     private array $corregidos = [];
     /** @var list<string> ídem para los campos de la caja (se juntan antes de procesar sus registros) */
     private array $corregidosCaja = [];
@@ -169,7 +169,7 @@ final class Importador
             $filas[$num] = $f;
         }
         if (!$filas) {
-            $this->rep->incidencia('aviso', 'CAJA_VACIA', $numCaja, null, "La pestaña «{$pestania}» no tiene registros");
+            $this->rep->incidencia('aviso', 'CAJA_VACIA', $numCaja, null, "La pestaña “{$pestania}” no tiene registros");
             return;
         }
         ksort($filas);
@@ -225,7 +225,7 @@ final class Importador
         foreach ($nomenclaturas as $nom => $nums) {
             if (count($nums) > 1) {
                 $this->rep->incidencia('aviso', 'NOMENCLATURA_REPETIDA', $numCaja, null,
-                    "«{$nom}» figura en los registros " . implode(', ', $nums));
+                    "“{$nom}” figura en los registros " . implode(', ', $nums));
             }
         }
 
@@ -258,7 +258,7 @@ final class Importador
                 if (str_starts_with($k, $prefijo)) {
                     if (in_array($campo, $map, true)) {
                         $this->rep->incidencia('aviso', 'COLUMNA_REPETIDA', $numCaja, null,
-                            "Hay dos columnas «{$titulo}»; se usa la primera");
+                            "Hay dos columnas “{$titulo}”; se usa la primera");
                     } else {
                         $map[$col] = $campo;
                     }
@@ -277,7 +277,7 @@ final class Importador
                 $map[$colDig] = 'nomenclatura';
                 $map[$colNom] = 'digitalizado';
                 $this->rep->incidencia('info', 'COLUMNAS_INVERTIDAS', $numCaja, null,
-                    'Los encabezados de «Digitalización» y «Nombre de archivo digital» están invertidos; se leyeron por contenido');
+                    'Los encabezados de “Digitalización” y “Nombre de archivo digital” están invertidos; se leyeron por contenido');
             }
         }
         return $map;
@@ -349,10 +349,10 @@ final class Importador
         $an = Texto::anio($anioRaw);
         if ($an['formato'] === 'ilegible') {
             $this->rep->incidencia('info', 'ANIO_NO_INTERPRETADO', $numCaja, $num,
-                'La columna Año dice «' . mb_substr((string)$anioTxt, 0, 80) . '»: no se pudo leer un año, así que no aparece en el filtro por año');
+                'La columna Año dice “' . mb_substr((string)$anioTxt, 0, 80) . '”: no se pudo leer un año, así que no aparece en el filtro por año');
         } elseif ($an['formato'] === 'rango_supuesto') {
             $this->rep->incidencia('info', 'ANIO_RANGO_SUPUESTO', $numCaja, $num,
-                'La columna Año dice «' . mb_substr((string)$anioTxt, 0, 80) . "»: se tomó como rango {$an['desde']}–{$an['hasta']}, sin confirmar");
+                'La columna Año dice “' . mb_substr((string)$anioTxt, 0, 80) . "”: se tomó como rango {$an['desde']}–{$an['hasta']}, sin confirmar");
         }
 
         // Nomenclatura (control cruzado)
@@ -361,10 +361,10 @@ final class Importador
             $p = Texto::parsearCodigo($nom);
             $nomenclaturas[strtoupper($nom)][] = $num;
             if ($p === null) {
-                $this->rep->incidencia('aviso', 'NOMENCLATURA_ILEGIBLE', $numCaja, $num, "«{$nom}» no tiene forma C#R#");
+                $this->rep->incidencia('aviso', 'NOMENCLATURA_ILEGIBLE', $numCaja, $num, "“{$nom}” no tiene forma C#R#");
             } elseif ($p[0] !== $numCaja || $p[1] !== $num) {
                 $this->rep->incidencia('aviso', 'NOMENCLATURA_DISTINTA', $numCaja, $num,
-                    "El Excel dice «{$nom}»; se usa $codigo (caja + n.º de registro)");
+                    "El Excel dice “{$nom}”; se usa $codigo (caja + n.º de registro)");
             }
         }
 
@@ -401,7 +401,7 @@ final class Importador
                   'isbn' => 60, 'seleccion_digit' => 500, 'excel_nomenclatura' => 40, 'excel_privado' => 255] as $k => $max) {
             if ($datos[$k] !== null && mb_strlen((string)$datos[$k]) > $max) {
                 $datos[$k] = mb_substr((string)$datos[$k], 0, $max);
-                $this->rep->incidencia('aviso', 'TEXTO_RECORTADO', $numCaja, $num, "El campo «" . (self::ETIQUETAS[$k] ?? $k) . "» superaba $max caracteres");
+                $this->rep->incidencia('aviso', 'TEXTO_RECORTADO', $numCaja, $num, "El campo “" . (self::ETIQUETAS[$k] ?? $k) . "” superaba $max caracteres");
             }
         }
 
@@ -491,7 +491,7 @@ final class Importador
      * Cierra el circuito con la planilla: si un campo bloqueado (corregido a mano) ahora trae en el Excel
      * exactamente el mismo valor que la base, el equipo ya lo corrigió en su planilla: se desbloquea (vía Historial,
      * queda en esta importación y se deshace con ella) y vuelve a tomarse del Excel.
-     * Si coincide solo ignorando mayúsculas y espacios («aída  BORTNIK» vs «Aída Bortnik»), se conserva la versión
+     * Si coincide solo ignorando mayúsculas y espacios (“aída  BORTNIK” vs “Aída Bortnik”), se conserva la versión
      * de la base y el campo SIGUE bloqueado, para que la importación siguiente tampoco la pise; se informa igual
      * (decisión del PM, 15/11/2026). Si el Excel trae otro valor, el bloqueo sigue sin aviso.
      * @param list<string> $bloq
@@ -568,18 +568,18 @@ final class Importador
                 return ['restringido', $privTxt];
             }
             if ($k === 'verlo') {
-                $this->rep->incidencia('aviso', 'ACCESO_A_REVISAR', $caja, $num, 'PRIVADO dice «VERLO»');
+                $this->rep->incidencia('aviso', 'ACCESO_A_REVISAR', $caja, $num, 'PRIVADO dice “VERLO”');
                 return ['a_revisar', $privTxt];
             }
             $this->rep->incidencia('aviso', 'PRIVADO_CON_TEXTO', $caja, $num,
-                'La columna PRIVADO tiene texto que no es un valor de acceso: «' . mb_substr($privTxt, 0, 60) . '…»; se tomó como público');
+                'La columna PRIVADO tiene texto que no es un valor de acceso: “' . mb_substr($privTxt, 0, 60) . '…”; se tomó como público');
         }
         return ['publico', $privTxt];
     }
 
     /**
      * Asigna tipos y descriptores. Cada valor se resuelve al término vigente, que puede ser del otro
-     * vocabulario (término movido): «Televisión» en la columna Tipo se carga como descriptor.
+     * vocabulario (término movido): “Televisión” en la columna Tipo se carga como descriptor.
      * Los que llegan por una regla de curaduría van después de los propios de la columna, en el orden del Excel.
      * @param array<string,array<int,mixed>> $columnas tipo de vocabulario => valores de sus columnas
      * @param list<string> $bloq campos bloqueados del registro ('tipos', 'descriptores')
@@ -596,8 +596,8 @@ final class Importador
                 }
                 if (mb_strlen($nombre) > 80) {
                     $this->rep->incidencia('aviso', 'VOCABULARIO_TEXTO_LARGO', $caja, $num,
-                        ($tipo === 'descriptor' ? 'Descriptor' : 'Tipo') . ' con texto largo, no parece un término: «'
-                        . mb_substr($nombre, 0, 60) . '…»; no se cargó');
+                        ($tipo === 'descriptor' ? 'Descriptor' : 'Tipo') . ' con texto largo, no parece un término: “'
+                        . mb_substr($nombre, 0, 60) . '…”; no se cargó');
                     continue;
                 }
                 $res = $this->vocabId($tipo, $nombre);
@@ -633,10 +633,10 @@ final class Importador
     {
         $col = Vocabulario::NOMBRES[$tipo];
         [$codigo, $detalle] = match ($res['regla']) {
-            'descartado' => ['VOCAB_DESCARTADO', "«{$nombre}» llegó como {$col} en %s y se ignoró: es un término descartado"],
-            'movido' => ['VOCAB_MOVIDO', "«{$nombre}» llegó como {$col} en %s y se cargó como " . Vocabulario::NOMBRES[$res['tipo']] . " «{$res['nombre']}»"],
-            'renombre' => ['VOCAB_RENOMBRADO', "«{$nombre}» ({$col}) llegó con la grafía anterior en %s y se cargó como «{$res['nombre']}»"],
-            default => ['VOCAB_FUSIONADO', "«{$nombre}» ({$col}) llegó en %s y se cargó como «{$res['nombre']}», el término en que se fusionó"],
+            'descartado' => ['VOCAB_DESCARTADO', "“{$nombre}” llegó como {$col} en %s y se ignoró: es un término descartado"],
+            'movido' => ['VOCAB_MOVIDO', "“{$nombre}” llegó como {$col} en %s y se cargó como " . Vocabulario::NOMBRES[$res['tipo']] . " “{$res['nombre']}”"],
+            'renombre' => ['VOCAB_RENOMBRADO', "“{$nombre}” ({$col}) llegó con la grafía anterior en %s y se cargó como “{$res['nombre']}”"],
+            default => ['VOCAB_FUSIONADO', "“{$nombre}” ({$col}) llegó en %s y se cargó como “{$res['nombre']}”, el término en que se fusionó"],
         };
         $k = "$codigo|$tipo|" . Texto::clave($nombre);
         $this->reglas[$k] ??= ['codigo' => $codigo, 'detalle' => $detalle, 'registros' => []];

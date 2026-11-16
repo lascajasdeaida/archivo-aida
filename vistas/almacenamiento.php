@@ -73,7 +73,7 @@ $resultado = function (array $x) { ?>
         <button class="btn btn-primario" data-doble="Se guardan los id de Drive y qué archivos están presentes. El escaneo se puede deshacer desde Importaciones. ¿Confirmar?">Cargar el listado</button>
       </form>
       <?php else: ?>
-        <span class="nota">El origen es «disco»: para cargar el listado hay que pasar el origen a «drive».</span>
+        <span class="nota">El origen es “disco”: para cargar el listado hay que pasar el origen a “drive”.</span>
       <?php endif ?>
       <form method="post" action="<?= App::url('drive_listado_descartar') ?>">
         <?= App::campoToken() ?>
@@ -92,7 +92,7 @@ $resultado = function (array $x) { ?>
     <?php endif ?>
     <p class="nota">Mientras no haya acceso a la API de Drive, los id se cargan con un listado: una línea por archivo con
       <b>ruta</b> (C1/C1R31.pdf), <b>id de Drive</b> (o el enlace al archivo), <b>bytes</b> y, si se sabe, <b>compartido</b>
-      (sí/no: «cualquiera con el enlace»). TSV o CSV, con o sin encabezado. Primero se simula.</p>
+      (sí/no: “cualquiera con el enlace”). TSV o CSV, con o sin encabezado. Primero se simula.</p>
     <form method="post" action="<?= App::url('almacenamiento') ?>" enctype="multipart/form-data" id="form-listado">
       <?= App::campoToken() ?>
       <label>Listado (.tsv, .csv o .txt, hasta <?= (int)$maxMb ?> MB)

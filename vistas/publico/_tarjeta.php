@@ -1,6 +1,6 @@
 <?php
 /**
- * Fila de registro (docs/diseno/sistema.md «Archivo: sistema», componentes.md §5): una fila por documento, toda la fila
+ * Fila de registro (docs/diseno/sistema.md “Archivo: sistema”, componentes.md §5): una fila por documento, toda la fila
  * es un solo enlace. Columnas: código · documento (título y tipos) · caja · año · estado. En celular se apilan.
  * Si hay búsqueda ($e['q'] en Explorar), resalta los términos y muestra el fragmento del resumen donde aparecen.
  * Recibe $t (tarjeta de Aida\Sitio), $caja (id, numero, nombre) si la tarjeta no trae la suya, $enl y opcionalmente

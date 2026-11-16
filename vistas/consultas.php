@@ -10,7 +10,7 @@ $titulo = 'Consultas';
     <h1>Consultas a pedido</h1>
   </div>
 </div>
-<p class="nota">Pedidos que llegan desde el formulario «Pedir consulta» del sitio. Los datos personales se ven solo acá.
+<p class="nota">Pedidos que llegan desde el formulario “Pedir consulta” del sitio. Los datos personales se ven solo acá.
   Todavía no se manda ningún correo: respondé desde tu casilla y marcá la consulta como respondida.</p>
 
 <div class="tabs" role="navigation" aria-label="Estado">

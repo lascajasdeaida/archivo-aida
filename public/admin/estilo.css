@@ -320,7 +320,7 @@ details.leyenda summary{cursor:pointer}
 .tabla-chica{font-size:.85rem;margin:4px 0}
 .tabla-chica td{padding:3px 8px;vertical-align:top}
 
-/* Años (docs/decisiones.md «Años»): dato dudoso en rojo, en la ficha y en la lista de la caja */
+/* Años (docs/decisiones.md “Años”): dato dudoso en rojo, en la ficha y en la lista de la caja */
 .anio-dudoso{color:var(--stop)}
 td.anio-dudoso{font-weight:700}
 .anio-filtro{margin:-6px 0 12px}

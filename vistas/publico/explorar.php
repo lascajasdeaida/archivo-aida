@@ -1,15 +1,15 @@
 <?php
 /**
  * Explorar el archivo: buscador + filtros combinables (docs/ux/sitio-publico.md §3–§4, maqueta explorar.html).
- * Todo funciona sin JS: el panel es un formulario GET, los chips y «Mostrar más» son enlaces reales y la URL guarda
- * el estado. Con JS (public/sitio/explorar.js) los filtros y «Mostrar más» se aplican sin recargar con explorar.json.
+ * Todo funciona sin JS: el panel es un formulario GET, los chips y “Mostrar más” son enlaces reales y la URL guarda
+ * el estado. Con JS (public/sitio/explorar.js) los filtros y “Mostrar más” se aplican sin recargar con explorar.json.
  * Recibe de SitioPublico::explorar(): $e (estado), $r (Buscador), $tarjetas, $facetas, $opciones, $chips, $conteo,
  * $todo, $sugerencias, $nFiltros, $enl y, si falló la búsqueda, $error.
  */
 use Aida\Web\Html as H;
 use Aida\Web\SitioPublico as SP;
 
-$tituloPagina = $e['q'] !== '' ? "Buscar «{$e['q']}»" : 'Explorar el archivo';
+$tituloPagina = $e['q'] !== '' ? "Buscar “{$e['q']}”" : 'Explorar el archivo';
 $scripts = ['sitio/explorar.js'];
 $error = $error ?? false;
 $nFiltros = $nFiltros ?? 0;

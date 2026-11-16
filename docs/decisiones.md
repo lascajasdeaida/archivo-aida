@@ -298,3 +298,7 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   Mientras tanto se sirven desde Drive (16/11/2026); el informe de Almacenamiento da el tamaño para dimensionarlo.
 - Acceso a la API de Drive (cuenta de servicio) para no depender de un listado armado a mano.
 - Backoffice y front conectados a esta base.
+
+## Comillas en los textos visibles (16/11/2026)
+
+Decisión del PM: en todo texto que ve el público o el equipo (sitio, backoffice, mensajes, citas) se usan comillas dobles “ ” y no las angulares « ». Las expresiones que leen datos siguen aceptando « » en la entrada (la planilla puede traerlas).

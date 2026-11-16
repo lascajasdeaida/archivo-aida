@@ -7,7 +7,7 @@ $otro = Vocabulario::PLURALES[Vocabulario::otro($tipo)];
   <div>
     <p class="eyebrow">Curaduría</p>
     <h1>Vocabularios</h1>
-    <p class="nota">Lista cerrada de términos. Lo que llega del Excel y no existe entra como «propuesto» hasta que alguien lo apruebe, lo renombre, lo fusione, lo mueva al otro vocabulario o lo descarte.
+    <p class="nota">Lista cerrada de términos. Lo que llega del Excel y no existe entra como “propuesto” hasta que alguien lo apruebe, lo renombre, lo fusione, lo mueva al otro vocabulario o lo descarte.
       Cada cambio queda en el historial y la importación lo respeta: si la planilla vuelve a traer la grafía vieja, carga el término vigente y lo informa.</p>
   </div>
   <div class="acciones"><a class="btn" href="<?= App::url('vocab_informe') ?>">Cambios de curaduría<?= $cambiosCuraduria ? " ($cambiosCuraduria)" : '' ?></a></div>
@@ -52,12 +52,12 @@ document.addEventListener('DOMContentLoaded', filtrarVocab);
   <?php foreach ($terminos as $t): $est = $estadoDe($t); $vigente = in_array($est, ['propuesto', 'aprobado'], true); ?>
     <tr class="<?= $vigente ? '' : 'baja' ?>" data-nombre="<?= e(mb_strtolower($t['nombre'] . ' ' . $t['alias'])) ?>" data-estado="<?= e($est) ?>">
       <td><?= e($t['nombre']) ?>
-        <?php if ($t['alias']): ?><br><span class="nota">También reconoce la grafía anterior «<?= e($t['alias']) ?>»</span><?php endif ?>
+        <?php if ($t['alias']): ?><br><span class="nota">También reconoce la grafía anterior “<?= e($t['alias']) ?>”</span><?php endif ?>
         <?php if (!$vigente && $t['motivo']): ?><br><span class="nota no-tachar">Motivo: <?= e($t['motivo']) ?></span><?php endif ?>
       </td>
       <td class="no-tachar">
-        <?php if ($est === 'movido'): ?><span class="chip chip-acc">Movido a <?= e(Vocabulario::NOMBRES[$t['fusion_tipo']]) ?>: «<?= e($t['fusion_nombre']) ?>»</span>
-        <?php elseif ($est === 'fusionado'): ?><span class="chip">Fusionado en «<?= e($t['fusion_nombre']) ?>»</span>
+        <?php if ($est === 'movido'): ?><span class="chip chip-acc">Movido a <?= e(Vocabulario::NOMBRES[$t['fusion_tipo']]) ?>: “<?= e($t['fusion_nombre']) ?>”</span>
+        <?php elseif ($est === 'fusionado'): ?><span class="chip">Fusionado en “<?= e($t['fusion_nombre']) ?>”</span>
         <?php elseif ($est === 'descartado'): ?><span class="chip chip-stop">Descartado</span>
         <?php elseif ($est === 'propuesto'): ?><span class="chip chip-warn">Propuesto</span>
         <?php else: ?><span class="chip chip-ok">Aprobado</span><?php endif ?>

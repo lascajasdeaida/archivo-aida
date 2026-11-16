@@ -19,7 +19,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
       <span class="chip <?= $r['acceso'] === 'publico' ? '' : 'chip-warn' ?>"><?= acceso_txt($r['acceso']) ?></span>
       <span class="chip"><?= $r['origen'] === 'backoffice' ? 'Cargado a mano' : 'Desde el Excel' ?></span>
       <?php if (!$r['publicado']): ?><span class="chip chip-warn">No publicado</span><?php endif ?>
-      <?php if ($r['anio_sin_confirmar']): ?><span class="chip chip-stop" title="La planilla dice «<?= e($r['anio_texto']) ?>»">Año no confirmado</span><?php endif ?>
+      <?php if ($r['anio_sin_confirmar']): ?><span class="chip chip-stop" title="La planilla dice “<?= e($r['anio_texto']) ?>”">Año no confirmado</span><?php endif ?>
     </div>
   </div>
   <div class="acciones">
@@ -50,7 +50,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
   </div>
 <?php endif ?>
 <?php if ($r['acceso'] === 'a_revisar'): ?>
-  <div class="leyenda leyenda-warn"><div><b>Acceso sin definir.</b> La planilla dice «<?= e($r['excel_privado']) ?>». No se publica hasta elegir Público o Restringido.</div></div>
+  <div class="leyenda leyenda-warn"><div><b>Acceso sin definir.</b> La planilla dice “<?= e($r['excel_privado']) ?>”. No se publica hasta elegir Público o Restringido.</div></div>
 <?php elseif ($r['acceso'] === 'restringido'): ?>
   <div class="leyenda leyenda-acc"><div><b>Restringido:</b> la ficha se ve en el sitio; el documento se consulta a pedido.</div></div>
 <?php endif ?>
@@ -121,7 +121,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
         <?php $selector('tipos', 'Tipo de documento', $vocab['tipo_documento'], $tipos); ?>
         <?php $selector('descriptores', 'Descriptores', $vocab['descriptor'], $descriptores); ?>
       </div>
-      <p class="nota">Los términos marcados «propuesto» todavía no fueron curados en Vocabularios.</p>
+      <p class="nota">Los términos marcados “propuesto” todavía no fueron curados en Vocabularios.</p>
       <?php foreach (['tipos', 'descriptores'] as $k): if ($bloqueado($k)): ?>
         <div class="candado">✎ <?= $k === 'tipos' ? 'Tipos' : 'Descriptores' ?> editados a mano. La planilla ya no los actualiza.
           <button type="submit" form="desbloquear-<?= $k ?>" class="link" data-doble="La planilla va a reemplazarlos. ¿Confirmar?">Volver a tomarlos del Excel</button></div>
@@ -169,7 +169,7 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
             <span class="nota"><?= e(strtoupper($a['formato'])) ?><?= $a['peso_bytes'] ? ' · ' . number_format($a['peso_bytes'] / 1048576, 1, ',', '.') . ' MB' : '' ?> · <?= e($a['ruta']) ?></span><br>
             <?php if ($origen->nombre() === 'drive' || $a['drive_id'] !== null): ?>
               <span class="nota">Drive: <?= $a['drive_id'] !== null ? '<code>' . e($a['drive_id']) . '</code>' : 'sin id en el listado' ?>
-                · <?= $a['drive_compartido'] === null ? 'compartido: sin dato' : ((int)$a['drive_compartido'] ? 'compartido con «cualquiera con el enlace»' : 'no compartido') ?></span><br>
+                · <?= $a['drive_compartido'] === null ? 'compartido: sin dato' : ((int)$a['drive_compartido'] ? 'compartido con “cualquiera con el enlace”' : 'no compartido') ?></span><br>
             <?php endif ?>
             <?php if (!$quitado && $a['presente'] && $a['drive_compartido'] !== null): $comp = (int)$a['drive_compartido'] === 1; ?>
               <?php if ($comp && $r['acceso'] !== 'publico'): ?>
@@ -235,6 +235,6 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
 
 <section class="panel" id="vista-previa" hidden tabindex="-1">
   <h2>Vista previa · <span class="nombre"></span></h2>
-  <p class="nota">Visor del navegador. Los PDF pesados cargan de a partes; para verlo más cómodo usá «Ver PDF ↗».
+  <p class="nota">Visor del navegador. Los PDF pesados cargan de a partes; para verlo más cómodo usá “Ver PDF ↗”.
     <button type="button" class="link cerrar">Cerrar vista previa</button></p>
 </section>

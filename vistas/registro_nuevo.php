@@ -2,7 +2,7 @@
 <div class="migas"><a href="<?= App::url('cajas') ?>">Cajas</a> / <a href="<?= App::url('caja', ['id' => $caja['id']]) ?>">Caja <?= (int)$caja['numero'] ?></a> / Nuevo registro</div>
 <section class="panel" style="max-width:640px">
   <h1>Nuevo registro en la Caja <?= (int)$caja['numero'] ?></h1>
-  <p class="nota">Se carga como «cargado a mano»: la planilla no lo modifica. Después de crearlo completás el resto de la ficha.</p>
+  <p class="nota">Se carga como “cargado a mano”: la planilla no lo modifica. Después de crearlo completás el resto de la ficha.</p>
   <?php if ($error): ?><div class="aviso aviso-error"><?= e($error) ?></div><?php endif ?>
   <form method="post" action="<?= App::url('registro_nuevo', ['caja' => $caja['id']]) ?>">
     <?= App::campoToken() ?>

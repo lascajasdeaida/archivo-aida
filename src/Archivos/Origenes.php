@@ -23,7 +23,7 @@ final class Origenes
         return match ($origen) {
             self::DISCO => new Disco((string)($a['raiz'] ?? $cfg['archivos_raiz'] ?? '')),
             self::DRIVE => self::drive($cfg),
-            default => throw new \RuntimeException("Origen de archivos desconocido en la configuración: «{$origen}» (disco o drive)"),
+            default => throw new \RuntimeException("Origen de archivos desconocido en la configuración: “{$origen}” (disco o drive)"),
         };
     }
 

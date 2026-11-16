@@ -9,7 +9,7 @@ $grupos = [
     'aplicar'    => ['Se aplican', 'chip-acc', true, 'se aplican'],
     'conflicto'  => ['Conflictos: no se aplican', 'chip-stop', true, 'con conflicto'],
     'error'      => ['Con error: no se aplican', 'chip-stop', true, 'con error'],
-    'saltear'    => ['Se saltean («Revisar» o sin valor nuevo)', 'chip-warn', false, 'se saltean'],
+    'saltear'    => ['Se saltean (“Revisar” o sin valor nuevo)', 'chip-warn', false, 'se saltean'],
     'sin_cambio' => ['Ya estaban así', 'chip-ok', false, 'ya estaban así'],
 ];
 ?>
@@ -19,7 +19,7 @@ $grupos = [
     <p class="eyebrow">Correcciones por planilla</p>
     <h1>Corrección masiva</h1>
     <p class="nota">Subís una planilla con las celdas a corregir, ves qué va a cambiar y recién después lo aplicás.
-      Los campos corregidos quedan como «editados a mano»: la importación del Excel no los pisa hasta que el equipo los corrija también en su planilla.</p>
+      Los campos corregidos quedan como “editados a mano”: la importación del Excel no los pisa hasta que el equipo los corrija también en su planilla.</p>
   </div>
 </div>
 
@@ -35,7 +35,7 @@ $grupos = [
     <?php if ($nPriv): ?>
       <div class="leyenda leyenda-stop" style="display:block" id="privados">
         <p style="margin-top:0"><b><?= $nPriv === 1 ? '1 registro que la planilla marca PRIVADO pasa a público.' : $nPriv . ' registros que la planilla marca PRIVADO pasan a público.' ?></b>
-          No se aplican sin la confirmación de abajo, junto a «Aplicar».</p>
+          No se aplican sin la confirmación de abajo, junto a “Aplicar”.</p>
         <table class="tabla-chica">
           <thead><tr><th class="num">Fila</th><th>Registro</th><th>En la base</th><th>Valor nuevo</th></tr></thead>
           <tbody>
@@ -100,7 +100,7 @@ $grupos = [
         <?= App::campoToken() ?>
         <button class="btn">Descartar</button>
       </form>
-      <span class="nota"><?= $c['aplicar'] ? 'Solo se aplican las filas de «Se aplican». La vista previa vale 2 horas.' : 'No hay nada para aplicar.' ?></span>
+      <span class="nota"><?= $c['aplicar'] ? 'Solo se aplican las filas de “Se aplican”. La vista previa vale 2 horas.' : 'No hay nada para aplicar.' ?></span>
     </div>
   </section>
 <?php else: ?>
@@ -113,7 +113,7 @@ $grupos = [
         <?= $hecha['cuentas']['conflicto'] ? (int)$hecha['cuentas']['conflicto'] . ' con conflicto, no se aplicaron.' : '' ?>
         <?= !empty($hecha['omitidas_privado']) ? (int)$hecha['omitidas_privado'] . ' pasaban a público registros que la planilla marca PRIVADO y no se aplicaron (faltó la confirmación).' : '' ?></p>
       <p class="nota">Cuando el equipo corrija lo mismo en su planilla, la importación lo detecta, desbloquea esos campos y lo informa
-        («Corrección hecha también en la planilla»).</p>
+        (“Corrección hecha también en la planilla”).</p>
       <div class="acciones"><a class="btn" href="<?= App::url('procesos') ?>">Ver en Importaciones (para deshacerla)</a></div>
     </section>
   <?php endif ?>
@@ -141,9 +141,9 @@ $grupos = [
       <tr><td><b>columna</b></td><td>El nombre de la columna del Excel: Autor, Título, Lugar, Fecha como dice el documento, Año, Páginas, Resumen, ISBN,
         Observaciones/Editorial, Edición de catálogo, Observaciones de conservación, Observaciones de digitalización, Selección para digitalización,
         Acceso (o PRIVADO), Nombre de caja (columna B), Resumen de la caja.</td></tr>
-      <tr><td><b>valor_nuevo</b></td><td>El valor corregido (también vale <code>correccion_sugerida</code>). Vacío o «—» se saltea.</td></tr>
+      <tr><td><b>valor_nuevo</b></td><td>El valor corregido (también vale <code>correccion_sugerida</code>). Vacío o “—” se saltea.</td></tr>
       <tr><td>valor_actual</td><td>Opcional. Si no coincide con la base (sin contar espacios ni mayúsculas), es un conflicto y no se aplica. Vacío: no se controla.</td></tr>
-      <tr><td>accion</td><td>Opcional. «Revisar» se saltea y se lista aparte.</td></tr>
+      <tr><td>accion</td><td>Opcional. “Revisar” se saltea y se lista aparte.</td></tr>
     </table>
     <p class="nota"><b>Cambio masivo de acceso:</b> columna <code>Acceso</code> con Público, Restringido o A revisar
       (también VERDADERO = restringido, FALSO = público, VERLO = a revisar). <b>Año:</b> se recalcula el año del filtro con las mismas reglas que la importación.

@@ -9,7 +9,7 @@ declare(strict_types=1);
  *   php bin/escanear.php carpeta [--simular]            escanea esa carpeta del disco
  *   php bin/escanear.php --listado=archivos.tsv [--simular]
  *
- * El --listado (formato viejo «ruta<TAB>bytes<TAB>fecha») sirve para probar sin los archivos. Para cargar los id de
+ * El --listado (formato viejo “ruta<TAB>bytes<TAB>fecha”) sirve para probar sin los archivos. Para cargar los id de
  * Drive se usa bin/drive-listado.php.
  */
 

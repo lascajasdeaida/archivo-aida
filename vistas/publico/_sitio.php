@@ -6,7 +6,7 @@
  * Recibe:
  *  - $enl        Aida\Web\Enlaces (todas las URL salen de acá)
  *  - $tituloPagina, $contenido (HTML ya armado), $seccion ('cajas', 'explorar'… para aria-current)
- *  - $robots     opcional (vista previa: «noindex,nofollow»)
+ *  - $robots     opcional (vista previa: “noindex,nofollow”)
  *  - $antes      opcional: HTML que va arriba de todo (banner de la vista previa)
  *  - $cabezaExtra opcional: <link>/<script> extra en el <head>
  *  - $meta       opcional (sitio público): descripcion, canonical (absoluta), og_tipo ('website' por defecto)

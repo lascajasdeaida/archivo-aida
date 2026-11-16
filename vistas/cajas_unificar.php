@@ -2,8 +2,8 @@
 $clases = [
     'grafia' => ['Misma obra, distinta grafía', 'Difieren en tildes, mayúsculas, comillas o una letra. Conviene unificar.', 'chip-acc'],
     'resumen' => ['El resumen las presenta juntas', 'Tienen nombres distintos, pero el resumen de una caja dice que van juntas. Revisá si es la misma obra con dos títulos.', 'chip-warn'],
-    'parte' => ['Misma obra, distinta parte: no unificar', 'El numeral final («II», «91/92/93») distingue cada caja. Si hay algo para corregir, se unifica solo el título y cada caja conserva su parte.', 'chip'],
-    'aclaracion' => ['Versiones distintas: no unificar', 'Mismo título con distinta aclaración («(España)», «(Argentina)»). Si hay algo para corregir, se unifica solo el título y cada caja conserva su aclaración.', 'chip'],
+    'parte' => ['Misma obra, distinta parte: no unificar', 'El numeral final (“II”, “91/92/93”) distingue cada caja. Si hay algo para corregir, se unifica solo el título y cada caja conserva su parte.', 'chip'],
+    'aclaracion' => ['Versiones distintas: no unificar', 'Mismo título con distinta aclaración (“(España)”, “(Argentina)”). Si hay algo para corregir, se unifica solo el título y cada caja conserva su aclaración.', 'chip'],
 ];
 ?>
 <div class="migas"><a href="<?= App::url('cajas') ?>">Cajas</a> / Unificar nombres</div>

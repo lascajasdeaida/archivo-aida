@@ -13,14 +13,14 @@ use Aida\Archivos\Origenes;
  * Dos modos:
  *  - público (vistaPrevia = false): lo que no se muestra en el sitio no existe (devuelve null).
  *    Reglas iguales a Buscador (modo público) y Entrega: sin bajas, registro publicado, acceso distinto de
- *    «a revisar», caja publicada.
+ *    “a revisar”, caja publicada.
  *  - vista previa (vistaPrevia = true, backoffice): devuelve la página aunque hoy no se vea en el sitio, con
  *    la lista de motivos (`motivos`) para avisarle al operador. Todo lo demás se arma igual que en el sitio:
  *    la lista de la caja, los vecinos y las cifras cuentan solo lo que el sitio mostraría si la caja estuviera
  *    publicada.
  *
  * Vocabularios: se muestran los términos aprobados y los propuestos; nunca los descartados, los dados de baja
- * ni los que no tienen letras ni números («.», «-»). Ver docs/decisiones.md, «Vocabularios».
+ * ni los que no tienen letras ni números (“.”, “-”). Ver docs/decisiones.md, “Vocabularios”.
  */
 final class Sitio
 {
@@ -50,7 +50,7 @@ final class Sitio
         return $this->ficha('r.id = ?', [$id]);
     }
 
-    /** Ficha por código («C14R3», «c14r03»). */
+    /** Ficha por código (“C14R3”, “c14r03”). */
     public function fichaPorCodigo(string $codigo): ?array
     {
         $p = Texto::parsearCodigo($codigo);
@@ -131,7 +131,7 @@ final class Sitio
             $m[] = 'El registro está marcado como no publicado.';
         }
         if ($r['acceso'] === 'a_revisar') {
-            $m[] = 'El acceso está «a revisar»' . ($r['excel_privado'] ? ' (la planilla dice «' . $r['excel_privado'] . '»)' : '')
+            $m[] = 'El acceso está “a revisar”' . ($r['excel_privado'] ? ' (la planilla dice “' . $r['excel_privado'] . '”)' : '')
                 . ': no se publica hasta elegir Público o Restringido.';
         }
         if ($r['caja_baja'] === null && !(int)$r['caja_publicada']) {
@@ -301,7 +301,7 @@ final class Sitio
 
     /**
      * Etapas del sitio actual (docs/diseno/referencias/identidad-sitio-actual.md). Se muestran mientras la tabla
-     * `periodo` esté vacía, todas «sin asignar». Cuando se carguen períodos en el backoffice, mandan ellos.
+     * `periodo` esté vacía, todas “sin asignar”. Cuando se carguen períodos en el backoffice, mandan ellos.
      */
     public const ETAPAS_SITIO_ACTUAL = [
         ['nombre' => 'Inicios', 'desde' => 1963, 'hasta' => 1976],
@@ -313,7 +313,7 @@ final class Sitio
 
     /**
      * Etapas para la línea de tiempo y la faceta. `documentos` cuenta los registros visibles de las cajas publicadas
-     * asignadas a la etapa; 0 = «sin asignar».
+     * asignadas a la etapa; 0 = “sin asignar”.
      * @return list<array{id:?int, nombre:string, slug:string, desde:?int, hasta:?int, documentos:int}>
      */
     public function etapas(): array
@@ -359,7 +359,7 @@ final class Sitio
         }, $filas);
     }
 
-    /** Cantidad total de cajas del archivo (sin bajas), publicadas o no: «Las 70 cajas». */
+    /** Cantidad total de cajas del archivo (sin bajas), publicadas o no: “Las 70 cajas”. */
     public function totalCajasArchivo(): int
     {
         return (int)$this->db->query('SELECT COUNT(*) FROM caja WHERE eliminado_en IS NULL')->fetchColumn();
@@ -382,7 +382,7 @@ final class Sitio
     }
 
     /**
-     * Documentos digitalizados de consulta libre y con título para «Ya podés leerlos»: el primero de cada caja.
+     * Documentos digitalizados de consulta libre y con título para “Ya podés leerlos”: el primero de cada caja.
      * @return list<array> tarjetas (con su caja)
      */
     public function destacadosDigitales(int $max = 6): array
@@ -416,7 +416,7 @@ final class Sitio
 
     /**
      * Estado de un código en el sitio: 'visible', 'oculto' (existe pero no se muestra: baja, no publicado, caja sin
-     * publicar o «a revisar») o null (no existe). Con la caja, si está publicada, para el enlace de la página 410.
+     * publicar o “a revisar”) o null (no existe). Con la caja, si está publicada, para el enlace de la página 410.
      * @return array{estado:string, caja:?array}|null
      */
     public function estadoCodigo(string $codigo): ?array
@@ -501,7 +501,7 @@ final class Sitio
         $out = [];
         foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $f) {
             if (!preg_match('/[\p{L}\p{N}]/u', (string)$f['nombre'])) {
-                continue; // «.», «-»: basura sin curar
+                continue; // “.”, “-”: basura sin curar
             }
             $out[(int)$f['registro_id']] ??= ['tipo_documento' => [], 'descriptor' => []];
             $out[(int)$f['registro_id']][$f['tipo']][] = ['nombre' => $f['nombre'], 'slug' => self::slug($f['nombre'])];
@@ -529,7 +529,7 @@ final class Sitio
     }
 
     /**
-     * Año para mostrar. Con años interpretados: la etiqueta («1998, 2006–2008», «1972 (sin confirmar)»).
+     * Año para mostrar. Con años interpretados: la etiqueta (“1998, 2006–2008”, “1972 (sin confirmar)”).
      * Sin años: el texto de la planilla tal cual, salvo que diga que no tiene fecha.
      * @return array{etiqueta:?string, dudoso:bool, original:?string, decada:?int}
      */
@@ -542,7 +542,7 @@ final class Sitio
             return [
                 'etiqueta' => $et,
                 'dudoso' => in_array(true, $anios, true),
-                // El texto de la planilla, si dice algo distinto de lo que se muestra («1972?», «1981/82»)
+                // El texto de la planilla, si dice algo distinto de lo que se muestra (“1972?”, “1981/82”)
                 'original' => $texto !== null && $texto !== (string)$unico ? $texto : null,
                 'decada' => $unico !== null ? intdiv($unico, 10) * 10 : null,
             ];
@@ -565,7 +565,7 @@ final class Sitio
         return ['titulo' => $nombres ? implode(' · ', $nombres) : 'Documento sin título', 'sinTitulo' => true];
     }
 
-    /** «La Historia Oficial» → «la-historia-oficial» (para las URL del sitio). */
+    /** “La Historia Oficial” → “la-historia-oficial” (para las URL del sitio). */
     public static function slug(?string $s): string
     {
         return trim((string)preg_replace('/[^a-z0-9]+/', '-', Texto::clave($s)), '-');

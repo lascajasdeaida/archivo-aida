@@ -1,5 +1,5 @@
 <?php
-// Documento restringido o con acceso a revisar. Recibe $a (archivo + registro) solo si es «restringido».
+// Documento restringido o con acceso a revisar. Recibe $a (archivo + registro) solo si es “restringido”.
 $esc = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $tituloPagina = 'Documento de consulta a pedido';
 ob_start(); ?>

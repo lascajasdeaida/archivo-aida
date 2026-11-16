@@ -1,6 +1,6 @@
 <?php
 /**
- * Página de una caja en el sitio público (docs/ux/sitio-publico.md §3 «Caja», componentes.md §3, §5, §6, §8, §14).
+ * Página de una caja en el sitio público (docs/ux/sitio-publico.md §3 “Caja”, componentes.md §3, §5, §6, §8, §14).
  * Recibe $d (Aida\Sitio::cajaPor…), $enl (Aida\Web\Enlaces) y, opcionales, $antes y $robots para _sitio.php.
  */
 use Aida\Web\Html as H;

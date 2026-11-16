@@ -2,13 +2,13 @@
 /**
  * Banner de la vista previa del backoffice (Rutas::vista_previa). No forma parte del sitio: va arriba de la
  * cabecera y solo existe en la vista previa. Estilos en public/sitio/vista-previa.css.
- * Recibe $motivos (por qué hoy no aparece en el sitio), $volver (URL del backoffice), $que («Este registro»)
+ * Recibe $motivos (por qué hoy no aparece en el sitio), $volver (URL del backoffice), $que (“Este registro”)
  * y $ocultos (caja: registros que no entran en la lista, por motivo).
  */
 use Aida\Web\Html as H;
 
 $ocultos = array_filter($ocultos ?? []);
-$nombres = ['a_revisar' => ['con acceso «a revisar»', 'con acceso «a revisar»'], 'no_publicados' => ['no publicado', 'no publicados'],
+$nombres = ['a_revisar' => ['con acceso “a revisar”', 'con acceso “a revisar”'], 'no_publicados' => ['no publicado', 'no publicados'],
             'bajas' => ['dado de baja', 'dados de baja']];
 ?>
 <div class="vp-barra" role="region" aria-label="Vista previa">

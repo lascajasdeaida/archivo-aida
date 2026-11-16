@@ -1,9 +1,9 @@
 /* Las cajas de Aída — Explorar con JS (docs/ux/sitio-publico.md §4). Sin este archivo la página funciona igual:
-   el panel es un formulario GET, los chips y «Mostrar más» son enlaces. Con él:
+   el panel es un formulario GET, los chips y “Mostrar más” son enlaces. Con él:
    - los filtros, el orden y el rango se aplican sin recargar (explorar.json devuelve los fragmentos ya armados);
-   - «Mostrar 20 más» agrega los resultados a la lista y lleva el foco al primero nuevo;
+   - “Mostrar 20 más” agrega los resultados a la lista y lleva el foco al primero nuevo;
    - en celular, el panel de filtros es un diálogo a pantalla completa con el foco atrapado;
-   - la URL se actualiza siempre (se puede compartir y «atrás» funciona). */
+   - la URL se actualiza siempre (se puede compartir y “atrás” funciona). */
 (function () {
   'use strict';
   const $ = (s, el = document) => el.querySelector(s);
@@ -117,7 +117,7 @@
     });
 
     // Búsqueda mientras se escribe: espera 180 ms sin teclas (una consulta por pausa, no por letra). El código exacto
-    // (C14R3) no se busca acá: Enter lleva directo a la ficha. El evento «search» de Estadísticas sale recién tras
+    // (C14R3) no se busca acá: Enter lleva directo a la ficha. El evento “search” de Estadísticas sale recién tras
     // 1,5 s quieto, una vez por término, para no contar cada letra.
     let tecleo, quieto, ultimoTermino = $('#q').value.trim();
     // Si la persona no eligió un orden, al buscar se ordena por relevancia y sin búsqueda por caja (los defaults del servidor)
@@ -146,7 +146,7 @@
       if (e.key === 'Enter' && e.target.matches('#desde, #hasta')) { e.preventDefault(); $('#aplicar-rango').click(); }
     });
 
-    // Enviar: la búsqueda va al servidor tal cual (el código exacto, C14R3, lleva a la ficha); rango y «Ver N resultados» sin recargar
+    // Enviar: la búsqueda va al servidor tal cual (el código exacto, C14R3, lleva a la ficha); rango y “Ver N resultados” sin recargar
     form.addEventListener('submit', e => {
       const boton = e.submitter;
       if (boton && boton.id === 'ver-resultados') { e.preventDefault(); cerrarPanel(); return; }
@@ -159,7 +159,7 @@
       actualizar({ foco: () => conteo.focus() });
     });
 
-    // Chips, «Limpiar», «Quitar…» de sin resultados: enlaces que se resuelven sin recargar
+    // Chips, “Limpiar”, “Quitar…” de sin resultados: enlaces que se resuelven sin recargar
     document.addEventListener('click', e => {
       const a = e.target.closest('#chips a, #sin-resultados a, [data-limpiar]');
       if (a && a.href && (a.closest('#form-explorar'))) {
@@ -208,7 +208,7 @@
       const a = e.target.closest('.registro h3 a, .registro h2 a');
       if (a) evento('select_content', { content_type: 'registro', item_id: a.closest('[data-codigo]').dataset.codigo, origen: 'explorar' });
     });
-    // «Volver a los resultados» desde la ficha
+    // “Volver a los resultados” desde la ficha
     try { sessionStorage.setItem('aida-volver', location.href); } catch (e) { /* modo privado */ }
     addEventListener('popstate', () => location.reload());
 

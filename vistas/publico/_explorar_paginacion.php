@@ -1,6 +1,6 @@
 <?php
 /**
- * «Mostrar 20 más» (docs/ux/sitio-publico.md §4.2): enlace real a ?pagina=N+1 (sin JS, la página siguiente; con JS se
+ * “Mostrar 20 más” (docs/ux/sitio-publico.md §4.2): enlace real a ?pagina=N+1 (sin JS, la página siguiente; con JS se
  * agregan a la lista). $e['primera'] es la primera página que se está viendo: con JS se van sumando.
  * Recibe $r, $e, $enl.
  */

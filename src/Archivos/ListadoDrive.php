@@ -6,12 +6,12 @@ namespace Aida\Archivos;
 /**
  * Listado de los archivos del Drive del cliente (TSV o CSV), mientras no haya acceso por API.
  *
- * Una línea por archivo: ruta, id de Drive, bytes y, opcional, si está compartido «cualquiera con el enlace».
+ * Una línea por archivo: ruta, id de Drive, bytes y, opcional, si está compartido “cualquiera con el enlace”.
  *
- *   ruta          C1/C1R31.pdf (relativa a la carpeta «Selección de Cajas», como en el disco)
+ *   ruta          C1/C1R31.pdf (relativa a la carpeta “Selección de Cajas”, como en el disco)
  *   drive_id      el id del archivo (o su enlace: https://drive.google.com/file/d/ID/view)
  *   bytes         tamaño en bytes
- *   compartido    sí/no (también VERDADERO/FALSO, 1/0, «cualquiera con el enlace», «restringido»); vacío = sin dato
+ *   compartido    sí/no (también VERDADERO/FALSO, 1/0, “cualquiera con el enlace”, “restringido”); vacío = sin dato
  *
  * Con encabezado, las columnas se ubican por nombre (ruta, id|drive_id, bytes|peso|tamaño, compartido|publico) y en
  * cualquier orden. Sin encabezado, van en ese orden. Las líneas que empiezan con # se ignoran.
@@ -65,7 +65,7 @@ final class ListadoDrive
                 $cols = self::encabezado($p);
                 if ($cols !== false) {
                     if (!isset($cols['ruta'])) {
-                        throw new \RuntimeException('El encabezado del listado no tiene la columna «ruta».');
+                        throw new \RuntimeException('El encabezado del listado no tiene la columna “ruta”.');
                     }
                     continue;
                 }
@@ -76,7 +76,7 @@ final class ListadoDrive
             };
             $ruta = self::ruta($campo('ruta', 0));
             if ($ruta === null) {
-                $errores[] = "línea $n: la ruta «" . mb_strimwidth($campo('ruta', 0), 0, 80, '…') . '» no es válida';
+                $errores[] = "línea $n: la ruta “" . mb_strimwidth($campo('ruta', 0), 0, 80, '…') . '” no es válida';
                 continue;
             }
             $id = $campo('drive_id', 1);
@@ -87,20 +87,20 @@ final class ListadoDrive
             }
             $driveId = self::id($id);
             if ($id !== '' && $driveId === null) {
-                $errores[] = "línea $n ($ruta): el id de Drive «" . mb_strimwidth($id, 0, 60, '…') . '» no es válido';
+                $errores[] = "línea $n ($ruta): el id de Drive “" . mb_strimwidth($id, 0, 60, '…') . '” no es válido';
                 continue;
             }
             $peso = null;
             if ($bytes !== '') {
                 if (!preg_match('/^[\d.,\s]+$/', $bytes)) {
-                    $errores[] = "línea $n ($ruta): el peso «" . mb_strimwidth($bytes, 0, 30, '…') . '» no es un número de bytes';
+                    $errores[] = "línea $n ($ruta): el peso “" . mb_strimwidth($bytes, 0, 30, '…') . '” no es un número de bytes';
                     continue;
                 }
                 $peso = (int)preg_replace('/\D/', '', $bytes);
             }
             $compartido = self::siNo($comp);
             if ($comp !== '' && $compartido === null) {
-                $errores[] = "línea $n ($ruta): «" . mb_strimwidth($comp, 0, 30, '…') . '» en «compartido» no es sí ni no; se toma como sin dato';
+                $errores[] = "línea $n ($ruta): “" . mb_strimwidth($comp, 0, 30, '…') . '” en “compartido” no es sí ni no; se toma como sin dato';
             }
             $clave = mb_strtolower($ruta);
             if (isset($vistas[$clave])) {
@@ -120,7 +120,7 @@ final class ListadoDrive
         if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
             throw new \RuntimeException("No se pudo crear la carpeta del listado de Drive ($dir).");
         }
-        $out = '# Listado de Drive normalizado el ' . date('d/m/Y H:i') . ($origen !== '' ? ' desde «' . str_replace(["\n", "\r"], ' ', $origen) . '»' : '') . "\n"
+        $out = '# Listado de Drive normalizado el ' . date('d/m/Y H:i') . ($origen !== '' ? ' desde “' . str_replace(["\n", "\r"], ' ', $origen) . '”' : '') . "\n"
              . "ruta\tdrive_id\tbytes\tcompartido\n";
         foreach ($filas as $f) {
             $out .= implode("\t", [$f['ruta'], $f['drive_id'] ?? '', $f['bytes'] ?? '',
@@ -152,7 +152,7 @@ final class ListadoDrive
         return $v !== null && preg_match(self::ID, $v) === 1;
     }
 
-    /** Ruta relativa segura (C1/C1R31.pdf): sin «..», sin raíz, sin caracteres de control. */
+    /** Ruta relativa segura (C1/C1R31.pdf): sin “..”, sin raíz, sin caracteres de control. */
     public static function ruta(string $v): ?string
     {
         $v = trim(str_replace('\\', '/', $v));

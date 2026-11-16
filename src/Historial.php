@@ -191,8 +191,8 @@ final class Historial
                 }
             }
             if (!self::igual($actual[$campo] ?? null, $despues)) {
-                $conflictos[] = "$nombre, campo «{$campo}»: se modificó de nuevo después (hoy vale «" . self::mostrar($actual[$campo] ?? null)
-                              . "»; el cambio lo había dejado en «" . self::mostrar($despues) . "»)";
+                $conflictos[] = "$nombre, campo “{$campo}”: se modificó de nuevo después (hoy vale “" . self::mostrar($actual[$campo] ?? null)
+                              . "”; el cambio lo había dejado en “" . self::mostrar($despues) . "”)";
             }
         }
         if ($conflictos && !$forzar) {
@@ -371,8 +371,8 @@ final class Historial
             'registro' => 'SELECT codigo FROM registro WHERE id = ?',
             'caja' => "SELECT CONCAT('Caja ', numero) FROM caja WHERE id = ?",
             'archivo_digital' => 'SELECT nombre_archivo FROM archivo_digital WHERE id = ?',
-            'vocabulario' => "SELECT CONCAT('«', nombre, '» (', IF(tipo = 'descriptor', 'descriptor', 'tipo de documento'), ')') FROM vocabulario WHERE id = ?",
-            'vocabulario_alias' => "SELECT CONCAT('grafía «', nombre, '»') FROM vocabulario_alias WHERE id = ?",
+            'vocabulario' => "SELECT CONCAT('“', nombre, '” (', IF(tipo = 'descriptor', 'descriptor', 'tipo de documento'), ')') FROM vocabulario WHERE id = ?",
+            'vocabulario_alias' => "SELECT CONCAT('grafía “', nombre, '”') FROM vocabulario_alias WHERE id = ?",
             'consulta' => "SELECT CONCAT('Consulta ', YEAR(creado_en), '-', LPAD(id, 4, '0')) FROM consulta WHERE id = ?",
             default => null,
         };

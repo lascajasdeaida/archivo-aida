@@ -73,7 +73,7 @@ $resultado = function (array $x) { ?>
       <label>Cajas (opcional)
         <input type="text" name="cajas" placeholder="Vacío = todas. Ej.: 1, 2, 10-14" inputmode="numeric" autocomplete="off">
       </label>
-      <p class="nota">El archivo de Drive «Catálogo Aída Parte 1 BACKUP CONSERVACIÓN»: Archivo → Descargar → Microsoft Excel (.xlsx).</p>
+      <p class="nota">El archivo de Drive “Catálogo Aída Parte 1 BACKUP CONSERVACIÓN”: Archivo → Descargar → Microsoft Excel (.xlsx).</p>
       <div class="acciones">
         <button class="btn btn-primario">Simular importación</button>
         <span class="nota" aria-live="polite" id="subiendo" hidden>Subiendo y simulando… puede tardar unos segundos.</span>

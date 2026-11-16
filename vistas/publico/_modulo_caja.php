@@ -1,11 +1,11 @@
 <?php
 /**
- * Módulo-caja (docs/diseno/sistema.md «Archivo: sistema» §A.10): el frente de una caja de archivo de cartón dibujado
+ * Módulo-caja (docs/diseno/sistema.md “Archivo: sistema” §A.10): el frente de una caja de archivo de cartón dibujado
  * en línea fina, con la tapa, el troquel de la manija y el rótulo pegado (número grande a máquina, obra, años). Al pie
- * del frente, el «contenido»: cantidad de registros y barra de digitalización. Es el anclaje físico del archivo.
+ * del frente, el “contenido”: cantidad de registros y barra de digitalización. Es el anclaje físico del archivo.
  *
  * El dibujo (tapa, troquel, marco del rótulo) es decorativo y va en CSS/`aria-hidden`; el texto es real y el enlace
- * dice «Caja N: nombre». Toda la caja es un solo enlace (::after del título).
+ * dice “Caja N: nombre”. Toda la caja es un solo enlace (::after del título).
  *
  * Recibe:
  *  - $c       caja de Aida\Sitio::cajas() (id, numero, nombre, documentos, digitales, a_pedido, desde, hasta, avance)

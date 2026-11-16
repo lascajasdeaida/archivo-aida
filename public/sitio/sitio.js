@@ -1,12 +1,12 @@
 /* Las cajas de Aída — comportamiento del archivo (vistas/publico/).
-   Todo funciona sin JS (los enlaces son reales); esto suma el atajo «/», el menú en celular, «Leer más», el visor y «Copiar».
+   Todo funciona sin JS (los enlaces son reales); esto suma el atajo “/”, el menú en celular, “Leer más”, el visor y “Copiar”.
    El archivo no tipea títulos (lenguaje de sistema, 16/11/2026): el cursor de la máquina queda solo en el buscador (CSS). */
 (function () {
   'use strict';
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
-  // Atajo «/»: lleva al buscador de la página (Explorar, inicio, caja o Las cajas) o, si no hay, a Explorar.
+  // Atajo “/”: lleva al buscador de la página (Explorar, inicio, caja o Las cajas) o, si no hay, a Explorar.
   // No actúa mientras se escribe en un campo ni con modificadores.
   document.addEventListener('keydown', e => {
     if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
@@ -92,7 +92,7 @@
     const enviada = $('[data-consulta-enviada]');
     if (enviada) evento('consulta_enviada', { codigo: enviada.dataset.consultaEnviada, caja: enviada.dataset.caja });
 
-    // Las cajas: el filtro por nombre o número se aplica mientras se escribe (sin JS, con el botón «Aplicar»)
+    // Las cajas: el filtro por nombre o número se aplica mientras se escribe (sin JS, con el botón “Aplicar”)
     const fcajas = $('[data-filtro-cajas]');
     if (fcajas) {
       const norm = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -107,7 +107,7 @@
       $('#orden-cajas', fcajas).addEventListener('change', () => fcajas.submit());
     }
 
-    // «Volver a los resultados» en la ficha si se llegó desde Explorar
+    // “Volver a los resultados” en la ficha si se llegó desde Explorar
     const volver = $('[data-volver]');
     if (volver) {
       try {

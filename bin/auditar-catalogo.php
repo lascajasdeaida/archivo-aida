@@ -140,7 +140,7 @@ for ($i = 0; $i < $n; $i++) {
         }
     }
 }
-// Cajas que su propio resumen vincula («Cajas 3 y 5», «Cajas 23 y 24»)
+// Cajas que su propio resumen vincula (“Cajas 3 y 5”, “Cajas 23 y 24”)
 $vinculadas = [];
 foreach ($cajas as $c) {
     if (preg_match_all('/cajas?\s*(?:n[º°o]\s*)?(\d+)\s*y\s*(\d+)/iu', (string)$c['resumen'], $m, PREG_SET_ORDER)) {
@@ -161,7 +161,7 @@ foreach ($grupos as $clase => $pares) {
                 $ev[] = "el resumen de la caja $en las presenta juntas";
             }
         }
-        $filas[] = ["Caja {$a['numero']} «" . $celda($a['nombre'], 50) . "»", "Caja {$b['numero']} «" . $celda($b['nombre'], 50) . "»",
+        $filas[] = ["Caja {$a['numero']} “" . $celda($a['nombre'], 50) . "”", "Caja {$b['numero']} “" . $celda($b['nombre'], 50) . "”",
                     $clase, $ev ? implode('; ', $ev) : '—'];
     }
 }
@@ -170,7 +170,7 @@ $resumen['Pares de cajas con nombre parecido'] = count($filas);
 if ($iguales) {
     $p('');
     $p('Cajas con el mismo nombre exacto (varias cajas de una misma obra; no hay nada que unificar): '
-        . implode('; ', array_map(fn($nom, $cs) => '«' . $nom . '» (cajas ' . implode(', ', array_keys($cs)) . ')',
+        . implode('; ', array_map(fn($nom, $cs) => '“' . $nom . '” (cajas ' . implode(', ', array_keys($cs)) . ')',
             array_keys($iguales), $iguales)) . '.');
 }
 
@@ -180,13 +180,13 @@ foreach ($vinculadas as [$x, $y, $en]) {
     if (!isset($porNumero[$x], $porNumero[$y]) || $base($porNumero[$x]['nombre']) === $base($porNumero[$y]['nombre'])) {
         continue;
     }
-    $filas[] = ["Cajas $x y $y", '«' . $celda($porNumero[$x]['nombre'], 45) . '» / «' . $celda($porNumero[$y]['nombre'], 45) . '»', "resumen de la caja $en"];
+    $filas[] = ["Cajas $x y $y", '“' . $celda($porNumero[$x]['nombre'], 45) . '” / “' . $celda($porNumero[$y]['nombre'], 45) . '”', "resumen de la caja $en"];
 }
 $tabla(['Cajas', 'Nombres', 'Dónde lo dice'], $filas);
 
 // 1.c Nombre de la caja vs. título de la pestaña
 $h('1.c Nombre de la caja distinto del título de su pestaña', 3);
-$p('La pestaña del Excel se llama «Caja N Nombre SIGLA». Si el nombre de la columna B no coincide con el de la pestaña, uno de los dos tiene un error o la obra tiene dos títulos.');
+$p('La pestaña del Excel se llama “Caja N Nombre SIGLA”. Si el nombre de la columna B no coincide con el de la pestaña, uno de los dos tiene un error o la obra tiene dos títulos.');
 $filas = [];
 foreach ($cajas as $c) {
     $pest = (string)preg_replace('/^\s*caja\s*\d+\s*/iu', '', (string)$c['nombre_pestania']);
@@ -205,7 +205,7 @@ foreach ($cajas as $c) {
     if ($bp !== '' && $bn !== '' && levenshtein($bp, $pref) / max(1, strlen($bp)) <= 0.2) {
         continue;
     }
-    $filas[] = ["Caja {$c['numero']}", '«' . $celda($c['nombre'], 60) . '»', '«' . $celda($c['nombre_pestania'], 40) . '»'];
+    $filas[] = ["Caja {$c['numero']}", '“' . $celda($c['nombre'], 60) . '”', '“' . $celda($c['nombre_pestania'], 40) . '”'];
 }
 $tabla(['Caja', 'Nombre (col. B)', 'Pestaña'], $filas);
 $resumen['Cajas con nombre distinto de la pestaña'] = count($filas);
@@ -233,10 +233,10 @@ foreach ($cajas as $c) {
         $obs[] = 'sin nombre';
     }
     if (preg_match('/\bFel[íi]z\b/u', $nom) && str_contains($nom, 'í')) {
-        $obs[] = '«Felíz» lleva «Feliz» (sin tilde)';
+        $obs[] = '“Felíz” lleva “Feliz” (sin tilde)';
     }
     if ($obs) {
-        $filas[] = ["Caja {$c['numero']}", '«' . $celda($nom, 60) . '»', implode('; ', $obs)];
+        $filas[] = ["Caja {$c['numero']}", '“' . $celda($nom, 60) . '”', implode('; ', $obs)];
     }
 }
 $tabla(['Caja', 'Nombre', 'Observación'], $filas);
@@ -250,7 +250,7 @@ foreach ($cajas as $c) {
     if ($r === '') {
         $sinResumen[] = (string)$c['numero'];
     } elseif (mb_strlen($r) < 40) {
-        $filas[] = ["Caja {$c['numero']}", '«' . $celda($r, 60) . '»'];
+        $filas[] = ["Caja {$c['numero']}", '“' . $celda($r, 60) . '”'];
     }
 }
 $tabla(['Caja', 'Resumen'], $filas);
@@ -298,7 +298,7 @@ $h('2.a Títulos con marcas de duda', 3);
 $dudas = [];
 foreach ($registros as $r) {
     if (preg_match('/\?{2,}|\(\s*¿?\?\s*\)/u', (string)$r['titulo'])) {
-        $dudas[] = [$r['codigo'], '«' . $celda($r['titulo'], 60) . '»'];
+        $dudas[] = [$r['codigo'], '“' . $celda($r['titulo'], 60) . '”'];
     }
 }
 $tabla(['Registro', 'Título'], array_slice($dudas, 0, $maxEj * 2));
@@ -319,7 +319,7 @@ foreach ($porCaja as $cid => $titulos) {
         }
         $txt = [];
         foreach ($variantes as $t => $cods) {
-            $txt[] = '«' . $celda($t, 40) . '» (' . $ejemplos($cods) . ')';
+            $txt[] = '“' . $celda($t, 40) . '” (' . $ejemplos($cods) . ')';
         }
         $filas[] = ['Caja ' . $cajaNum[$cid], implode(' / ', $txt)];
     }
@@ -333,11 +333,11 @@ $resumen['Títulos con grafías dispares en la misma caja'] = count($filas);
 $h('3. Años y fechas');
 $p('`anio` (y `anio_hasta`) se completan con la columna Año cuando es un año, un rango, un año con duda o una fecha (Texto::anio; ver docs/decisiones.md). El resto queda solo en `anio_texto`.');
 $cat = [
-    'Año único con duda («1972?», «¿1984?», «1989???»)' => [],
-    'Rango o varios años («1981/82», «2004/ 2005», «Entre 1983 y 1986»)' => [],
-    'Fecha completa en la columna Año («03/02/2006»)' => [],
-    'Solo signos o «sin fecha»' => [],
-    'Texto que no es un año («Año XXII de la publicación»)' => [],
+    'Año único con duda (“1972?”, “¿1984?”, “1989???”)' => [],
+    'Rango o varios años (“1981/82”, “2004/ 2005”, “Entre 1983 y 1986”)' => [],
+    'Fecha completa en la columna Año (“03/02/2006”)' => [],
+    'Solo signos o “sin fecha”' => [],
+    'Texto que no es un año (“Año XXII de la publicación”)' => [],
 ];
 $ejTexto = [];
 $fueraDeRango = [];
@@ -349,15 +349,15 @@ foreach ($registros as $r) {
         $k = Texto::clave($at);
         $anios = preg_match_all('/\b(1[89]\d\d|20\d\d)\b/u', $at, $mm) ? $mm[1] : [];
         if (!preg_match('/[\p{L}\p{N}]/u', $at) || preg_match('/^(sin|no tiene|s\/)\s*(fecha|dato|precisar)/u', $k)) {
-            $c = 'Solo signos o «sin fecha»';
+            $c = 'Solo signos o “sin fecha”';
         } elseif (preg_match('#\b\d{1,2}/\d{1,2}/\d{4}\b#', $at)) {
-            $c = 'Fecha completa en la columna Año («03/02/2006»)';
+            $c = 'Fecha completa en la columna Año (“03/02/2006”)';
         } elseif (count(array_unique($anios)) === 1 && preg_match('/^[¿(\s]*\d{4}[\s?¿()]*$/u', $at)) {
-            $c = 'Año único con duda («1972?», «¿1984?», «1989???»)';
+            $c = 'Año único con duda (“1972?”, “¿1984?”, “1989???”)';
         } elseif ($anios || preg_match('#\d{4}\s*[/\-y,.]\s*\d{2}#u', $at)) {
-            $c = 'Rango o varios años («1981/82», «2004/ 2005», «Entre 1983 y 1986»)';
+            $c = 'Rango o varios años (“1981/82”, “2004/ 2005”, “Entre 1983 y 1986”)';
         } else {
-            $c = 'Texto que no es un año («Año XXII de la publicación»)';
+            $c = 'Texto que no es un año (“Año XXII de la publicación”)';
         }
         $cat[$c][] = $r['codigo'];
         $ejTexto[$c][$at] = true;
@@ -376,7 +376,7 @@ foreach ($registros as $r) {
                 $diag = sprintf('parece cargada como aa/mm/dd y leída como dd/mm/aa: sería %s/%s/%d', substr($mx[3], 2), $mx[2], $anio);
                 $fechaInvertida[] = $r['codigo'];
             }
-            $distintoDeFecha[] = [$r['codigo'], $anio, '«' . $celda($r['fecha_texto'], 50) . '»', $diag];
+            $distintoDeFecha[] = [$r['codigo'], $anio, '“' . $celda($r['fecha_texto'], 50) . '”', $diag];
         }
     }
 }
@@ -389,7 +389,7 @@ $tabla(['Año sin valor filtrable', 'Registros', 'Ejemplos', 'Valores encontrado
 $resumen['Registros con año no filtrable'] = array_sum(array_map('count', $cat));
 
 $h('3.a Año distinto del que dice la fecha del documento', 3);
-$p(sprintf('De estos, %d tienen el patrón «el día coincide con el año»: la fecha se escribió como aa/mm/dd (05/03/30 = 30/03/2005) y Excel la leyó como dd/mm/aa. Hay que corregirla en la planilla (o escribirla como texto).', count($fechaInvertida)));
+$p(sprintf('De estos, %d tienen el patrón “el día coincide con el año”: la fecha se escribió como aa/mm/dd (05/03/30 = 30/03/2005) y Excel la leyó como dd/mm/aa. Hay que corregirla en la planilla (o escribirla como texto).', count($fechaInvertida)));
 $p('');
 usort($distintoDeFecha, fn($x, $y) => strcmp($x[3], $y[3]) ?: strcmp($x[0], $y[0]));
 $tabla(['Registro', 'Año (col. K)', 'Fecha como dice el documento', 'Diagnóstico'], array_slice($distintoDeFecha, 0, $maxEj * 4));
@@ -432,36 +432,36 @@ foreach ($registros as $r) {
         }
     }
 }
-$h('4.a Formas de escribir «Aída Bortnik»', 3);
+$h('4.a Formas de escribir “Aída Bortnik”', 3);
 $p('Cada forma distinta con que aparece Aída en el campo Autor (sola o con coautores). La forma de autoridad propuesta es **Aída Bortnik**.');
 uasort($variantesAB, fn($x, $y) => count($y) <=> count($x));
 $filas = [];
 foreach ($variantesAB as $forma => $cods) {
-    $filas[] = ['«' . $forma . '»' . ($forma === 'Aída Bortnik' ? ' ✓' : ''), count(array_unique($cods)), $ejemplos($cods)];
+    $filas[] = ['“' . $forma . '”' . ($forma === 'Aída Bortnik' ? ' ✓' : ''), count(array_unique($cods)), $ejemplos($cods)];
 }
 $tabla(['Forma', 'Registros', 'Ejemplos'], $filas);
-$resumen['Formas distintas de «Aída Bortnik»'] = count($variantesAB);
+$resumen['Formas distintas de “Aída Bortnik”'] = count($variantesAB);
 
 $h('4.b Autor con texto descriptivo o demasiado largo', 3);
 $filas = [];
 foreach ($largos as $a => $cods) {
-    $filas[] = ['«' . $celda($a, 80) . '»', count($cods), $ejemplos($cods)];
+    $filas[] = ['“' . $celda($a, 80) . '”', count($cods), $ejemplos($cods)];
 }
 $tabla(['Autor', 'Registros', 'Ejemplos'], $filas);
 $resumen['Registros con autor descriptivo'] = array_sum(array_map('count', $largos));
 
-$h('4.c Autor con remitente y destinatario («De X A: Y»)', 3);
+$h('4.c Autor con remitente y destinatario (“De X A: Y”)', 3);
 $p('Son cartas: el autor es el remitente. El destinatario podría ir en el resumen o en un campo propio.');
 $filas = [];
 foreach ($cartas as $a => $cods) {
-    $filas[] = ['«' . $celda($a, 60) . '»', $ejemplos($cods)];
+    $filas[] = ['“' . $celda($a, 60) . '”', $ejemplos($cods)];
 }
 $tabla(['Autor', 'Registros'], $filas);
 
 $h('4.d Autor con signos de duda', 3);
 $filas = [];
 foreach ($dudosos as $a => $cods) {
-    $filas[] = ['«' . $celda($a, 60) . '»', $ejemplos($cods)];
+    $filas[] = ['“' . $celda($a, 60) . '”', $ejemplos($cods)];
 }
 $tabla(['Autor', 'Registros'], $filas);
 
@@ -482,7 +482,7 @@ $resumen['Términos propuestos sin curar'] = count($propuestos);
 $etq = fn(string $t) => $t === 'descriptor' ? 'Descriptor' : 'Tipo';
 
 // 5.a Variantes del mismo término
-$h('5.a Variantes del mismo término (puntuación, plural, «?»)', 3);
+$h('5.a Variantes del mismo término (puntuación, plural, “?”)', 3);
 $norm = static function (string $s) use ($base): string {
     $b = $base($s);
     $b = (string)preg_replace('/\b(\w{3,}?)(es|s)\b/u', '$1', $b); // plural simple
@@ -495,7 +495,7 @@ foreach ($activos as $v) {
 $filas = [];
 foreach ($porNorm as $k => $vs) {
     if (count($vs) > 1) {
-        $filas[] = [$etq($vs[0]['tipo']), implode(' / ', array_map(fn($v) => "«{$v['nombre']}» (#{$v['id']}, {$v['usos']})", $vs))];
+        $filas[] = [$etq($vs[0]['tipo']), implode(' / ', array_map(fn($v) => "“{$v['nombre']}” (#{$v['id']}, {$v['usos']})", $vs))];
     }
 }
 $tabla(['Vocabulario', 'Variantes (id, usos)'], $filas);
@@ -521,7 +521,7 @@ foreach ($activos as $v) {
         $obs = 'palabras pegadas';
     }
     if ($obs) {
-        $filas[] = [$etq($v['tipo']), "«" . $celda($nom, 60) . "» (#{$v['id']})", $obs, (int)$v['usos'], $ejemplos($codigosPorTermino[(int)$v['id']] ?? [])];
+        $filas[] = [$etq($v['tipo']), "“" . $celda($nom, 60) . "” (#{$v['id']})", $obs, (int)$v['usos'], $ejemplos($codigosPorTermino[(int)$v['id']] ?? [])];
     }
 }
 $tabla(['Vocabulario', 'Término', 'Motivo', 'Usos', 'Registros'], $filas);
@@ -529,7 +529,7 @@ $resumen['Términos sospechosos'] = count($filas);
 
 // 5.c El mismo término en los dos vocabularios
 $h('5.c El mismo término como tipo y como descriptor', 3);
-$p('Suele indicar que se cargó en la columna equivocada. «Ambos» = registros que ya lo tienen en los dos vocabularios.');
+$p('Suele indicar que se cargó en la columna equivocada. “Ambos” = registros que ya lo tienen en los dos vocabularios.');
 $porClave = [];
 foreach ($activos as $v) {
     $porClave[$norm($v['nombre'])][$v['tipo']] = $v;
@@ -541,7 +541,7 @@ foreach ($porClave as $par) {
         $d = $par['descriptor'];
         $ct = $codigosPorTermino[(int)$t['id']] ?? [];
         $cd = $codigosPorTermino[(int)$d['id']] ?? [];
-        $filas[] = ["«{$t['nombre']}» / «{$d['nombre']}»", (int)$t['usos'], (int)$d['usos'], count(array_intersect($ct, $cd)),
+        $filas[] = ["“{$t['nombre']}” / “{$d['nombre']}”", (int)$t['usos'], (int)$d['usos'], count(array_intersect($ct, $cd)),
                     $ejemplos(array_diff($cd, $ct))];
     }
 }
@@ -551,9 +551,9 @@ $tabla(['Término', 'Como tipo', 'Como descriptor', 'Ambos', 'Solo como descript
 $h('5.d Fusiones con destino en el otro vocabulario', 3);
 $filas = [];
 foreach ($vocab as $v) {
-    // Los movidos con «Mover a…» (regla = movido) son intencionales y la importación los resuelve bien
+    // Los movidos con “Mover a…” (regla = movido) son intencionales y la importación los resuelve bien
     if ($v['fusionado_en'] !== null && $v['destino_tipo'] !== $v['tipo'] && $v['regla'] !== 'movido') {
-        $filas[] = ["«{$v['nombre']}» (#{$v['id']}, {$etq($v['tipo'])})", "#{$v['fusionado_en']} ({$etq((string)$v['destino_tipo'])})"];
+        $filas[] = ["“{$v['nombre']}” (#{$v['id']}, {$etq($v['tipo'])})", "#{$v['fusionado_en']} ({$etq((string)$v['destino_tipo'])})"];
     }
 }
 $p('Una fusión de un descriptor en un tipo (o al revés) hace que el importador cargue el término en el vocabulario equivocado y puede fallar por clave duplicada.');
@@ -562,7 +562,7 @@ $tabla(['Término', 'Fusionado en'], $filas);
 // 5.e Términos sin uso
 $h('5.e Términos sin registros', 3);
 $sinUso = array_filter($activos, fn($v) => (int)$v['usos'] === 0);
-$p($sinUso ? implode(', ', array_map(fn($v) => "«{$v['nombre']}» ({$etq($v['tipo'])})", $sinUso)) : '_Sin hallazgos._');
+$p($sinUso ? implode(', ', array_map(fn($v) => "“{$v['nombre']}” ({$etq($v['tipo'])})", $sinUso)) : '_Sin hallazgos._');
 
 // =====================================================================
 // Resumen al principio

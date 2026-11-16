@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Recalcula los años del filtro con Texto::anio(), las mismas reglas que la importación (docs/decisiones.md, «Años»):
+ * Recalcula los años del filtro con Texto::anio(), las mismas reglas que la importación (docs/decisiones.md, “Años”):
  * el resumen del registro (anio, anio_hasta, anio_sin_confirmar) y sus años en registro_anio.
  * Por defecto, los registros cargados a mano (origen = 'backoffice'); los del Excel se recalculan en cada importación.
  * Con --todos, también los del Excel (por ejemplo, después de la migración 004 sin volver a importar).
@@ -10,7 +10,7 @@ declare(strict_types=1);
  *   php bin/recalcular-anios.php [--todos] [--simular]
  *
  * Los cambios quedan en el historial dentro de un proceso de tipo `correccion`
- * («Recálculo de años»), que se deshace completo desde Importaciones.
+ * (“Recálculo de años”), que se deshace completo desde Importaciones.
  */
 
 require dirname(__DIR__) . '/src/bootstrap.php';
@@ -50,10 +50,10 @@ try {
         }
         $antes = $tabla->leer((int)$r['id']);
         if ($nuevo === $viejo) {
-            // Mismo resumen: puede faltar pasar la tabla a la lista real («1998/2006/2007/2008»). Es un derivado, no se audita.
+            // Mismo resumen: puede faltar pasar la tabla a la lista real (“1998/2006/2007/2008”). Es un derivado, no se audita.
             if ($tabla->sincronizar((int)$r['id'])) {
                 $soloTabla++;
-                printf("  %-8s «%s»: filtro %s → %s\n", $r['codigo'], (string)$r['anio_texto'],
+                printf("  %-8s “%s”: filtro %s → %s\n", $r['codigo'], (string)$r['anio_texto'],
                     Texto::aniosEtiqueta($antes) ?? 'sin año', Texto::aniosEtiqueta($tabla->leer((int)$r['id'])) ?? 'sin año');
             }
             continue;
@@ -62,7 +62,7 @@ try {
         // Historial pone al día registro_anio (y lo vuelve atrás si se deshace el proceso).
         $h->actualizar('registro', (int)$r['id'], $nuevo, false);
         $n++;
-        printf("  %-8s «%s»: %s → %s\n", $r['codigo'], (string)$r['anio_texto'],
+        printf("  %-8s “%s”: %s → %s\n", $r['codigo'], (string)$r['anio_texto'],
             Texto::aniosEtiqueta($antes) ?? 'sin año', Texto::aniosEtiqueta($tabla->leer((int)$r['id'])) ?? 'sin año');
     }
     $cor->cerrarProceso($pid, array_filter(['registros revisados' => count($regs), 'años recalculados' => $n,

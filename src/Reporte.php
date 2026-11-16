@@ -42,7 +42,7 @@ final class Reporte
      * Guarda el proceso y sus incidencias.
      * - Si una incidencia igual ya está abierta, no se duplica: se vincula al proceso nuevo.
      * - Las incidencias abiertas del mismo tipo de proceso que ya no se repiten (dentro del alcance
-     *   de esta corrida) se cierran solas, con la nota «Ya no ocurre».
+     *   de esta corrida) se cierran solas, con la nota “Ya no ocurre”.
      */
     public ?int $procesoId = null;
 

@@ -152,7 +152,7 @@ final class Rutas
         ]);
     }
 
-    /** Qué mostraría el sitio de la caja al publicarla (para el panel «Publicación en el sitio»). */
+    /** Qué mostraría el sitio de la caja al publicarla (para el panel “Publicación en el sitio”). */
     private static function publicacionCaja(int $id): array
     {
         $st = self::db()->prepare("SELECT SUM(eliminado_en IS NULL AND publicado = 1 AND acceso <> 'a_revisar') visibles,
@@ -166,7 +166,7 @@ final class Rutas
 
     /**
      * Publicar o despublicar una caja en el sitio (decisión del PM: se publica caja por caja). Pasa por Historial
-     * (se deshace desde el historial de la caja) y no bloquea ningún campo: la importación no toca «publicada».
+     * (se deshace desde el historial de la caja) y no bloquea ningún campo: la importación no toca “publicada”.
      */
     public static function caja_publicar(): void
     {
@@ -189,11 +189,11 @@ final class Rutas
      * Sugiere grupos de cajas con nombres parecidos y permite unificarlos. Cada cambio pasa por el historial
      * (se puede deshacer y bloquea el campo para el Excel). Clases de grupo (docs/backoffice.md §10):
      *  - grafia:     mismo nombre salvo tildes, mayúsculas, comillas o un error de tipeo → unificar.
-     *  - parte:      misma obra en varias cajas numeradas («Cenizas del Paraíso» / «… II») → no unificar;
+     *  - parte:      misma obra en varias cajas numeradas (“Cenizas del Paraíso” / “… II”) → no unificar;
      *                a lo sumo unificar el título conservando el numeral de cada caja.
-     *  - aclaracion: mismo título con distinta aclaración («(España)» / «(Argentina)») → versiones distintas;
+     *  - aclaracion: mismo título con distinta aclaración (“(España)” / “(Argentina)”) → versiones distintas;
      *                a lo sumo unificar el título conservando la aclaración de cada caja.
-     *  - resumen:    nombres distintos que el resumen de una caja presenta juntos («Cajas 8 y 12») → revisar.
+     *  - resumen:    nombres distintos que el resumen de una caja presenta juntos (“Cajas 8 y 12”) → revisar.
      */
     public static function cajas_unificar(): void
     {
@@ -226,7 +226,7 @@ final class Rutas
                         : $nombre;
                     if ($c['nombre'] !== $nuevo) {
                         $h->actualizar('caja', (int)$c['id'], ['nombre' => $nuevo], true);
-                        $nuevos[] = "{$c['numero']} «{$nuevo}»";
+                        $nuevos[] = "{$c['numero']} “{$nuevo}”";
                         $n++;
                     }
                 }
@@ -244,7 +244,7 @@ final class Rutas
     }
 
     /**
-     * Separa un nombre de caja en título, parte final (numeral: «II», «2», «91/92/93») y aclaración final entre paréntesis.
+     * Separa un nombre de caja en título, parte final (numeral: “II”, “2”, “91/92/93”) y aclaración final entre paréntesis.
      * @return array{titulo:string, parte:string, aclaracion:?string}
      */
     private static function partesNombre(string $nombre): array
@@ -273,7 +273,7 @@ final class Rutas
         $cajas = array_values($cajas);
         $n = count($cajas);
         $p = array_map(fn($c) => self::partesNombre((string)$c['nombre']), $cajas);
-        // Aclaración escrita sin paréntesis: «Eramos tan jóvenes España» frente a «Éramos tan jóvenes (España)»
+        // Aclaración escrita sin paréntesis: “Eramos tan jóvenes España” frente a “Éramos tan jóvenes (España)”
         for ($i = 0; $i < $n; $i++) {
             if ($p[$i]['aclaracion'] !== null) {
                 continue;
@@ -296,7 +296,7 @@ final class Rutas
         $ka = array_map(fn($x) => $base($x['aclaracion']), $p);
         $kp = array_map(fn($x) => $base($x['parte']), $p);
 
-        // Cajas que un resumen presenta juntas: «Cajas 8 y 12», «3 CAJAS, las: 17, 29 y 32»
+        // Cajas que un resumen presenta juntas: “Cajas 8 y 12”, “3 CAJAS, las: 17, 29 y 32”
         $porNumero = [];
         foreach ($cajas as $i => $c) {
             $porNumero[(int)$c['numero']] = $i;
@@ -310,7 +310,7 @@ final class Rutas
                     foreach ($nums as $a) {
                         foreach ($nums as $b) {
                             if ($a < $b) {
-                                $vinculos["$a-$b"][] = 'El resumen de la caja ' . $c['numero'] . ' dice «' . trim(mb_substr($m[0], 0, 60)) . '»';
+                                $vinculos["$a-$b"][] = 'El resumen de la caja ' . $c['numero'] . ' dice “' . trim(mb_substr($m[0], 0, 60)) . '”';
                             }
                         }
                     }
@@ -395,7 +395,7 @@ final class Rutas
             }
             $sugerido = $nombreMejor;
             if ($clase === 'resumen') {
-                // Solo si un nombre contiene al otro («Azucena» / «Azucena Villaflor»); si no, que lo escriba el operador
+                // Solo si un nombre contiene al otro (“Azucena” / “Azucena Villaflor”); si no, que lo escriba el operador
                 $sugerido = '';
                 foreach ($miembros as $i) {
                     $contiene = true;
@@ -562,7 +562,7 @@ final class Rutas
         }
         $cambios = self::soloCambios($r, $nuevos);
         if (array_key_exists('anio_texto', $cambios)) {
-            // Mismas reglas que la importación: año, rango («1981/82») o con duda («1972?»)
+            // Mismas reglas que la importación: año, rango (“1981/82”) o con duda (“1972?”)
             $an = Texto::anio($cambios['anio_texto']);
             $cambios['anio'] = $an['desde'];
             $cambios['anio_hasta'] = $an['hasta'];
@@ -649,7 +649,7 @@ final class Rutas
         $cj = self::cargarCaja((int)$r['caja_id']);
         App::render('confirmar', [
             'titulo' => "Dar de baja el registro {$r['codigo']}",
-            'texto' => "Vas a dar de baja {$r['codigo']}" . ($r['titulo'] ? " · «{$r['titulo']}»" : '') . " (Caja {$cj['numero']} · {$cj['nombre']})"
+            'texto' => "Vas a dar de baja {$r['codigo']}" . ($r['titulo'] ? " · “{$r['titulo']}”" : '') . " (Caja {$cj['numero']} · {$cj['nombre']})"
                      . ($arch ? ($arch === 1 ? ', con 1 archivo asociado que se oculta' : ", con $arch archivos asociados que se ocultan") . ' junto con el registro' : '')
                      . '. Deja de mostrarse en el sitio y la importación no lo vuelve a crear. Se puede restaurar.',
             'migas' => [['Cajas', App::url('cajas')], ["Caja {$cj['numero']}", App::url('caja', ['id' => $cj['id']])], [$r['codigo'], App::url('registro', ['id' => $r['id']])]],
@@ -681,7 +681,7 @@ final class Rutas
         $bloq = json_decode((string)$fila['campos_bloqueados'], true) ?: [];
         $nuevo = array_values(array_diff($bloq, [$campo]));
         self::historial()->actualizar($entidad, (int)$fila['id'], ['campos_bloqueados' => $nuevo ? json_encode($nuevo) : null], false);
-        App::aviso('ok', "«{$campo}» se va a volver a actualizar desde el Excel en la próxima importación.");
+        App::aviso('ok', "“{$campo}” se va a volver a actualizar desde el Excel en la próxima importación.");
         App::redirigir($entidad, ['id' => $fila['id']]);
     }
 
@@ -965,7 +965,7 @@ final class Rutas
     private const CORRECCION_MAX_MB = 5;
 
     /**
-     * Subir la planilla de correcciones (CSV o .xlsx) y ver la vista previa. Nada se guarda hasta «Aplicar».
+     * Subir la planilla de correcciones (CSV o .xlsx) y ver la vista previa. Nada se guarda hasta “Aplicar”.
      */
     public static function correccion(): void
     {
@@ -1154,7 +1154,7 @@ final class Rutas
         $st = self::db()->prepare('SELECT v.*, d.nombre fusion_nombre, d.tipo fusion_tipo,
               (SELECT COUNT(*) FROM registro_vocabulario rv JOIN registro r ON r.id = rv.registro_id
                WHERE rv.vocabulario_id = v.id AND r.eliminado_en IS NULL) usos,
-              (SELECT GROUP_CONCAT(a.nombre ORDER BY a.nombre SEPARATOR \'», «\') FROM vocabulario_alias a
+              (SELECT GROUP_CONCAT(a.nombre ORDER BY a.nombre SEPARATOR \'”, “\') FROM vocabulario_alias a
                WHERE a.vocabulario_id = v.id AND a.eliminado_en IS NULL) alias
             FROM vocabulario v LEFT JOIN vocabulario d ON d.id = v.fusionado_en
             WHERE v.tipo = ? AND v.eliminado_en IS NULL
@@ -1183,12 +1183,12 @@ final class Rutas
                     }
                     if ($r = (new Vocabulario($db))->resolver($tipo, $n)) {
                         if ($r['via'] !== 'eliminado') {
-                            throw new \RuntimeException("«{$n}» ya se reconoce como «{$r['final']['nombre']}» ("
+                            throw new \RuntimeException("“{$n}” ya se reconoce como “{$r['final']['nombre']}” ("
                                 . Vocabulario::NOMBRES[$r['final']['tipo']] . ($r['final']['estado'] === 'descartado' ? ', descartado' : '') . ').');
                         }
                     }
                     $h->crear('vocabulario', ['tipo' => $tipo, 'nombre' => $n, 'clave' => Texto::clave($n), 'estado' => 'aprobado']);
-                    App::aviso('ok', "Término «{$n}» agregado.");
+                    App::aviso('ok', "Término “{$n}” agregado.");
                     break;
                 case 'aprobar_todos':
                     $st = $db->prepare("SELECT id FROM vocabulario WHERE tipo = ? AND estado = 'propuesto' AND fusionado_en IS NULL AND eliminado_en IS NULL");
@@ -1260,7 +1260,7 @@ final class Rutas
             try {
                 if ($op === 'descartar') {
                     $r = $cur->descartar($id, $motivo);
-                    App::aviso('ok', "«{$t['nombre']}» descartado y quitado de " . ($r['registros'] === 1 ? '1 registro' : "{$r['registros']} registros")
+                    App::aviso('ok', "“{$t['nombre']}” descartado y quitado de " . ($r['registros'] === 1 ? '1 registro' : "{$r['registros']} registros")
                         . '. Los demás tipos y descriptores no se tocaron. Se puede restaurar.');
                 } else {
                     $dest = (string)($_POST['destino'] ?? '');
@@ -1271,10 +1271,10 @@ final class Rutas
                         }
                     }
                     $r = $op === 'mover' ? $cur->mover($id, $destId, $motivo) : $cur->fusionar($id, (int)$destId, $motivo);
-                    App::aviso('ok', ($op === 'mover' ? "«{$t['nombre']}» se movió a " . Vocabulario::PLURALES[$tipoDest] . " como «{$r['destino']['nombre']}»"
-                                                      : "«{$t['nombre']}» se fusionó en «{$r['destino']['nombre']}»")
+                    App::aviso('ok', ($op === 'mover' ? "“{$t['nombre']}” se movió a " . Vocabulario::PLURALES[$tipoDest] . " como “{$r['destino']['nombre']}”"
+                                                      : "“{$t['nombre']}” se fusionó en “{$r['destino']['nombre']}”")
                         . ': ' . ($r['registros'] === 1 ? '1 registro' : "{$r['registros']} registros")
-                        . (!empty($r['aprobado']) ? ". «{$r['destino']['nombre']}» estaba propuesto y quedó aprobado" : '')
+                        . (!empty($r['aprobado']) ? ". “{$r['destino']['nombre']}” estaba propuesto y quedó aprobado" : '')
                         . '. La importación ya lo carga así. Se puede deshacer desde Cambios de curaduría.');
                 }
                 App::redirigir('vocab_informe');
@@ -1358,7 +1358,7 @@ final class Rutas
     // ------------------------------------------------------------------
 
     /**
-     * «Ver como en el sitio»: ?r=vista_previa&registro=ID o &caja=ID. Renderiza las mismas plantillas del sitio
+     * “Ver como en el sitio”: ?r=vista_previa&registro=ID o &caja=ID. Renderiza las mismas plantillas del sitio
      * público (vistas/publico/ficha.php y caja.php) con un banner arriba y, si hoy no aparece en el sitio,
      * los motivos. Solo lectura; no cuenta en evento_uso (el visor usa archivo.php con la sesión del backoffice).
      */
@@ -1585,7 +1585,7 @@ final class Rutas
 
     /**
      * Informe de espacio (para dimensionar el hosting) y carga del listado de Drive. Subir el listado lo simula;
-     * se guarda recién con «Cargar el listado» (drive_listado_aplicar), sobre el mismo archivo.
+     * se guarda recién con “Cargar el listado” (drive_listado_aplicar), sobre el mismo archivo.
      */
     public static function almacenamiento(): void
     {
@@ -1656,8 +1656,8 @@ final class Rutas
         }
         $cfg = aida_config();
         if (Origenes::desdeConfig($cfg)->nombre() !== Origenes::DRIVE) {
-            App::aviso('error', 'El origen de los archivos configurado es «disco»: el listado de Drive se puede simular, pero cargarlo cambiaría '
-                . 'qué archivos figuran presentes. Para cargarlo hay que pasar el origen a «drive» (docs/despliegue.md).');
+            App::aviso('error', 'El origen de los archivos configurado es “disco”: el listado de Drive se puede simular, pero cargarlo cambiaría '
+                . 'qué archivos figuran presentes. Para cargarlo hay que pasar el origen a “drive” (docs/despliegue.md).');
             App::redirigir('almacenamiento');
         }
         $drive = Origenes::drive($cfg);

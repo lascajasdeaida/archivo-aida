@@ -7,7 +7,7 @@ namespace Aida;
  * Resolución de términos de vocabulario: a qué término vigente corresponde lo que escribió el Excel
  * (o lo que guarda el historial) en una columna de Tipo o de Descriptor.
  *
- * Reglas (docs/decisiones.md, «Vocabularios»):
+ * Reglas (docs/decisiones.md, “Vocabularios”):
  *  1. Término con esa clave en esa columna. Si está fusionado o se movió al otro vocabulario
  *     (fusionado_en), se sigue la cadena hasta el término vigente, que puede ser del otro vocabulario.
  *  2. Si no, una grafía anterior de un término renombrado (vocabulario_alias).
@@ -108,12 +108,12 @@ final class Vocabulario
     {
         $r = $this->resolver($tipo, $nombre);
         if ($r === null || $r['via'] === 'eliminado') {
-            return "«{$nombre}» ya no existe como " . self::NOMBRES[$tipo];
+            return "“{$nombre}” ya no existe como " . self::NOMBRES[$tipo];
         }
         if ($r['final']['tipo'] !== $tipo) {
-            return "«{$nombre}» se movió a " . self::PLURALES[$r['final']['tipo']] . " («{$r['final']['nombre']}»)";
+            return "“{$nombre}” se movió a " . self::PLURALES[$r['final']['tipo']] . " (“{$r['final']['nombre']}”)";
         }
-        return "«{$r['final']['nombre']}» está descartado";
+        return "“{$r['final']['nombre']}” está descartado";
     }
 
     /** @return list<array{id:int,nombre:string}> alias vigentes de un término */

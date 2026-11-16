@@ -1,4 +1,4 @@
-/* Banner de la vista previa del backoffice («Ver como en el sitio»). No es parte del diseño del sitio:
+/* Banner de la vista previa del backoffice (“Ver como en el sitio”). No es parte del diseño del sitio:
    a propósito se ve distinto (gris pizarra, letra del sistema) para que nadie lo confunda con la página. */
 .vp-barra {
   position: sticky; top: 0; z-index: 50;

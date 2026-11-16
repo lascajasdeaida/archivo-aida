@@ -9,7 +9,7 @@ namespace Aida;
  * Cada operación es un `proceso` de tipo 'curaduria' (quién, cuándo, motivo, registros afectados) y todos sus
  * cambios quedan en `auditoria` con ese proceso: los de cada registro (sus listas de tipos y descriptores,
  * sin bloquearlas para el Excel) y los de los términos. Así se deshace completa con Historial::revertirProceso
- * y aparece en el informe «Cambios de curaduría» (Vocabularios).
+ * y aparece en el informe “Cambios de curaduría” (Vocabularios).
  *
  * Orden en el historial: primero los registros, después los términos. Deshacer va del último al primero, así
  * que primero vuelve el término (deja de estar movido o descartado) y después cada registro recupera su lista.
@@ -109,7 +109,7 @@ final class Curaduria
                 $st->execute([$tipoDest, $o['clave']]);
                 $d = $st->fetch() ?: null;
                 if ($d && $d['eliminado_en'] === null) {
-                    throw new \RuntimeException("Ya existe «{$d['nombre']}» en " . Vocabulario::PLURALES[$tipoDest] . ': elegilo como destino.');
+                    throw new \RuntimeException("Ya existe “{$d['nombre']}” en " . Vocabulario::PLURALES[$tipoDest] . ': elegilo como destino.');
                 }
                 if ($d) {
                     $revivido = $this->leer((int)$d['id']);
@@ -148,7 +148,7 @@ final class Curaduria
         $o = $this->activo($id);
         $d = $this->activo($destinoId);
         if ($d['tipo'] !== $o['tipo']) {
-            throw new \RuntimeException('Para pasar un término al otro vocabulario usá «Mover».');
+            throw new \RuntimeException('Para pasar un término al otro vocabulario usá “Mover”.');
         }
         if ((int)$d['id'] === (int)$o['id']) {
             throw new \RuntimeException('Elegí otro término como destino de la fusión.');
@@ -188,14 +188,14 @@ final class Curaduria
             $st = $this->db->prepare('SELECT nombre FROM vocabulario WHERE tipo = ? AND clave = ? AND id <> ?');
             $st->execute([$t['tipo'], $kNueva, $t['id']]);
             if (($otro = $st->fetchColumn()) !== false) {
-                throw new \RuntimeException("Ya existe «{$otro}» en este vocabulario: para juntarlos usá «Fusionar».");
+                throw new \RuntimeException("Ya existe “{$otro}” en este vocabulario: para juntarlos usá “Fusionar”.");
             }
             $st = $this->db->prepare('SELECT a.*, v.nombre termino FROM vocabulario_alias a JOIN vocabulario v ON v.id = a.vocabulario_id
                                       WHERE a.tipo = ? AND a.clave = ?');
             $st->execute([$t['tipo'], $kNueva]);
             $aliasNueva = $st->fetch() ?: null;
             if ($aliasNueva && $aliasNueva['eliminado_en'] === null && (int)$aliasNueva['vocabulario_id'] !== (int)$t['id']) {
-                throw new \RuntimeException("«{$nombre}» es una grafía anterior de «{$aliasNueva['termino']}»: para juntarlos usá «Fusionar».");
+                throw new \RuntimeException("“{$nombre}” es una grafía anterior de “{$aliasNueva['termino']}”: para juntarlos usá “Fusionar”.");
             }
         }
         return $this->enTransaccion(function () use ($t, $nombre, $kNueva, $aliasNueva, $motivo) {
@@ -354,15 +354,15 @@ final class Curaduria
         return $out;
     }
 
-    /** Frase corta: «tipo de documento «Televisión» → descriptor «Televisión»». */
+    /** Frase corta: “tipo de documento “Televisión” → descriptor “Televisión””. */
     public static function describir(array $r): string
     {
         $tipo = Vocabulario::NOMBRES[$r['tipo'] ?? ''] ?? '';
-        $t = "{$tipo} «" . ($r['termino'] ?? '') . '»';
+        $t = "{$tipo} “" . ($r['termino'] ?? '') . '”';
         return match ($r['accion'] ?? '') {
-            'mover' => "$t movido a " . (Vocabulario::NOMBRES[$r['destino_tipo'] ?? ''] ?? '') . ' «' . ($r['destino'] ?? '') . '»',
-            'fusionar' => "$t fusionado en «" . ($r['destino'] ?? '') . '»',
-            'renombrar' => "$t renombrado «" . ($r['destino'] ?? '') . '»',
+            'mover' => "$t movido a " . (Vocabulario::NOMBRES[$r['destino_tipo'] ?? ''] ?? '') . ' “' . ($r['destino'] ?? '') . '”',
+            'fusionar' => "$t fusionado en “" . ($r['destino'] ?? '') . '”',
+            'renombrar' => "$t renombrado “" . ($r['destino'] ?? '') . '”',
             'descartar' => "$t descartado",
             default => $t,
         };
@@ -374,7 +374,7 @@ final class Curaduria
         return is_string($v) && $v !== '' && strpbrk($v[0], "=+-@\t\r") !== false ? "'" . $v : $v;
     }
 
-    /** CSV (separado por «;», UTF-8 con BOM, como lo abre Excel en castellano). */
+    /** CSV (separado por “;”, UTF-8 con BOM, como lo abre Excel en castellano). */
     public function csv(): string
     {
         $f = fopen('php://temp', 'r+');
@@ -422,10 +422,10 @@ final class Curaduria
             throw new \RuntimeException('No existe ese término.');
         }
         if ($t['fusionado_en'] !== null) {
-            throw new \RuntimeException("«{$t['nombre']}» ya está " . ($t['regla'] === 'movido' ? 'movido' : 'fusionado') . ': deshacé ese cambio primero.');
+            throw new \RuntimeException("“{$t['nombre']}” ya está " . ($t['regla'] === 'movido' ? 'movido' : 'fusionado') . ': deshacé ese cambio primero.');
         }
         if ($t['estado'] === 'descartado') {
-            throw new \RuntimeException("«{$t['nombre']}» está descartado: restauralo primero.");
+            throw new \RuntimeException("“{$t['nombre']}” está descartado: restauralo primero.");
         }
         return $t;
     }
@@ -470,7 +470,7 @@ final class Curaduria
     }
 
     /**
-     * Decisión del PM (15/11/2026): fusionar o mover en un término «propuesto» lo aprueba, porque elegirlo como
+     * Decisión del PM (15/11/2026): fusionar o mover en un término “propuesto” lo aprueba, porque elegirlo como
      * destino ya es curarlo. Queda en el historial dentro del mismo proceso (se deshace con la operación).
      */
     private function aprobarDestino(Historial $h, array $d): bool

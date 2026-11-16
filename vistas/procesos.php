@@ -40,4 +40,4 @@ $etq = ['cajas nuevas' => 'cajas nuevas', 'registros nuevos' => 'registros nuevo
   <?php if (!$procesos): ?><tr><td colspan="7" class="nota">Todavía no se corrió ninguna importación.</td></tr><?php endif ?>
   </tbody>
 </table>
-<p class="nota">El Excel se importa desde «Subir Excel e importar» (administración y edición). El escaneo de archivos lo corre por ahora el equipo técnico en el servidor.</p>
+<p class="nota">El Excel se importa desde “Subir Excel e importar” (administración y edición). El escaneo de archivos lo corre por ahora el equipo técnico en el servidor.</p>

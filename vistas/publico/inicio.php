@@ -1,6 +1,6 @@
 <?php
 /**
- * Inicio del archivo (docs/ux/sitio-publico.md §3 «Inicio»; lenguaje de sistema, docs/diseno/sistema.md «Archivo: sistema»).
+ * Inicio del archivo (docs/ux/sitio-publico.md §3 “Inicio”; lenguaje de sistema, docs/diseno/sistema.md “Archivo: sistema”).
  * Es esencialmente el buscador (con el cursor de la máquina) + cifras en una línea + accesos rápidos (cajas, tipos,
  * décadas, etapas si hay) + los últimos documentos digitales. Sin hero.
  * Recibe de SitioPublico::inicio(): $cifras, $totalArchivo, $etapas, $tipos, $totalTipos, $decadas, $destacados, $cajas, $frase, $enl.

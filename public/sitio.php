@@ -9,7 +9,7 @@ declare(strict_types=1);
  *  - Sin reescritura: sitio.php?ruta=explorar&q=… (o sitio.php/explorar donde el servidor pase PATH_INFO).
  *
  * Se llama sitio.php y no index.php para convivir con el WordPress de Local en la Mac del PM, que tiene su propio
- * public/index.php (docs/despliegue.md, «Convivir con WordPress»).
+ * public/index.php (docs/despliegue.md, “Convivir con WordPress”).
  */
 
 require dirname(__DIR__) . '/src/bootstrap.php';

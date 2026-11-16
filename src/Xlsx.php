@@ -146,7 +146,7 @@ final class Xlsx
         }
         $dato = $this->zip->getFromName($nombre);
         if ($dato === false || strlen($dato) !== (int)$st['size']) {
-            throw new \RuntimeException("El Excel está dañado: la parte «{$nombre}» no se pudo leer completa.");
+            throw new \RuntimeException("El Excel está dañado: la parte “{$nombre}” no se pudo leer completa.");
         }
         return $dato;
     }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Ficha de un registro en el sitio público (docs/ux/sitio-publico.md §3 «Ficha», componentes.md §11, §12, §14).
+ * Ficha de un registro en el sitio público (docs/ux/sitio-publico.md §3 “Ficha”, componentes.md §11, §12, §14).
  * Recibe $d (Aida\Sitio::fichaPor…), $enl (Aida\Web\Enlaces) y, opcionales, $antes y $robots para _sitio.php.
  * No muestra observaciones de conservación ni de digitalización, nomenclatura del Excel ni campos internos.
  */
@@ -25,7 +25,7 @@ $citaAnio = $anio['etiqueta'] === null ? 's. f.'
     : ($anio['dudoso'] ? '[' . str_replace(' (sin confirmar)', '', $anio['etiqueta']) . '?]' : $anio['etiqueta']);
 $citaAutor = trim((string)($r['autor'] ?? ''));
 $citaAutor = ($citaAutor === '' || mb_stripos($citaAutor, 'bortnik') !== false || mb_strlen($citaAutor) > 80) ? 'Bortnik, Aída' : $citaAutor;
-$cita = rtrim($citaAutor, '.') . '. ' . rtrim(($d['sinTitulo'] ? '[' . $d['titulo'] . ']' : $d['titulo']), '.') . '. ' . rtrim($citaAnio, '.') . '. Archivo «Las cajas de Aída», caja '
+$cita = rtrim($citaAutor, '.') . '. ' . rtrim(($d['sinTitulo'] ? '[' . $d['titulo'] . ']' : $d['titulo']), '.') . '. ' . rtrim($citaAnio, '.') . '. Archivo “Las cajas de Aída”, caja '
     . $caja['numero'] . ", $codigo. " . Enlaces::canonica($codigo);
 $varias = count($d['archivos']) > 1;
 // Archivos que el origen no muestra en línea (Drive con PDF de más de 100 MB): solo descarga, con el peso a la vista
@@ -108,7 +108,7 @@ ob_start(); ?>
         <?= $fila('Fecha', H::e($r['fecha_texto'])) ?>
         <?= $fila('Año', $anio['etiqueta'] === null ? null
             : ($anio['decada'] !== null && !$anio['dudoso'] ? '<a href="' . H::e($enl->explorar(['decada' => $anio['decada']])) . '">' . H::e($anio['etiqueta']) . '</a>' : H::anio($anio))
-              . ($anio['original'] !== null ? '<br><span class="meta">En el catálogo: «' . H::e($anio['original']) . '»</span>' : '')) ?>
+              . ($anio['original'] !== null ? '<br><span class="meta">En el catálogo: “' . H::e($anio['original']) . '”</span>' : '')) ?>
         <?= $fila('Lugar', H::e($r['lugar'])) ?>
         <?= $fila('Páginas', $r['paginas'] ? (string)(int)$r['paginas'] : null) ?>
         <?= $fila('Descriptores', $vlinks($d['descriptores'], 'descriptor')) ?>

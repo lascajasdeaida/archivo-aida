@@ -127,7 +127,7 @@ final class SitioPublico
             self::redirigir(self::$enl->registro($f['registro']), 302);
         }
         $datos = ['e' => $e, 'seccion' => 'explorar', 'robots' => 'noindex,follow',
-                  'meta' => ['descripcion' => 'Buscador del archivo «Las cajas de Aída»: documentos de Aída Bortnik por tipo, año, caja y tema.',
+                  'meta' => ['descripcion' => 'Buscador del archivo “Las cajas de Aída”: documentos de Aída Bortnik por tipo, año, caja y tema.',
                              'canonical' => Enlaces::absoluta('explorar')]];
         try {
             $datos = self::resultados($e) + $datos;
@@ -138,7 +138,7 @@ final class SitioPublico
         }
     }
 
-    /** JSON para «Mostrar más» y los filtros sin recargar: fragmentos ya armados con las mismas plantillas. */
+    /** JSON para “Mostrar más” y los filtros sin recargar: fragmentos ya armados con las mismas plantillas. */
     private static function explorarJson(): void
     {
         header('Content-Type: application/json; charset=utf-8');
@@ -170,7 +170,7 @@ final class SitioPublico
 
     /**
      * Si la URL trae listas a la manera de un formulario sin JS (tipo[]=a&tipo[]=b) o campos vacíos, redirige a la
-     * forma canónica (tipo=a,b): así la URL siempre se puede compartir y «atrás» funciona igual con y sin JS.
+     * forma canónica (tipo=a,b): así la URL siempre se puede compartir y “atrás” funciona igual con y sin JS.
      */
     private static function normalizarUrlExplorar(): void
     {
@@ -316,7 +316,7 @@ final class SitioPublico
         $f = self::filtros($e, $terminos, $etapas);
         $r = $b->buscar($e['q'], $f, $e['pagina'], self::POR_PAGINA, self::ORDENES[$e['orden']][1]);
         $tarjetasPagina = $s->tarjetasDe(array_column($r['resultados'], 'id'));
-        // Con «Mostrar más» (JS) la URL guarda desde qué página se ve (primera=1&pagina=3): se arma la lista acumulada,
+        // Con “Mostrar más” (JS) la URL guarda desde qué página se ve (primera=1&pagina=3): se arma la lista acumulada,
         // hasta 10 páginas, para que recargar o volver muestre lo mismo.
         $tarjetas = $tarjetasPagina;
         $e['primera'] = max($e['primera'], $r['pagina'] - 9);
@@ -459,7 +459,7 @@ final class SitioPublico
         $out = [];
         $e1 = ['pagina' => 1] + $e;
         if ($e['q'] !== '') {
-            $out[] = ['faceta' => 'q', 'titulo' => 'Búsqueda', 'valor' => '«' . $e['q'] . '»',
+            $out[] = ['faceta' => 'q', 'titulo' => 'Búsqueda', 'valor' => '“' . $e['q'] . '”',
                       'quitar' => self::$enl->explorar(self::parametros(['q' => ''] + $e1))];
         }
         foreach (self::FACETAS as $k => $def) {
@@ -557,7 +557,7 @@ final class SitioPublico
         $r = $d['registro'];
         $resumen = trim((string)$r['resumen']);
         $desc = $resumen !== '' ? self::recortar($resumen, 160)
-            : "{$d['titulo']}. Caja {$d['caja']['numero']}: {$d['caja']['nombre']}, código $canon. Archivo «Las cajas de Aída».";
+            : "{$d['titulo']}. Caja {$d['caja']['numero']}: {$d['caja']['nombre']}, código $canon. Archivo “Las cajas de Aída”.";
         self::pagina('ficha', ['d' => $d, 'meta' => ['descripcion' => $desc, 'canonical' => Enlaces::canonica($canon), 'og_tipo' => 'article']]);
     }
 
@@ -591,7 +591,7 @@ final class SitioPublico
         self::pagina('consulta', [
             'd' => $d, 't' => $tarjeta, 'tipo' => $tipo, 'errores' => $errores, 'valores' => $valores, 'aviso' => $aviso,
             'token' => $token, 'instante' => $instante, 'robots' => 'noindex,nofollow',
-            'meta' => ['descripcion' => "Pedido de consulta del documento $canon del archivo «Las cajas de Aída».", 'canonical' => Enlaces::absoluta('consulta/' . $canon)],
+            'meta' => ['descripcion' => "Pedido de consulta del documento $canon del archivo “Las cajas de Aída”.", 'canonical' => Enlaces::absoluta('consulta/' . $canon)],
         ], $errores || $aviso ? 422 : 200);
     }
 

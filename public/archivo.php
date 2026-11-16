@@ -4,7 +4,7 @@ declare(strict_types=1);
 /**
  * Entrega de un archivo digital por id:  /archivo.php?id=123  [&descargar=1]
  *
- * Lo usan el sitio público y el backoffice («Ver PDF» de la ficha). Las reglas de acceso están
+ * Lo usan el sitio público y el backoffice (“Ver PDF” de la ficha). Las reglas de acceso están
  * en src/Entrega.php. Nunca se recibe una ruta: solo el id de archivo_digital.
  * Cómo se entrega depende del origen (config 'archivos.origen'): disco → se transmite el archivo;
  * drive → redirección al visor o a la descarga de Drive, solo después de los mismos controles.
@@ -56,7 +56,7 @@ $pagina = static function (int $codigo, string $vista, array $datos = []): never
 };
 
 if ($decision === Entrega::A_PEDIDO) {
-    // Restringido: la ficha es pública, así que se muestran código y título. «A revisar» todavía no se publica: sin datos.
+    // Restringido: la ficha es pública, así que se muestran código y título. “A revisar” todavía no se publica: sin datos.
     $pagina(403, 'a_pedido', ['a' => $a['acceso'] === 'restringido' ? $a : null]);
 }
 if ($decision !== Entrega::SERVIR) {

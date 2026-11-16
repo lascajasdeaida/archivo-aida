@@ -96,7 +96,7 @@ final class Escaner
                 $nombre = basename($a['ruta']);
                 $ext = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
                 if (!isset(self::MEDIOS[$ext])) {
-                    $this->rep->incidencia('aviso', 'FORMATO_NO_RECONOCIDO', null, null, "{$a['ruta']}: extensión «{$ext}» no admitida");
+                    $this->rep->incidencia('aviso', 'FORMATO_NO_RECONOCIDO', null, null, "{$a['ruta']}: extensión “{$ext}” no admitida");
                     continue;
                 }
                 $cod = Texto::parsearCodigo($nombre);
@@ -235,7 +235,7 @@ final class Escaner
                 $this->rep->sumar(($prev['drive_id'] ?? null) === null ? 'ids de Drive cargados' : 'ids de Drive cambiados');
             }
             if (array_key_exists('drive_compartido', $cambia)) {
-                $this->rep->sumar(($prev['drive_compartido'] ?? null) === null ? 'datos de «compartido» cargados' : 'cambios de «compartido» en Drive');
+                $this->rep->sumar(($prev['drive_compartido'] ?? null) === null ? 'datos de “compartido” cargados' : 'cambios de “compartido” en Drive');
             }
         } elseif (isset($cambia['drive_id'])) {
             $this->rep->sumar('ids de Drive cargados');

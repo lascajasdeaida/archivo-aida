@@ -18,7 +18,7 @@ final class Html
         return '<svg class="icono" aria-hidden="true" focusable="false"><use href="#i-' . self::e($nombre) . '"/></svg>';
     }
 
-    /** «105 MB», «2,1 MB», «850 KB». */
+    /** “105 MB”, “2,1 MB”, “850 KB”. */
     public static function peso(?int $bytes): ?string
     {
         if ($bytes === null) {
@@ -51,7 +51,7 @@ final class Html
     }
 
     /**
-     * Nombre del registro: el título, o los tipos en cursiva con «(sin título)» para lectores de pantalla.
+     * Nombre del registro: el título, o los tipos en cursiva con “(sin título)” para lectores de pantalla.
      * Con $q, resalta los términos buscados (<mark>).
      */
     public static function nombre(array $d, string $q = ''): string
@@ -61,7 +61,7 @@ final class Html
             : self::resaltar($d['titulo'], $q);
     }
 
-    /** Variantes de cada letra para buscar sin tildes, como la base (utf8mb4_unicode_ci: «aida» = «Aída», «n» = «ñ»). */
+    /** Variantes de cada letra para buscar sin tildes, como la base (utf8mb4_unicode_ci: “aida” = “Aída”, “n” = “ñ”). */
     private const VARIANTES = ['a' => 'aáàâäã', 'e' => 'eéèêë', 'i' => 'iíìîï', 'o' => 'oóòôöõ', 'u' => 'uúùûü', 'n' => 'nñ', 'c' => 'cç'];
 
     /** Expresión regular con los términos de la búsqueda (2 letras o más), sin tildes ni mayúsculas. Null si no hay. */

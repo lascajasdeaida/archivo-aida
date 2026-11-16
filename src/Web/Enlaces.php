@@ -16,7 +16,7 @@ use Aida\Sitio;
  *  - Vista previa (backoffice): la ficha y la caja navegan dentro de la vista previa (?r=vista_previa&registro=ID);
  *    las demás páginas quedan con su URL pública y vista-previa.js avisa que no están en la vista previa.
  *
- * $base es la ruta de public/ vista desde la página: «/» en el sitio (o «/subcarpeta/»), «../» desde /admin/.
+ * $base es la ruta de public/ vista desde la página: “/” en el sitio (o “/subcarpeta/”), “../” desde /admin/.
  */
 final class Enlaces
 {
@@ -139,13 +139,13 @@ final class Enlaces
         return $this->ruta('cajas', $params);
     }
 
-    /** @param array<string, scalar|list<scalar>> $filtros listas → «tipo=guion,carta» */
+    /** @param array<string, scalar|list<scalar>> $filtros listas → “tipo=guion,carta” */
     public function explorar(array $filtros = []): string
     {
         return $this->ruta('explorar', $filtros);
     }
 
-    /** Endpoint JSON de Explorar (resultados y facetas para «Mostrar más» y los filtros sin recargar). */
+    /** Endpoint JSON de Explorar (resultados y facetas para “Mostrar más” y los filtros sin recargar). */
     public function explorarJson(array $filtros = []): string
     {
         return $this->ruta('explorar.json', $filtros);
@@ -167,7 +167,7 @@ final class Enlaces
         return self::absoluta(self::rutaRegistro($codigo));
     }
 
-    /** «tipo» => ['guion', 'carta'] → «tipo=guion,carta»; vacíos afuera. */
+    /** “tipo” => ['guion', 'carta'] → “tipo=guion,carta”; vacíos afuera. */
     private static function cadena(array $params): string
     {
         $partes = [];
@@ -183,7 +183,7 @@ final class Enlaces
         return implode('&', $partes);
     }
 
-    /** «registro/C2R5» → «registro/C2R5» (las barras quedan legibles en ?ruta=). */
+    /** “registro/C2R5” → “registro/C2R5” (las barras quedan legibles en ?ruta=). */
     private static function codificarRuta(string $ruta): string
     {
         return str_replace('%2F', '/', rawurlencode(rawurldecode($ruta)));

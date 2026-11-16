@@ -20,7 +20,7 @@ final class Alertas
         'REGISTRO_DEL_BACKOFFICE' => [
             'titulo'  => 'Registro cargado a mano que ahora llegó en el Excel',
             'leyenda' => 'Este registro se creó desde el backoffice y la última planilla trae uno con el mismo número. No se modificó nada.',
-            'accion'  => 'Comparar las dos versiones y decidir cuál vale. Si vale la del Excel, pasar el registro a «origen Excel».',
+            'accion'  => 'Comparar las dos versiones y decidir cuál vale. Si vale la del Excel, pasar el registro a “origen Excel”.',
             'valida'  => true,
         ],
         'REGISTRO_DADO_DE_BAJA' => [
@@ -49,7 +49,7 @@ final class Alertas
         ],
         'ACCESO_A_REVISAR' => [
             'titulo'  => 'Acceso sin definir',
-            'leyenda' => 'La columna PRIVADO dice «VERLO». Mientras tanto el registro no se publica como público ni como restringido.',
+            'leyenda' => 'La columna PRIVADO dice “VERLO”. Mientras tanto el registro no se publica como público ni como restringido.',
             'accion'  => 'Elegir Público o Restringido desde la ficha.',
             'valida'  => true,
         ],
@@ -61,19 +61,19 @@ final class Alertas
         ],
         'NOMENCLATURA_DISTINTA' => [
             'titulo'  => 'Nomenclatura distinta en el Excel',
-            'leyenda' => 'La columna «Nombre de archivo digital» no coincide con caja y registro. Se usó caja + registro.',
+            'leyenda' => 'La columna “Nombre de archivo digital” no coincide con caja y registro. Se usó caja + registro.',
             'accion'  => 'Avisar al equipo para que la corrija. No afecta la carga.',
             'valida'  => false,
         ],
         'NOMENCLATURA_ILEGIBLE' => [
             'titulo'  => 'Nomenclatura con formato incorrecto',
-            'leyenda' => 'La columna «Nombre de archivo digital» no tiene la forma C#R#.',
+            'leyenda' => 'La columna “Nombre de archivo digital” no tiene la forma C#R#.',
             'accion'  => 'Avisar al equipo para que la corrija. No afecta la carga.',
             'valida'  => false,
         ],
         'NOMENCLATURA_REPETIDA' => [
             'titulo'  => 'Nomenclatura repetida en el Excel',
-            'leyenda' => 'Dos registros tienen el mismo «Nombre de archivo digital».',
+            'leyenda' => 'Dos registros tienen el mismo “Nombre de archivo digital”.',
             'accion'  => 'Avisar al equipo. No afecta la carga.',
             'valida'  => false,
         ],
@@ -85,11 +85,11 @@ final class Alertas
         ],
         'CAJA_DISTINTA'            => ['titulo' => 'Número de caja distinto en la pestaña', 'leyenda' => 'La pestaña dice una caja y la columna A otra. Se usó la de la pestaña.', 'accion' => 'Confirmar cuál es la correcta.', 'valida' => true],
         'COLUMNA_REPETIDA'         => ['titulo' => 'Columna repetida', 'leyenda' => 'La pestaña tiene dos columnas con el mismo título. Se usó la primera.', 'accion' => 'Avisar al equipo.', 'valida' => false],
-        'COLUMNAS_INVERTIDAS'      => ['titulo' => 'Columnas con el título cambiado', 'leyenda' => 'Los títulos de «Digitalización» y «Nombre de archivo» están invertidos; se leyeron por contenido.', 'accion' => 'Ninguna.', 'valida' => false],
+        'COLUMNAS_INVERTIDAS'      => ['titulo' => 'Columnas con el título cambiado', 'leyenda' => 'Los títulos de “Digitalización” y “Nombre de archivo” están invertidos; se leyeron por contenido.', 'accion' => 'Ninguna.', 'valida' => false],
         'TEXTO_RECORTADO'          => ['titulo' => 'Texto recortado', 'leyenda' => 'Un campo superaba el largo permitido y se recortó.', 'accion' => 'Revisar el campo en la ficha y completarlo a mano si hace falta.', 'valida' => true],
         'VOCABULARIO_TEXTO_LARGO'  => ['titulo' => 'Texto largo en Tipo o Descriptor', 'leyenda' => 'Parece un resumen pegado en la columna equivocada. No se cargó como término.', 'accion' => 'Revisar el registro y asignarle el tipo o descriptor correcto.', 'valida' => true],
-        'ANIO_RANGO_SUPUESTO'      => ['titulo' => 'Años con barra tomados como rango', 'leyenda' => 'La columna Año trae dos años no seguidos separados por barra («1982 /1986»). Se toman como rango (el registro aparece en todos los años del medio), marcado «sin confirmar».', 'accion' => 'Confirmar con el equipo si es un rango o solo esos dos años, y corregir el año en la ficha si hace falta.', 'valida' => false],
-        'ANIO_NO_INTERPRETADO'     => ['titulo' => 'Año que no se pudo leer', 'leyenda' => 'La columna Año tiene un texto que no es un año, un rango ni una fecha («Posterior a 1990…», «Año XXII»). El registro queda sin año para el filtro; el texto se muestra igual.', 'accion' => 'Si corresponde un año, pedirle al equipo que lo escriba en la planilla (por ejemplo «1990?» si es dudoso).', 'valida' => false],
+        'ANIO_RANGO_SUPUESTO'      => ['titulo' => 'Años con barra tomados como rango', 'leyenda' => 'La columna Año trae dos años no seguidos separados por barra (“1982 /1986”). Se toman como rango (el registro aparece en todos los años del medio), marcado “sin confirmar”.', 'accion' => 'Confirmar con el equipo si es un rango o solo esos dos años, y corregir el año en la ficha si hace falta.', 'valida' => false],
+        'ANIO_NO_INTERPRETADO'     => ['titulo' => 'Año que no se pudo leer', 'leyenda' => 'La columna Año tiene un texto que no es un año, un rango ni una fecha (“Posterior a 1990…”, “Año XXII”). El registro queda sin año para el filtro; el texto se muestra igual.', 'accion' => 'Si corresponde un año, pedirle al equipo que lo escriba en la planilla (por ejemplo “1990?” si es dudoso).', 'valida' => false],
 
         // --- Reglas de curaduría de vocabularios aplicadas por la importación (src/Curaduria.php) ---
         'VOCAB_MOVIDO' => [
@@ -129,7 +129,7 @@ final class Alertas
         // --- Escaneo de archivos ---
         'ARCHIVO_DESAPARECIDO' => [
             'titulo'  => 'Archivo que ya no está en la carpeta',
-            'leyenda' => 'Estaba asociado al registro y en el último escaneo no apareció. El registro pasó a «pendiente».',
+            'leyenda' => 'Estaba asociado al registro y en el último escaneo no apareció. El registro pasó a “pendiente”.',
             'accion'  => 'Verificar si lo movieron o renombraron. Si lo borraron a propósito, confirmar.',
             'valida'  => true,
         ],
@@ -148,23 +148,23 @@ final class Alertas
         'ARCHIVO_EN_OTRA_CAJA'     => ['titulo' => 'Archivo en la carpeta de otra caja', 'leyenda' => 'El nombre del archivo indica una caja y está guardado en la carpeta de otra.', 'accion' => 'Moverlo a la carpeta correcta.', 'valida' => true],
         'NOMBRE_NO_RECONOCIDO'     => ['titulo' => 'Archivo con nombre no reconocido', 'leyenda' => 'El nombre no tiene la forma C#R#, así que no se pudo asociar.', 'accion' => 'Renombrarlo o asociarlo a mano desde la ficha.', 'valida' => true],
         'FORMATO_NO_RECONOCIDO'    => ['titulo' => 'Formato de archivo no admitido', 'leyenda' => 'La extensión no está entre las admitidas.', 'accion' => 'Convertirlo a un formato admitido.', 'valida' => true],
-        'EXCEL_DICE_NO_DIGITALIZADO' => ['titulo' => 'Hay archivo pero el Excel dice «no digitalizado»', 'leyenda' => 'El archivo existe y se publicó; la planilla está desactualizada.', 'accion' => 'Avisar al equipo para que actualice la planilla.', 'valida' => false],
+        'EXCEL_DICE_NO_DIGITALIZADO' => ['titulo' => 'Hay archivo pero el Excel dice “no digitalizado”', 'leyenda' => 'El archivo existe y se publicó; la planilla está desactualizada.', 'accion' => 'Avisar al equipo para que actualice la planilla.', 'valida' => false],
         'PENDIENTE_DE_SUBIR'       => ['titulo' => 'Digitalizado según el Excel, archivo pendiente', 'leyenda' => 'La planilla lo marca digitalizado pero el archivo todavía no está en la carpeta.', 'accion' => 'Ninguna: se asocia solo cuando lo suban.', 'valida' => false],
 
         // --- Origen Drive (src/Archivos/Drive.php, docs/decisiones.md 16/11/2026) ---
         'DRIVE_RESTRINGIDO_COMPARTIDO' => [
             'titulo'  => 'Documento restringido compartido en Drive',
-            'leyenda' => 'El registro es restringido (o de acceso a revisar) y en el Drive del cliente el archivo está compartido con «cualquiera con el enlace». '
+            'leyenda' => 'El registro es restringido (o de acceso a revisar) y en el Drive del cliente el archivo está compartido con “cualquiera con el enlace”. '
                        . 'El sitio no lo muestra, pero quien tenga el enlace de Drive puede abrirlo.',
-            'accion'  => 'Pedirle al cliente que en Drive le saque «cualquiera con el enlace» (Compartir → Acceso general → Restringido) y volver a cargar el listado. '
+            'accion'  => 'Pedirle al cliente que en Drive le saque “cualquiera con el enlace” (Compartir → Acceso general → Restringido) y volver a cargar el listado. '
                        . 'Si en realidad es público, cambiar el acceso en la ficha.',
             'valida'  => true,
         ],
         'DRIVE_PUBLICO_SIN_COMPARTIR' => [
             'titulo'  => 'Documento público sin compartir en Drive',
-            'leyenda' => 'El registro es público y está publicado, pero en Drive el archivo no está compartido con «cualquiera con el enlace»: el visor de la ficha '
+            'leyenda' => 'El registro es público y está publicado, pero en Drive el archivo no está compartido con “cualquiera con el enlace”: el visor de la ficha '
                        . 'va a pedir iniciar sesión en Google y la descarga no va a andar.',
-            'accion'  => 'Pedirle al cliente que lo comparta con «cualquiera con el enlace» (lector) y volver a cargar el listado.',
+            'accion'  => 'Pedirle al cliente que lo comparta con “cualquiera con el enlace” (lector) y volver a cargar el listado.',
             'valida'  => false,
         ],
         'DRIVE_SIN_ID' => [
@@ -175,7 +175,7 @@ final class Alertas
         ],
         'LISTADO_LINEA_INVALIDA' => [
             'titulo'  => 'Línea del listado de Drive que no se pudo leer',
-            'leyenda' => 'Una línea del listado tiene una ruta, un id o un peso que no son válidos. Se salteó; si el archivo ya estaba, pasa a «no presente».',
+            'leyenda' => 'Una línea del listado tiene una ruta, un id o un peso que no son válidos. Se salteó; si el archivo ya estaba, pasa a “no presente”.',
             'accion'  => 'Corregir esa línea del listado y volver a cargarlo.',
             'valida'  => false,
         ],

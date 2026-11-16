@@ -88,14 +88,14 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
       <?php endif ?>
       <?php if ($publicacion['a_revisar'] || $publicacion['no_publicados']): ?>
         <p class="nota">No entran: <?= implode(', ', array_filter([
-            $publicacion['a_revisar'] ? $publicacion['a_revisar'] . ' con acceso «a revisar»' : '',
+            $publicacion['a_revisar'] ? $publicacion['a_revisar'] . ' con acceso “a revisar”' : '',
             $publicacion['no_publicados'] ? $publicacion['no_publicados'] . ' marcados como no publicados' : ''])) ?>.</p>
       <?php endif ?>
       <?php if (App::puede('publicar') && !$caja['eliminado_en']): ?>
       <form method="post" action="<?= App::url('caja_publicar', ['id' => $caja['id']]) ?>" class="acciones">
         <?= App::campoToken() ?>
         <?php if ($caja['publicada']): ?>
-          <button class="btn btn-peligro-borde" data-doble="La caja y sus <?= (int)$publicacion['visibles'] ?> registros dejan de verse en el sitio (sus enlaces responden «ya no está disponible»). ¿Confirmar?">Despublicar la caja</button>
+          <button class="btn btn-peligro-borde" data-doble="La caja y sus <?= (int)$publicacion['visibles'] ?> registros dejan de verse en el sitio (sus enlaces responden “ya no está disponible”). ¿Confirmar?">Despublicar la caja</button>
         <?php else: ?>
           <input type="hidden" name="publicar" value="1">
           <button class="btn btn-crear">Publicar la caja</button>
@@ -123,7 +123,7 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
       <?php foreach (array_intersect($bloq, ['nombre', 'resumen']) as $k): ?>
         <form method="post" action="<?= App::url('campo_desbloquear') ?>" class="acciones">
           <?= App::campoToken() ?><input type="hidden" name="entidad" value="caja"><input type="hidden" name="id" value="<?= (int)$caja['id'] ?>"><input type="hidden" name="campo" value="<?= e($k) ?>">
-          <button class="link" data-doble="La planilla va a reemplazar este valor. ¿Confirmar?">Volver a tomar «<?= e($k) ?>» del Excel</button>
+          <button class="link" data-doble="La planilla va a reemplazar este valor. ¿Confirmar?">Volver a tomar “<?= e($k) ?>” del Excel</button>
         </form>
       <?php endforeach ?>
     </section>

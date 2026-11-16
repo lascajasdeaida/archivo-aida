@@ -34,7 +34,7 @@ ob_start(); ?>
     <?php $nivelCaja = 2; foreach ($cajas as $c) { require __DIR__ . '/_modulo_caja.php'; } ?>
   </ul>
   <?php else: ?>
-  <div class="estado"><h2>Ninguna caja coincide con «<?= H::e($q) ?>»</h2><p><a href="<?= H::e($enl->cajas()) ?>">Ver todas las cajas</a> o <a href="<?= H::e($enl->explorar(['q' => $q])) ?>">buscar «<?= H::e($q) ?>» en los documentos</a>.</p></div>
+  <div class="estado"><h2>Ninguna caja coincide con “<?= H::e($q) ?>”</h2><p><a href="<?= H::e($enl->cajas()) ?>">Ver todas las cajas</a> o <a href="<?= H::e($enl->explorar(['q' => $q])) ?>">buscar “<?= H::e($q) ?>” en los documentos</a>.</p></div>
   <?php endif ?>
   <?php else: ?>
   <div class="estado"><h2>Todavía no hay cajas publicadas</h2>

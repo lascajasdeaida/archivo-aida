@@ -8,32 +8,32 @@ namespace Aida;
  * resultados paginados por relevancia y conteos por faceta.
  *
  *   $b = new Buscador(aida_db());                         // modo público
- *   $b = new Buscador(aida_db(), Buscador::BACKOFFICE);   // incluye restringidos «a revisar», no publicados y observaciones internas
+ *   $b = new Buscador(aida_db(), Buscador::BACKOFFICE);   // incluye restringidos “a revisar”, no publicados y observaciones internas
  *   $r = $b->buscar('jovenes "historia oficial"', ['caja' => [2, 31], 'anio_desde' => 1980, 'tipo' => 12], pagina: 1);
  *
  * Texto (ver docs/busqueda.md):
  *  - Tildes y mayúsculas no importan: lo resuelve la colación utf8mb4_unicode_ci de las columnas.
- *  - Palabras de 3 letras o más: índice FULLTEXT, con prefijo («secuestr» encuentra «secuestro»).
- *  - Palabras más cortas que innodb_ft_min_token_size y stopwords de InnoDB («tv», «yo», «the»):
+ *  - Palabras de 3 letras o más: índice FULLTEXT, con prefijo (“secuestr” encuentra “secuestro”).
+ *  - Palabras más cortas que innodb_ft_min_token_size y stopwords de InnoDB (“tv”, “yo”, “the”):
  *    no están en el índice, así que se buscan como palabra completa con REGEXP. No depende de la config del servidor.
- *  - "Frases entre comillas" (o «»): frase exacta.
+ *  - "Frases entre comillas" (o “”): frase exacta.
  *  - C14R3 (también C14R03): el registro exacto. C14: los registros de la caja 14.
  *  - Un año (1983) también encuentra los registros con ese año en la columna Año.
  *  - -palabra: excluye.
  *  - Cada término tiene que aparecer en el registro, en sus tipos/descriptores o en el nombre de su caja.
  *
- * Años: un registro responde solo a los años de registro_anio (src/Anios.php, Texto::anio): «1981/82» aparece filtrando
- * 1981 y 1982; «1998/2006/2007/2008» en esos cuatro años y no filtrando 2000. anio = tiene ese año;
+ * Años: un registro responde solo a los años de registro_anio (src/Anios.php, Texto::anio): “1981/82” aparece filtrando
+ * 1981 y 1982; “1998/2006/2007/2008” en esos cuatro años y no filtrando 2000. anio = tiene ese año;
  * anio_desde/anio_hasta = tiene algún año dentro del pedido. La faceta de décadas cuenta el registro una vez en cada
  * década en la que tiene algún año. registro.anio (el menor) queda para ordenar. Los resultados traen anio_sin_confirmar
- * y anio_etiqueta con la lista tal cual («1998, 2006–2008», «1972 (sin confirmar)») para mostrar.
+ * y anio_etiqueta con la lista tal cual (“1998, 2006–2008”, “1972 (sin confirmar)”) para mostrar.
  *
  * Filtros: caja (número o lista), anio, anio_desde, anio_hasta, decada (1980 = 1980–1989; también lista: [1980, 1990] = años 80
  * o 90), sin_anio (true: los que no tienen año; con decada, suma), tipo y descriptor (id o lista de ids de vocabulario,
  * dentro de un mismo filtro alcanza con uno), etapa (id o lista de ids de periodo: los registros de cajas de esa etapa),
  * acceso, digitalizado (0/1). En el backoffice además 'bajas' => true.
  * Las facetas se cuentan sin el filtro de la propia faceta (para poder sumar opciones). La de décadas sí respeta el rango
- * desde/hasta (es otro filtro de la misma faceta «Año», que se aplica con su botón).
+ * desde/hasta (es otro filtro de la misma faceta “Año”, que se aplica con su botón).
  * Orden: relevancia (con texto), codigo (caja y número), anio, anio_desc, digital (con documento digital primero).
  */
 final class Buscador
@@ -90,7 +90,7 @@ final class Buscador
         $out = ['palabras' => [], 'cortas' => [], 'frases' => [], 'frases_cortas' => [], 'codigos' => [], 'cajas' => [],
                 'anios' => [], 'excluir' => [], 'excluir_cortas' => []];
         $q = mb_substr(trim($q), 0, 200);
-        // Frases: "…", «…», “…”
+        // Frases: "…", “…”, “…”
         $q = (string)preg_replace_callback('/"([^"]*)"|«([^»]*)»|“([^”]*)”/u', function (array $m) use (&$out) {
             $palabras = $this->palabras(implode(' ', array_slice($m, 1)));
             if (count($palabras) === 1) {
@@ -480,7 +480,7 @@ final class Buscador
         $w = [];
         $p = [];
         if ($this->modo === self::PUBLICO) {
-            // Público: sin bajas, publicado, caja publicada; «a revisar» no se muestra hasta decidir (docs/backoffice.md §2)
+            // Público: sin bajas, publicado, caja publicada; “a revisar” no se muestra hasta decidir (docs/backoffice.md §2)
             $w[] = "r.eliminado_en IS NULL AND r.publicado = 1 AND r.acceso <> 'a_revisar' AND c.eliminado_en IS NULL AND c.publicada = 1";
         } elseif (empty($f['bajas'])) {
             $w[] = 'r.eliminado_en IS NULL AND c.eliminado_en IS NULL';
@@ -502,7 +502,7 @@ final class Buscador
             return false;
         }
         if ($sin !== 'decada' && (isset($f['decada']) || isset($f['sin_anio']))) {
-            // Décadas elegidas (O entre ellas) y «Sin año»: el registro tiene algún año en alguna, o no tiene años
+            // Décadas elegidas (O entre ellas) y “Sin año”: el registro tiene algún año en alguna, o no tiene años
             $toca = isset($f['sin_anio']) && !$c['anios'];
             foreach ($c['anios'] as $a => $_) {
                 if (isset($f['decada']) && in_array(intdiv($a, 10) * 10, $f['decada'], true)) {
@@ -560,8 +560,8 @@ final class Buscador
                 $etiquetaCaja[$c['caja']] = $c['caja_nombre'];
             }
             if ($this->cumple($c, $f, 'decada')) {
-                // Cuenta una vez en cada década en la que tiene algún año («1978/1982»: años 70 y 80;
-                // «1998/2006»: años 90 y 2000)
+                // Cuenta una vez en cada década en la que tiene algún año (“1978/1982”: años 70 y 80;
+                // “1998/2006”: años 90 y 2000)
                 $decadas = !$c['anios'] ? ['sin_anio']
                     : array_unique(array_map(fn($a) => intdiv($a, 10) * 10, array_keys($c['anios'])));
                 foreach ($decadas as $d) {

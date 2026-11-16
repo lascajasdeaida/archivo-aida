@@ -12,7 +12,7 @@ use Aida\Reporte;
  *
  * Flujo: subir → simular (siempre) → ver el resumen → importar de verdad el mismo archivo.
  * El archivo se guarda fuera de public/ con un nombre generado; el nombre original solo queda
- * como «fuente» en la bitácora. Reusa Aida\Importador sin cambios de reglas.
+ * como “fuente” en la bitácora. Reusa Aida\Importador sin cambios de reglas.
  */
 final class CargaExcel
 {
@@ -80,7 +80,7 @@ final class CargaExcel
                 return 'No se pudo recibir el archivo (error del servidor ' . (int)$f['error'] . '). Avisá al equipo técnico.';
         }
         if (strtolower(pathinfo((string)$f['name'], PATHINFO_EXTENSION)) !== 'xlsx') {
-            return 'Tiene que ser un Excel .xlsx. Si está en .xls o en Google Sheets, descargalo como «Microsoft Excel (.xlsx)».';
+            return 'Tiene que ser un Excel .xlsx. Si está en .xls o en Google Sheets, descargalo como “Microsoft Excel (.xlsx)”.';
         }
         $tmp = (string)$f['tmp_name'];
         if (!is_uploaded_file($tmp)) {
@@ -133,7 +133,7 @@ final class CargaExcel
     }
 
     /**
-     * Interpreta «1, 2, 6» o «10-14». Vacío = todas las cajas.
+     * Interpreta “1, 2, 6” o “10-14”. Vacío = todas las cajas.
      * @return int[]|null|false  null = todas · false = formato inválido
      */
     public static function cajas(string $txt): array|null|false

@@ -1,7 +1,7 @@
 <?php
 /**
  * Sobre el archivo (maqueta sobre.html). Los textos institucionales los provee el cliente (docs/consultas-cliente.md §2):
- * cada lugar está marcado con «Texto a definir por el cliente». Lo demás sale del sitio actual
+ * cada lugar está marcado con “Texto a definir por el cliente”. Lo demás sale del sitio actual
  * (docs/diseno/referencias/identidad-sitio-actual.md), de la maqueta y de los datos (cifras).
  * Recibe $cifras, $enl.
  */
@@ -40,7 +40,7 @@ ob_start(); ?>
       <div><dt><span class="etq etq--pedido"><?= H::icono('candado') ?>Consulta a pedido</span></dt><dd>La ficha es pública, pero el documento se consulta pidiéndolo al archivo.</dd></div>
     </dl>
     <h2 id="citar">Cómo citar</h2>
-    <p class="cita">Bortnik, Aída. [Título o tipo]. [Año]. Archivo «Las cajas de Aída», caja N, código CxRy. URL.</p>
+    <p class="cita">Bortnik, Aída. [Título o tipo]. [Año]. Archivo “Las cajas de Aída”, caja N, código CxRy. URL.</p>
     <?= $pend('formato de cita definitivo (el de arriba es provisorio).') ?>
     <h2 id="condiciones">Condiciones de uso</h2>
     <?= $pend('condiciones de uso y licencia del material.') ?>

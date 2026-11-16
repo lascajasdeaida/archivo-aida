@@ -4,14 +4,14 @@ declare(strict_types=1);
 namespace Aida;
 
 /**
- * Corrección masiva por planilla (backoffice: Importaciones o Cajas → «Corrección masiva…»).
+ * Corrección masiva por planilla (backoffice: Importaciones o Cajas → “Corrección masiva…”).
  *
  * El archivo (CSV o .xlsx) trae una fila por celda a corregir:
- *   registro     C14R3, o «Caja 5 (todas las filas)» para un dato de la caja
- *   columna      el nombre de la columna del Excel del catálogo («Autor», «Año», «Nombre de caja (columna B)», «PRIVADO»…)
+ *   registro     C14R3, o “Caja 5 (todas las filas)” para un dato de la caja
+ *   columna      el nombre de la columna del Excel del catálogo (“Autor”, “Año”, “Nombre de caja (columna B)”, “PRIVADO”…)
  *   valor_nuevo  el valor corregido (también se acepta `correccion_sugerida`, el encabezado de docs/datos/correcciones-planilla.csv)
  *   valor_actual opcional: si no coincide con la base, alguien ya lo cambió → conflicto, no se aplica (vacío = sin control)
- *   accion       opcional: «Revisar» se saltea (queda listada aparte)
+ *   accion       opcional: “Revisar” se saltea (queda listada aparte)
  *
  * Siempre primero el plan (vista previa); aplicar vuelve a calcularlo y exige que no haya cambiado.
  * Se aplica con Historial::actualizar (auditado, bloquea los campos para que el Excel no los pise)
@@ -235,7 +235,7 @@ final class Correccion
     {
         $nuevoTxt = $p['valor_nuevo'];
         if (Texto::clave($p['accion']) === 'revisar') {
-            return ['estado' => 'saltear', 'nota' => 'Marcada «Revisar»: la decide el equipo' . ($p['motivo'] !== '' ? '. ' . $p['motivo'] : '')] + $p;
+            return ['estado' => 'saltear', 'nota' => 'Marcada “Revisar”: la decide el equipo' . ($p['motivo'] !== '' ? '. ' . $p['motivo'] : '')] + $p;
         }
         if ($nuevoTxt === '' || preg_match('/^[—–\-]+$/u', $nuevoTxt)) {
             return ['estado' => 'saltear', 'nota' => 'Sin valor nuevo'] + $p;
@@ -246,11 +246,11 @@ final class Correccion
         $col = (string)preg_replace('/\s*\d+$/', '', $col); // «Tipo 1», «Descriptor 3»
         $col = rtrim($col, ' .:');
         if (isset(self::RECHAZADAS[$col])) {
-            return ['estado' => 'error', 'nota' => "La columna «{$p['columna']}» no se corrige por planilla. " . self::RECHAZADAS[$col]] + $p;
+            return ['estado' => 'error', 'nota' => "La columna “{$p['columna']}” no se corrige por planilla. " . self::RECHAZADAS[$col]] + $p;
         }
         $map = self::COLUMNAS[$col] ?? null;
         if ($map === null) {
-            return ['estado' => 'error', 'nota' => "No se reconoce la columna «{$p['columna']}». Usá el nombre de la columna del Excel "
+            return ['estado' => 'error', 'nota' => "No se reconoce la columna “{$p['columna']}”. Usá el nombre de la columna del Excel "
                 . '(Autor, Título, Lugar, Fecha como dice el documento, Año, Páginas, Resumen, ISBN, Observaciones/Editorial, '
                 . 'Edición de catálogo, Observaciones de conservación, Observaciones de digitalización, Selección para digitalización, '
                 . 'Acceso o PRIVADO, Nombre de caja, Resumen de la caja).'] + $p;
@@ -268,10 +268,10 @@ final class Correccion
         } elseif (preg_match('/^caja\s*(?:n[°ºo.]*\s*)?(\d+)\b/iu', $destino, $m)) {
             $numCaja = (int)$m[1];
             if ($entidad === 'registro') {
-                return ['estado' => 'error', 'nota' => "«{$etiqueta}» es un dato de cada registro: indicá el registro (C#R#), no la caja."] + $p;
+                return ['estado' => 'error', 'nota' => "“{$etiqueta}” es un dato de cada registro: indicá el registro (C#R#), no la caja."] + $p;
             }
         } else {
-            return ['estado' => 'error', 'nota' => "«{$destino}» no es un registro (C14R3) ni una caja («Caja 5 (todas las filas)»)."] + $p;
+            return ['estado' => 'error', 'nota' => "“{$destino}” no es un registro (C14R3) ni una caja (“Caja 5 (todas las filas)”)."] + $p;
         }
         if ($entidad === 'caja') {
             $st = $this->db->prepare('SELECT * FROM caja WHERE numero = ?');
@@ -305,7 +305,7 @@ final class Correccion
         if ($campo === 'acceso') {
             $nuevo = self::acceso($nuevoTxt);
             if ($nuevo === null) {
-                return ['estado' => 'error', 'nota' => "«{$nuevoTxt}» no es un acceso. Usá Público, Restringido o A revisar "
+                return ['estado' => 'error', 'nota' => "“{$nuevoTxt}” no es un acceso. Usá Público, Restringido o A revisar "
                     . '(también VERDADERO = restringido, FALSO = público, VERLO = a revisar).'] + $p;
             }
             if ($nuevo === 'publico' && $fila['excel_privado'] === 'VERDADERO') {
@@ -315,7 +315,7 @@ final class Correccion
         } elseif ($campo === 'paginas') {
             $nuevo = Texto::entero($nuevoTxt);
             if ($nuevo === null) {
-                return ['estado' => 'error', 'nota' => "Páginas tiene que ser un número entero («{$nuevoTxt}»)."] + $p;
+                return ['estado' => 'error', 'nota' => "Páginas tiene que ser un número entero (“{$nuevoTxt}”)."] + $p;
             }
         } else {
             $nuevo = $nuevoTxt;
@@ -338,7 +338,7 @@ final class Correccion
                 return ['estado' => 'sin_cambio', 'nota' => "Repetida: la fila $filaAnt ya hace este cambio."] + $p;
             }
             $anular[$iAnt] = $p['fila'];
-            return ['estado' => 'error', 'nota' => "La fila $filaAnt cambia el mismo campo con otro valor («{$valAnt}»). Dejá una sola."] + $p;
+            return ['estado' => 'error', 'nota' => "La fila $filaAnt cambia el mismo campo con otro valor (“{$valAnt}”). Dejá una sola."] + $p;
         }
         $vistos[$k] = [$p['fila'], $nuevo, $p['_i']];
 
@@ -346,8 +346,8 @@ final class Correccion
             return ['estado' => 'sin_cambio', 'nota' => trim('Ya tiene ese valor. ' . $p['nota'])] + $p;
         }
         if ($p['valor_actual'] !== null && !$this->mismoValor($campo, $p['valor_actual'], $actual)) {
-            return ['estado' => 'conflicto', 'nota' => 'El archivo esperaba «' . $p['valor_actual']
-                . '» pero en la base hoy dice otra cosa: alguien ya lo cambió. No se aplica.'] + $p;
+            return ['estado' => 'conflicto', 'nota' => 'El archivo esperaba “' . $p['valor_actual']
+                . '” pero en la base hoy dice otra cosa: alguien ya lo cambió. No se aplica.'] + $p;
         }
         return $p;
     }
@@ -385,7 +385,7 @@ final class Correccion
     // ------------------------------------------------------------------
 
     /**
-     * Aplica las filas «aplicar» en un proceso de tipo `correccion`. Recalcula el plan dentro de la transacción
+     * Aplica las filas “aplicar” en un proceso de tipo `correccion`. Recalcula el plan dentro de la transacción
      * y, si no coincide con la vista previa que vio el operador ($firma), no aplica nada.
      * Las que pasan a público un registro que la planilla marca PRIVADO se aplican solo con $confirmaPrivados;
      * si no, se omiten y se cuentan en 'omitidas_privado'.

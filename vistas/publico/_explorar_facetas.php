@@ -2,7 +2,7 @@
 /**
  * Facetas de Explorar (docs/ux/sitio-publico.md §4.1, componentes de la maqueta explorar.html).
  * Dentro de una faceta, O; entre facetas, Y. Conteos sin el filtro de la propia faceta; las opciones en 0 no se muestran
- * salvo las elegidas. Más de 8 opciones: las 8 primeras (más las elegidas) y «Ver N más» (details: anda sin JS).
+ * salvo las elegidas. Más de 8 opciones: las 8 primeras (más las elegidas) y “Ver N más” (details: anda sin JS).
  * Recibe $facetas, $opciones, $e, $enl.
  */
 use Aida\Web\Html as H;
@@ -51,7 +51,7 @@ foreach ($facetas as $k => $def):
     <div class="rango"><label>Desde <input type="number" inputmode="numeric" name="desde" id="desde" min="1900" max="2100" value="<?= $e['desde'] ?: '' ?>"></label>
       <label>Hasta <input type="number" inputmode="numeric" name="hasta" id="hasta" min="1900" max="2100" value="<?= $e['hasta'] ?: '' ?>"></label>
       <button class="boton boton--secundario" id="aplicar-rango">Aplicar</button></div>
-    <p class="meta" style="margin-top:8px">Los documentos «Sin fecha» quedan fuera al elegir un rango de años.</p>
+    <p class="meta" style="margin-top:8px">Los documentos “Sin fecha” quedan fuera al elegir un rango de años.</p>
     <?php endif ?>
   </fieldset>
 </details>

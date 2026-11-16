@@ -88,7 +88,7 @@ final class Drive implements Origen
 
     public function metadatos(array $fila): array
     {
-        // Una línea sin id no borra el que ya estaba (nada se borra en un escaneo); «compartido» sí refleja el listado
+        // Una línea sin id no borra el que ya estaba (nada se borra en un escaneo); “compartido” sí refleja el listado
         // nuevo: sin dato es sin dato, para no dejar alertas viejas.
         $c = $fila['compartido'] ?? null;
         $meta = ['drive_compartido' => $c === null ? null : (int)(bool)$c];
@@ -113,17 +113,17 @@ final class Drive implements Origen
                 continue;
             }
             if ($f['drive_compartido'] === null) {
-                $rep->sumar('archivos sin dato de «compartido»');
+                $rep->sumar('archivos sin dato de “compartido”');
                 continue;
             }
             $compartido = (int)$f['drive_compartido'] === 1;
             if ($compartido && $f['acceso'] !== 'publico') {
                 $rep->incidencia('error', 'DRIVE_RESTRINGIDO_COMPARTIDO', $caja, $reg,
                     "{$f['ruta']}: el registro es " . ($f['acceso'] === 'restringido' ? 'restringido' : 'de acceso a revisar')
-                    . ' y en Drive está compartido con «cualquiera con el enlace»');
+                    . ' y en Drive está compartido con “cualquiera con el enlace”');
             } elseif (!$compartido && $f['acceso'] === 'publico' && (int)$f['publicado'] === 1) {
                 $rep->incidencia('aviso', 'DRIVE_PUBLICO_SIN_COMPARTIR', $caja, $reg,
-                    "{$f['ruta']}: el registro es público y en Drive no está compartido con «cualquiera con el enlace»");
+                    "{$f['ruta']}: el registro es público y en Drive no está compartido con “cualquiera con el enlace”");
             }
         }
     }

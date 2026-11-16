@@ -87,7 +87,7 @@ final class Espacio
         return ['cajas' => $cajas, 'total' => $total, 'proyeccion' => $proyeccion, 'pesado' => $this->pesado];
     }
 
-    /** «16,0 GB», «109 MB». */
+    /** “16,0 GB”, “109 MB”. */
     public static function gb(?int $bytes): string
     {
         if ($bytes === null) {

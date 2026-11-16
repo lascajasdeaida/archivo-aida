@@ -11,15 +11,15 @@ use Aida\Archivos\Origen;
  * Se pide siempre por id de `archivo_digital`, nunca por ruta. Acá están las reglas de acceso; cómo se entrega lo resuelve
  * el origen de archivos (src/Archivos: Disco lee la carpeta propia, Drive redirige al Drive del cliente).
  *
- * Reglas (ver docs/decisiones.md, «Acceso»):
+ * Reglas (ver docs/decisiones.md, “Acceso”):
  *  - El archivo no está quitado (eliminado_en) y apareció en el último escaneo (presente = 1).
  *  - Ni el registro ni la caja están dados de baja.
- *  - Público: el registro está publicado y su acceso es «publico».
- *    Si es «restringido» o «a_revisar», el documento se consulta a pedido.
+ *  - Público: el registro está publicado y su acceso es “publico”.
+ *    Si es “restringido” o “a_revisar”, el documento se consulta a pedido.
  *  - Usuarios del backoffice (interno = true): ven también lo restringido, a revisar o no publicado.
  *
  * La usan public/archivo.php (sitio y backoffice). El sitio público puede reusar `evaluar()`
- * para decidir si muestra el botón «Ver documento» o la leyenda de consulta a pedido.
+ * para decidir si muestra el botón “Ver documento” o la leyenda de consulta a pedido.
  */
 final class Entrega
 {

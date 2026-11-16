@@ -29,7 +29,7 @@ final class Historial
             'seleccion_digit', 'excel_digitalizado', 'excel_nomenclatura', 'excel_privado', 'acceso', 'publicado',
             'origen', 'eliminado_en', 'eliminado_por', 'campos_bloqueados', 'tipos', 'descriptores',
         ],
-        'archivo_digital' => ['registro_id', 'parte', 'eliminado_en', 'eliminado_por'],
+        'archivo_digital' => ['registro_id', 'parte', 'eliminado_en', 'eliminado_por', 'drive_id', 'drive_compartido'], // drive_*: escaneo con origen Drive
         // Curaduría de vocabularios (src/Curaduria.php): mover, fusionar, renombrar, descartar
         'vocabulario' => ['tipo', 'nombre', 'clave', 'estado', 'fusionado_en', 'regla', 'motivo', 'eliminado_en', 'eliminado_por'],
         'vocabulario_alias' => ['tipo', 'clave', 'nombre', 'vocabulario_id', 'eliminado_en', 'eliminado_por'],

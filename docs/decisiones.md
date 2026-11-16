@@ -251,8 +251,50 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   troquel, rótulo con número a máquina, obra y años; registros y digitalización al pie), en Las cajas, en el inicio y junto al título de cada caja:
   el anclaje físico de lo que se relevó. Las cajas se ordenan también por año.
 
+## Origen de los archivos: Drive del cliente, provisorio (16/11/2026, decisión del PM)
+
+- **Los PDF se sirven provisoriamente desde el Drive compartido del cliente** (carpeta «Selección de Cajas»), hasta dimensionar
+  un hosting dedicado. **Por qué:** la muestra (`datos/listado_drive_20261114.tsv`) son 146 PDF de 8 cajas = **16 GB**, promedio
+  109 MB por registro, máximo 780 MB; proyectado a las 70 cajas, del orden de **120–140 GB** (informe de Almacenamiento). Antes de
+  contratar ese espacio se publica con lo que ya está en Drive.
+- **Origen intercambiable** (`config/config.php`, `'archivos' => ['origen' => 'disco' | 'drive']`, por defecto `disco`). La interfaz
+  `Aida\Archivos\Origen` tiene dos implementaciones, `Disco` (la carpeta propia, como hasta ahora) y `Drive`. Escaneo, entrega,
+  sitio y backoffice le preguntan al origen; nada más sabe de dónde sale el archivo. Volver a disco es cambiar la configuración y
+  escanear (`docs/despliegue.md`): los id de Drive se conservan.
+- **Ids de Drive por listado**, porque hoy no hay acceso a la API: TSV o CSV con ruta (`C1/C1R31.pdf`), id de Drive (o el enlace),
+  bytes y, opcional, si está compartido «cualquiera con el enlace». Se carga con `php bin/drive-listado.php listado.tsv [--simular]`
+  o en Almacenamiento (siempre se simula primero). Cargarlo **es** el escaneo con origen Drive: asocia por ruta igual que el disco,
+  marca no presente lo que ya no figura y guarda `archivo_digital.drive_id` y `drive_compartido` (migración 006). Los cambios de id
+  y de «compartido» en archivos que ya estaban quedan en el historial del escaneo (se deshacen con el proceso). Una línea sin id
+  no borra el id guardado (nada se borra en un escaneo); «compartido» sí se toma del listado nuevo (vacío = sin dato). Queda una copia
+  normalizada del último listado (`archivos.drive.listado`, por defecto `var/drive/listado.tsv`) que usa `bin/escanear.php`.
+  Con credenciales de cuenta de servicio, `Drive::listar()` podría pedirle los archivos a la API; no está implementado.
+- **Entrega igual de controlada:** `public/archivo.php` hace los mismos controles que con disco (caja publicada, registro publicado,
+  acceso público; restringido o a revisar → 403 «a pedido», nunca redirige). Si pasa: **ver** → redirección al visor embebido de
+  Drive (`/file/d/ID/preview`), que la ficha abre en su visor (iframe); **descargar** → redirección a la descarga de Drive
+  (`/uc?export=download&id=ID`). El id no aparece en el HTML del sitio, solo en la redirección. Respuesta sin caché
+  (`no-store`): si el registro pasa a restringido, el próximo pedido ya no redirige. El equipo del backoffice también es
+  redirigido a Drive para lo restringido o no publicado (para abrirlo necesita permiso en el Drive del cliente).
+- **Más de 100 MB: solo descarga** (`archivos.drive.visor_max_mb`), con aviso del peso en la ficha: el visor de Drive falla con
+  PDF grandes. En la muestra son **46 de 146** archivos. Con disco no hay límite (el navegador pide el PDF de a partes).
+- **Alertas** (escaneo con origen Drive, se cierran solas cuando dejan de ocurrir): `DRIVE_RESTRINGIDO_COMPARTIDO` (error, a
+  validar: un restringido o a revisar figura compartido con cualquiera con el enlace), `DRIVE_PUBLICO_SIN_COMPARTIR` (un público
+  publicado no está compartido: el visor va a pedir iniciar sesión), `DRIVE_SIN_ID` y `LISTADO_LINEA_INVALIDA`. Se recalculan en
+  cada carga del listado o con «Revisar de nuevo con el último listado»; la ficha del backoffice además lo avisa en el momento.
+  Un escaneo con origen disco no tiene datos de Drive: esas alertas se cierran («Ya no ocurre»).
+- **Riesgos aceptados:**
+  - el visor de Drive con PDF grandes (de ahí el límite de 100 MB) y su aspecto, que no controlamos;
+  - la **cuota de descargas de Drive**: un archivo muy descargado puede quedar bloqueado unas horas («cuota excedida»), y para
+    archivos grandes Drive muestra antes un aviso de que no puede analizarlo con el antivirus;
+  - **los permisos los maneja el cliente** en Drive: un restringido compartido por error se abre con el enlace aunque el sitio no
+    lo entregue (por eso la alerta), y un público sin compartir no se ve;
+  - los id cambian si el cliente re-sube un archivo: hay que volver a cargar el listado;
+  - el visor embebido carga recursos de Google en la ficha (cookies de terceros, privacidad de los visitantes).
+
 ## Pendientes
 
 - Versiones livianas para web de los PDF pesados (hay archivos de 500–780 MB).
 - Definir dónde se alojan los archivos definitivos (servidor propio vs. otro almacenamiento) y cómo se sincronizan desde Drive.
+  Mientras tanto se sirven desde Drive (16/11/2026); el informe de Almacenamiento da el tamaño para dimensionarlo.
+- Acceso a la API de Drive (cuenta de servicio) para no depender de un listado armado a mano.
 - Backoffice y front conectados a esta base.

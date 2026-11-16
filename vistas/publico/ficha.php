@@ -28,6 +28,9 @@ $citaAutor = ($citaAutor === '' || mb_stripos($citaAutor, 'bortnik') !== false |
 $cita = rtrim($citaAutor, '.') . '. ' . rtrim(($d['sinTitulo'] ? '[' . $d['titulo'] . ']' : $d['titulo']), '.') . '. ' . rtrim($citaAnio, '.') . '. Archivo «Las cajas de Aída», caja '
     . $caja['numero'] . ", $codigo. " . Enlaces::canonica($codigo);
 $varias = count($d['archivos']) > 1;
+// Archivos que el origen no muestra en línea (Drive con PDF de más de 100 MB): solo descarga, con el peso a la vista
+$conVisor = array_values(array_filter($d['archivos'], fn($a) => $a['visor'] ?? true));
+$soloDescarga = array_values(array_filter($d['archivos'], fn($a) => !($a['visor'] ?? true)));
 ob_start(); ?>
 <div class="contenedor">
   <div class="barra-registro">
@@ -56,15 +59,21 @@ ob_start(); ?>
     <aside class="ficha__documento acciones-registro" aria-labelledby="h-doc">
       <h2 id="h-doc">Documento</h2>
       <?php if ($d['documento'] === 'ver'): ?>
+        <?php if ($soloDescarga): ?>
+        <div class="aviso aviso--ficha" role="note"><?= H::icono('descargar') ?>
+          <p><b>Solo descarga</b><?= count($soloDescarga) === count($d['archivos']) && !$varias
+              ? 'Este documento pesa ' . H::e((string)H::peso($soloDescarga[0]['peso'])) . ': es demasiado pesado para verlo en línea. Se descarga para leerlo.'
+              : 'Algunas partes son demasiado pesadas para verlas en línea (' . H::e(implode(', ', array_map(fn($a) => (string)H::peso($a['peso']), $soloDescarga))) . '). Se descargan para leerlas.' ?></p></div>
+        <?php endif ?>
         <ul class="acciones-registro__lista">
-          <?php foreach ($d['archivos'] as $i => $a): ?>
-          <li><a class="boton <?= $i === 0 ? 'boton--primario' : 'boton--secundario' ?> boton--ancho" href="<?= H::e($enl->archivo($a['id'])) ?>"
+          <?php $primero = true; foreach ($d['archivos'] as $i => $a): if (!$a['visor']) { continue; } $peso = H::peso($a['peso']); ?>
+          <li><a class="boton <?= $primero ? 'boton--primario' : 'boton--secundario' ?> boton--ancho" href="<?= H::e($enl->archivo($a['id'])) ?>"
                data-visor="<?= H::e($enl->archivo($a['id'])) ?>" data-visor-titulo="<?= H::e($codigo . ($varias ? ', parte ' . ($i + 1) : '')) ?>"
                data-descarga="<?= H::e($enl->archivo($a['id'], true)) ?>" aria-controls="visor" aria-expanded="false">
-              <?= H::icono('ver') ?><?= $varias ? 'Ver parte ' . ($i + 1) : 'Ver documento' ?><?php if (!$varias && $r['paginas']): ?> <span class="peso">(<?= (int)$r['paginas'] ?> págs.)</span><?php endif ?></a></li>
-          <?php endforeach ?>
+              <?= H::icono('ver') ?><?= $varias ? 'Ver parte ' . ($i + 1) : 'Ver documento' ?><?php if (!$varias && $r['paginas']): ?> <span class="peso">(<?= (int)$r['paginas'] ?> págs.<?= $peso ? ', ' . H::e($peso) : '' ?>)</span><?php elseif ($peso): ?> <span class="peso">(<?= H::e($peso) ?>)</span><?php endif ?></a></li>
+          <?php $primero = false; endforeach ?>
           <?php foreach ($d['archivos'] as $i => $a): $peso = H::peso($a['peso']); ?>
-          <li><a class="boton boton--secundario boton--ancho" href="<?= H::e($enl->archivo($a['id'], true)) ?>">
+          <li><a class="boton <?= !$a['visor'] && !$conVisor && $i === 0 ? 'boton--primario' : 'boton--secundario' ?> boton--ancho" href="<?= H::e($enl->archivo($a['id'], true)) ?>">
               <?= H::icono('descargar') ?>Descargar <?= $etiquetaFormato($a) ?><?= $varias ? ' (parte ' . ($i + 1) . ')' : '' ?><?php if ($peso): ?> <span class="peso">(<?= H::e($peso) ?>)</span><?php endif ?></a></li>
           <?php endforeach ?>
         </ul>
@@ -122,14 +131,14 @@ ob_start(); ?>
     </div>
   </div>
 
-  <?php if ($d['documento'] === 'ver'): ?>
+  <?php if ($d['documento'] === 'ver' && $conVisor): ?>
   <section id="visor" class="visor" hidden aria-label="Visor del documento <?= H::e($codigo) ?>">
     <div class="visor__barra" role="toolbar" aria-label="Controles del visor">
       <div class="grupo"><button class="visor__boton" type="button" data-visor-pantalla aria-label="Pantalla completa"><?= H::icono('pantalla') ?></button></div>
       <span class="separador"></span>
       <div class="grupo">
-        <a class="visor__boton" href="<?= H::e($enl->archivo($d['archivos'][0]['id'], true)) ?>" data-visor-descargar
-           aria-label="Descargar <?= $etiquetaFormato($d['archivos'][0]) ?><?= ($p = H::peso($d['archivos'][0]['peso'])) ? ' (' . H::e($p) . ')' : '' ?>"><?= H::icono('descargar') ?></a>
+        <a class="visor__boton" href="<?= H::e($enl->archivo($conVisor[0]['id'], true)) ?>" data-visor-descargar
+           aria-label="Descargar <?= $etiquetaFormato($conVisor[0]) ?><?= ($p = H::peso($conVisor[0]['peso'])) ? ' (' . H::e($p) . ')' : '' ?>"><?= H::icono('descargar') ?></a>
         <button class="visor__boton visor__boton--texto" type="button" data-visor-cerrar><?= H::icono('cerrar') ?>Cerrar</button>
       </div>
     </div>

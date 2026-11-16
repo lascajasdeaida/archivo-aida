@@ -1,6 +1,7 @@
 -- =====================================================================
 -- Archivo AIDA BORTNIK · Las cajas de Aída
 -- Esquema MySQL / MariaDB · InnoDB · utf8mb4
+-- Versión 1.0 (16/11/2026) — origen de archivos intercambiable: id de Drive y si está compartido (archivo_digital)
 -- Versión 0.9 (15/11/2026) — consultas a pedido del sitio público (consulta) y publicación por caja
 -- Versión 0.8 (15/11/2026) — años de cada registro (registro_anio): las listas salteadas filtran solo sus años
 -- Versión 0.7 (15/11/2026) — corrección masiva por planilla (proceso 'correccion')
@@ -194,6 +195,8 @@ CREATE TABLE IF NOT EXISTS archivo_digital (
   modificado_en  DATETIME     NULL,                 -- mtime del archivo
   version_web    VARCHAR(512) NULL,                 -- copia liviana para visualizar (pendiente)
   miniatura      VARCHAR(512) NULL,
+  drive_id       VARCHAR(200) NULL,                 -- id en el Drive del cliente (listado de Drive); se conserva con origen «disco»
+  drive_compartido TINYINT(1) NULL,                 -- 1 = «cualquiera con el enlace», 0 = no, NULL = sin dato
   presente       TINYINT(1)   NOT NULL DEFAULT 1,   -- 0 si desapareció en el último escaneo
   origen         ENUM('escaneo','backoffice') NOT NULL DEFAULT 'escaneo',
   eliminado_en   DATETIME     NULL,                 -- quitado desde el backoffice: el escaneo no lo vuelve a asociar
@@ -202,6 +205,7 @@ CREATE TABLE IF NOT EXISTS archivo_digital (
   PRIMARY KEY (id),
   UNIQUE KEY uq_archivo_ruta (ruta),
   KEY idx_archivo_registro (registro_id),
+  KEY idx_archivo_drive (drive_id),
   CONSTRAINT fk_archivo_registro FOREIGN KEY (registro_id) REFERENCES registro(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -330,6 +334,7 @@ INSERT IGNORE INTO migracion (version, nombre) VALUES
   ('002', '002_curaduria_y_anios.sql'),
   ('003', '003_correccion_masiva.sql'),
   ('004', '004_registro_anio.sql'),
-  ('005', '005_consultas_y_sitio.sql');
+  ('005', '005_consultas_y_sitio.sql'),
+  ('006', '006_archivo_drive.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

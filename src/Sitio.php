@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Aida;
 
+use Aida\Archivos\Origen;
+use Aida\Archivos\Origenes;
+
 /**
  * Datos de las páginas del sitio público (ficha de un registro y página de una caja), listos para las
  * plantillas de vistas/publico/. Solo lee: no escribe nada ni cuenta vistas.
@@ -30,8 +33,11 @@ final class Sitio
 
     private const EXTRACTO = 220;
 
-    public function __construct(private readonly \PDO $db, private readonly bool $vistaPrevia = false)
+    private readonly Origen $origen;
+
+    public function __construct(private readonly \PDO $db, private readonly bool $vistaPrevia = false, ?Origen $origen = null)
     {
+        $this->origen = $origen ?? Origenes::desdeConfig(aida_config());
     }
 
     // ------------------------------------------------------------------
@@ -454,11 +460,12 @@ final class Sitio
     /**
      * Archivos que se pueden ver de un registro (no quitados, presentes en el último escaneo, formato servible).
      * Si el visor los entrega o no al público lo decide Entrega según el acceso; acá solo se listan.
+     * `visor` = false: el origen no lo puede mostrar en línea (Drive con más de 100 MB): la ficha ofrece solo la descarga.
      */
     private function archivos(int $registroId): array
     {
         $st = $this->db->prepare('SELECT a.id, a.registro_id, a.ruta, a.nombre_archivo, a.formato, a.parte, a.peso_bytes,
-                a.presente, a.eliminado_en archivo_baja, r.acceso, r.publicado, r.eliminado_en registro_baja, c.eliminado_en caja_baja
+                a.drive_id, a.presente, a.eliminado_en archivo_baja, r.acceso, r.publicado, r.eliminado_en registro_baja, c.eliminado_en caja_baja
             FROM archivo_digital a JOIN registro r ON r.id = a.registro_id JOIN caja c ON c.id = r.caja_id
             WHERE a.registro_id = ? ORDER BY a.parte, a.nombre_archivo');
         $st->execute([$registroId]);
@@ -466,9 +473,10 @@ final class Sitio
         foreach ($st->fetchAll(\PDO::FETCH_ASSOC) as $a) {
             // Como lo vería el equipo: descarta solo lo que no existe o no se puede entregar (bajas, ausentes, formato)
             $a['registro_baja'] = $a['caja_baja'] = null;
-            if (Entrega::decidir($a, true) === Entrega::SERVIR) {
+            if (Entrega::decidir($a, true) === Entrega::SERVIR && $this->origen->entregable($a)) {
                 $out[] = ['id' => (int)$a['id'], 'nombre' => $a['nombre_archivo'], 'formato' => strtolower((string)$a['formato']),
-                          'parte' => (int)$a['parte'], 'peso' => $a['peso_bytes'] !== null ? (int)$a['peso_bytes'] : null];
+                          'parte' => (int)$a['parte'], 'peso' => $a['peso_bytes'] !== null ? (int)$a['peso_bytes'] : null,
+                          'visor' => $this->origen->admiteVisor($a)];
             }
         }
         return $out;

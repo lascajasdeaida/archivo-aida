@@ -9,8 +9,21 @@ return [
         'pass' => 'cambiar',
         // 'socket' => '/ruta/al/mysqld.sock',   // si se conecta por socket (p. ej. Local), en lugar de host y puerto
     ],
-    // Carpeta raíz donde están las carpetas de cajas (C1/, C2/, …) con los PDF
-    'archivos_raiz' => '/var/www/aida-archivos',
+    // De dónde salen los archivos digitalizados (docs/despliegue.md «Origen de los archivos»).
+    //   disco: carpeta propia con las carpetas de cajas (C1/, C2/, …); se entregan desde el servidor (como siempre).
+    //   drive: provisorio (16/11/2026). Los PDF quedan en el Drive compartido del cliente; el sitio muestra el visor de Drive
+    //          y la descarga redirige a Drive. Los id salen del listado de Drive (bin/drive-listado.php o Almacenamiento).
+    'archivos' => [
+        'origen' => 'disco',
+        'raiz'   => '/var/www/aida-archivos',          // solo disco
+        // 'drive' => [
+        //     'listado'      => '/var/www/aida-privado/drive-listado.tsv', // copia del último listado (por defecto var/drive/listado.tsv)
+        //     'visor_max_mb' => 100,   // más pesados: solo descarga (el visor de Drive falla con PDF grandes)
+        // ],
+        // 'cajas_total' => 70,         // para la proyección del informe de espacio (por defecto 70)
+    ],
+    // Forma anterior, sigue valiendo: sin 'archivos', el origen es disco con esta carpeta.
+    // 'archivos_raiz' => '/var/www/aida-archivos',
     // Backups de la base (bin/backup.sh). Opcional: por defecto ../backups-aida y 8 copias
     // 'backup' => ['dir' => '/home/usuario/backups-aida', 'conservar' => 8],
     // Excel subidos desde el backoffice (Importaciones). Fuera de public/. Por defecto: var/importaciones del repo.

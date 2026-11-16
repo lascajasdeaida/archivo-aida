@@ -6,10 +6,13 @@ declare(strict_types=1);
  *
  * Lo usan el sitio público y el backoffice («Ver PDF» de la ficha). Las reglas de acceso están
  * en src/Entrega.php. Nunca se recibe una ruta: solo el id de archivo_digital.
+ * Cómo se entrega depende del origen (config 'archivos.origen'): disco → se transmite el archivo;
+ * drive → redirección al visor o a la descarga de Drive, solo después de los mismos controles.
  */
 
 require dirname(__DIR__) . '/src/bootstrap.php';
 
+use Aida\Archivos\Origenes;
 use Aida\Entrega;
 use Aida\Web\App;
 
@@ -36,11 +39,10 @@ if (!in_array($metodo, ['GET', 'HEAD'], true)) {
 }
 
 $cfg = aida_config();
-$entrega = new Entrega(aida_db(), (string)($cfg['archivos_raiz'] ?? ''));
+$entrega = new Entrega(aida_db(), Origenes::desdeConfig($cfg));
 $id = is_string($_GET['id'] ?? null) ? filter_var($_GET['id'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) : false;
 $a = $id === false ? null : $entrega->buscar($id);
 $decision = Entrega::decidir($a, $interno);
-$ruta = $decision === Entrega::SERVIR ? $entrega->rutaSegura($a) : null;
 
 $pagina = static function (int $codigo, string $vista, array $datos = []): never {
     http_response_code($codigo);
@@ -57,15 +59,15 @@ if ($decision === Entrega::A_PEDIDO) {
     // Restringido: la ficha es pública, así que se muestran código y título. «A revisar» todavía no se publica: sin datos.
     $pagina(403, 'a_pedido', ['a' => $a['acceso'] === 'restringido' ? $a : null]);
 }
-if ($decision !== Entrega::SERVIR || $ruta === null) {
-    if ($decision === Entrega::SERVIR) {
-        error_log("[aida-entrega] archivo {$a['id']} ({$a['ruta']}) en la base pero no en el disco");
-    }
+if ($decision !== Entrega::SERVIR) {
     $pagina(404, 'no_encontrado');
 }
 
 $descargar = !empty($_GET['descargar']);
-$completo = $entrega->enviar($a, $ruta, $descargar, $interno);
+$completo = $entrega->entregar($a, $descargar, $interno);
+if ($completo === null) {
+    $pagina(404, 'no_encontrado'); // en la base pero no en el origen (ya quedó en el log)
+}
 // Se cuenta una vez por apertura (no por cada tramo que pide el visor) y no se cuentan las consultas del equipo.
 if ($completo && !$interno && !isset($_SERVER['HTTP_RANGE'])) {
     $entrega->registrarUso($a, $descargar ? 'descarga' : 'vista');

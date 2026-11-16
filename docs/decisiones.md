@@ -205,6 +205,24 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   la parte o la aclaración de cada caja. Las cajas que un resumen presenta juntas («Cajas 8 y 12») se muestran con esa evidencia,
   sin sugerir un nombre salvo que uno contenga al otro («Azucena» / «Azucena Villaflor»).
 
+## Sitio público (15/11/2026)
+
+- **Publicación por caja** (decisión del PM): el sitio muestra solo las cajas con `publicada = 1` y, de ellas, los registros sin baja,
+  `publicado = 1` y con acceso distinto de «a revisar». Se publica y despublica desde la página de la caja en el backoffice
+  (admin y editor), por `Historial`. Si no hay ninguna publicada, el inicio muestra «Todavía no hay cajas publicadas» (no un error).
+  Las cifras del sitio (inicio, «Sobre») cuentan solo lo publicado.
+- **Etapas:** la tabla `periodo` está vacía; mientras tanto el inicio muestra las 5 etapas del sitio actual
+  (`Sitio::ETAPAS_SITIO_ACTUAL`), todas «Sin cajas asignadas», y la faceta «Etapa» no aparece en Explorar. Cuando se carguen
+  períodos y se asignen a cajas publicadas, mandan ellos (enlace y faceta por slug del nombre).
+- **Facetas de tipo y descriptor** muestran los términos aprobados **y los propuestos** (los mismos que la ficha), sin descartados,
+  fusionados ni basura sin letras. Hoy los 108 términos están «propuesto»: mostrar solo aprobados dejaría las facetas vacías.
+  Términos con la misma grafía se juntan por slug en la URL (`tipo=carta`).
+- **Consultas a pedido:** tabla `consulta` (migración 005). Los datos personales quedan solo ahí y en el backoffice; el historial
+  guarda el alta sin ellos (origen `sitio`). Anti-spam sin servicios externos: campo trampa, tiempo mínimo de 3 s firmado,
+  CSRF por cookie (SameSite=Strict) y como máximo 5 envíos por hora por IP (guardada como HMAC). No se envían correos todavía.
+- **Front controller `public/sitio.php`**, no `index.php`, para convivir con el WordPress de Local en la Mac del PM
+  (`docs/despliegue.md`).
+
 ## Pendientes
 
 - Versiones livianas para web de los PDF pesados (hay archivos de 500–780 MB).

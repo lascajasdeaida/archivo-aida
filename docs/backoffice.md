@@ -116,6 +116,8 @@ modificaciones y bajas a través de esa clase.
 | Forzar una reversión con conflictos | ✅ | ✅ | — | — |
 | Importar Excel / correr escaneo | ✅ | ✅ | — | — |
 | Corrección masiva por planilla (incluye cambio masivo de acceso) | ✅ | ✅ | — | — |
+| Publicar / despublicar una caja en el sitio | ✅ | ✅ | — | — |
+| Ver y atender consultas del sitio (datos personales) | ✅ | ✅ | — | — |
 | Usuarios y borrado definitivo | ✅ | — | — | — |
 
 ## 7. Ver y entregar archivos (`public/archivo.php`)
@@ -304,3 +306,22 @@ URL de `docs/ux/sitio-publico.md` §2: `/registro/C14R3`, `/caja/2-la-historia-o
 pedir los datos, devolver 404 si vienen `null` y requerir la plantilla con `$d` y `$enl`.
 CSS en `public/sitio/` (`tokens.css` + `estilo.css`), el mismo archivo que usan las maquetas de `docs/diseno/maquetas/`;
 comportamiento en `public/sitio/sitio.js` (menú, «Leer más», visor, copiar cita).
+
+## 15. Publicación por caja y consultas del sitio (15/11/2026)
+
+**Publicar una caja** (decisión del PM: se publica caja por caja). En la página de la caja, panel «Publicación en el sitio»:
+estado, cuántos registros se van a ver (y cuántos no entran: «a revisar» o no publicados), **Publicar la caja** (verde) o
+**Despublicar la caja** (rojo con doble validación) y la vista previa. Pasa por `Historial` sin bloquear campos (la importación no
+toca `publicada`): se deshace desde el historial de la caja. Al despublicar, las fichas responden 410 «ya no está disponible» con
+enlace a la caja si sigue publicada. El tilde «Publicada en el sitio» del formulario de datos de la caja se sacó: había dos
+controles para lo mismo y lo podía cambiar el perfil de carga de datos. En **Cajas**, pestañas Todas · Publicadas en el sitio ·
+Sin publicar y columna «Sitio».
+
+**Consultas** (menú, con chip de las nuevas; admin y editor). Lista de los pedidos del formulario «Pedir consulta» del sitio,
+con pestañas por estado (nueva / respondida / descartada) y buscador por nombre, correo, institución o código. La ficha muestra los
+datos de quien pide (nombre, correo con enlace `mailto:`, institución, uso previsto, modalidad, mensaje), el documento y el
+**seguimiento**: estado y notas internas, por `Historial` (se deshacen; al salir de «nueva» se anota quién y cuándo la atendió).
+El alta queda en el historial **sin datos personales** (código, tipo, uso, modalidad), con origen «sitio público».
+Todavía no se manda ningún correo: falta definir con el cliente quién responde (`docs/consultas-cliente.md` §2). Punto de
+extensión: `Aida\NotificadorConsultas` (ver `docs/sitio-publico.md`).
+

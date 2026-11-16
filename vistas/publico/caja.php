@@ -36,7 +36,6 @@ ob_start(); ?>
       <span><b><?= H::numero($cf['digitales']) ?></b> digitalizados</span>
       <?php if ($cf['a_pedido']): ?><span><b><?= H::numero($cf['a_pedido']) ?></b> a pedido</span><?php endif ?>
       <span><?= $cf['desde'] ? '<b>' . $cf['desde'] . ($cf['hasta'] !== $cf['desde'] ? '–' . $cf['hasta'] : '') . '</b>' : 'Sin años cargados' ?></span>
-      <?php if ($cf['sin_titulo']): ?><span><b><?= H::numero($cf['sin_titulo']) ?></b> sin título</span><?php endif ?>
     </p>
     <?php if ($cf['documentos']): ?>
     <div class="avance avance--caja">

@@ -19,7 +19,7 @@ $tiposTexto = implode(' · ', array_map(fn($tp) => $tp['nombre'], array_slice($t
   <span class="registro__codigo codigo"><?= H::resaltar($t['codigo'], $qr) ?></span>
   <div class="registro__cuerpo">
     <h<?= $nivel ?> class="registro__titulo"><a href="<?= H::e($enl->registro($t)) ?>"><?= H::nombre($t, $qr) ?></a></h<?= $nivel ?>>
-    <p class="registro__tipos"><?= $t['sinTitulo'] ? 'Sin título' : ($tiposTexto !== '' ? H::resaltar($tiposTexto, $qr) : 'Sin tipo') ?></p>
+    <?php if (!$t['sinTitulo'] && $tiposTexto !== ''): ?><p class="registro__tipos"><?= H::resaltar($tiposTexto, $qr) ?></p><?php endif ?>
     <?php if ($frag !== null): ?><p class="registro__fragmento"><?= H::resaltar($frag, $qr) ?></p><?php endif ?>
   </div>
   <p class="registro__caja">Caja <?= (int)$cj['numero'] ?><span class="solo-lector">:</span> <span class="registro__caja-nombre"><?= H::resaltar($cj['nombre'], $qr) ?></span></p>

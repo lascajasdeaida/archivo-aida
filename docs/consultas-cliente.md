@@ -21,8 +21,7 @@ El sitio actual tiene 5 etapas: Inicios 1963–1976 · Exilio 1976–1979 · Reg
 
 ## 3. Identidad
 
-- **Logo en .ai** (curvas). Confirmado que existe (15/11/2026).
-- **Nueva versión de la web en construcción**: pedir acceso o el enlace para alinear el diseño del sitio público con ella.
+- **Logo nuevo:** recibido (.ai, .pdf, .png). Aceptan sugerencias: ya está aplicado en los dos sitios.
 - Courier Prime (letra de máquina de escribir) para códigos y rótulos: **aprobada por el PM**, no hace falta consultar.
 
 ## 4. Acceso
@@ -34,3 +33,32 @@ El sitio actual tiene 5 etapas: Inicios 1963–1976 · Exilio 1976–1979 · Reg
 - **Cajas que parecen la misma obra:** 3 y 5 (Noticia de un secuestro), 8 y 12 (Why Me? / La víctima), 9 y 13 (Azucena Villaflor). ¿Confirman?
 - **«Aida Bortnik Ferreira»** en 8 registros de la caja 14: ¿es correcto el segundo apellido?
 - **Planilla de correcciones** (302 celdas) enviada al equipo de digitalización: seguimiento de lo corregido.
+
+## 6. Sitio institucional (versión en dirección B, 16/11/2026)
+
+### Faltantes
+1. Tapa del catálogo en alta (la foto que tenemos muestra las cajas en el estante, no la tapa).
+2. Collage o fotos del proceso de digitalización.
+3. Portada del dossier del Documental.
+4. Fotos de Héctor Alterio y Luis Brandoni para Documental.
+5. Fotos del lanzamiento del catálogo en el Teatro San Martín.
+6. URL del video de La Nación para insertarlo (hoy se enlaza la nota).
+7. Video de Paula Félix-Didier presentando la muestra.
+8. Video de la visita guiada de Juliana Milanesio.
+9. Video del Museo del Cine.
+10. URL de las tres notas de prensa de la Muestra (Red Intercátedras, Argentores, Zibilia).
+11. Dossiers de Conservación y de Digitalización (hoy van los textos del sitio anterior).
+12. Fichas técnicas de Muestra, Conservación, Digitalización y Documental, y el equipo del Documental.
+13. Logo de Natalia Oreiro (Catálogo).
+14. Logo de Fundación Santander (el que pide su instructivo; hoy va el del banco).
+15. Datos para transferencia del bloque «Sumate».
+16. PDF del catálogo (`descargas/LAS_CAJAS_DE_AIDA.pdf`) desde el servidor actual. *(Lo resolvemos nosotros.)*
+17. Redirecciones de las direcciones del WordPress (`.htaccess` del servidor). *(Lo resolvemos nosotros.)*
+
+### Para confirmar
+- ¿Van Argentores y BIND en Catálogo?
+- ¿El Catálogo se financió por «Mecenazgo Cultural» o por «Impulso Cultural»? (la nota general y las páginas no coinciden)
+- Apellidos: ¿Villaronga o Villalonga?, ¿Igartua o Igartúa?, ¿Rollandi o Rolandi? ¿«Gabriela Tania Fantl» o «Gabriela Fantl»?
+- Muestra: la frase que pidieron reescribir quedó en pasado («se presentó…»). ¿Va así?
+- Prólogo: sacamos un epígrafe de foto que había quedado suelto en el texto («Aída Bortnik junto a -izq- y Juan José Campanella -der-», le falta un nombre). ¿Quién es la otra persona?
+- Documental: de los dos textos enviados usamos la sinopsis larga. ¿Va esa?

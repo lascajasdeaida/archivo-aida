@@ -37,6 +37,8 @@ El sitio actual tiene 5 etapas: Inicios 1963–1976 · Exilio 1976–1979 · Reg
 
 ## 6. Sitio institucional (versión en dirección B, 16/11/2026)
 
+Referencia: primer pedido del cliente, mail «La página de Las cajas ja!» (21/04/2026, más el agregado del botón para donar del 23/04). Ya resuelve qué mecenas va en cada sección: Catálogo, Mecenazgo (BIND, Natalia Oreiro, Editorial 36); Muestra, Impulso Cultural (Santander, Argentores, Museo del Cine); Conservación, Impulso Cultural (Santander); Digitalización, Impulso Cultural y Fondo Metropolitano (Supervielle, OSAI, Museo del Cine); Documental, Ministerio de Desarrollo Económico.
+
 ### Faltantes
 1. Tapa del catálogo en alta (la foto que tenemos muestra las cajas en el estante, no la tapa).
 2. Collage o fotos del proceso de digitalización.
@@ -57,8 +59,6 @@ El sitio actual tiene 5 etapas: Inicios 1963–1976 · Exilio 1976–1979 · Reg
 17. Redirecciones de las direcciones del WordPress (`.htaccess` del servidor). *(Lo resolvemos nosotros.)*
 
 ### Para confirmar
-- ¿Van Argentores y BIND en Catálogo?
-- ¿El Catálogo se financió por «Mecenazgo Cultural» o por «Impulso Cultural»? (la nota general y las páginas no coinciden)
 - Apellidos: ¿Villaronga o Villalonga?, ¿Igartua o Igartúa?, ¿Rollandi o Rolandi? ¿«Gabriela Tania Fantl» o «Gabriela Fantl»?
 - Muestra: la frase que pidieron reescribir quedó en pasado («se presentó…»). ¿Va así?
 - Prólogo: sacamos un epígrafe de foto que había quedado suelto en el texto («Aída Bortnik junto a -izq- y Juan José Campanella -der-», le falta un nombre). ¿Quién es la otra persona?

@@ -12,7 +12,7 @@ ob_start(); ?>
     <li aria-current="page">Consulta enviada</li>
   </ol></nav>
   <div class="confirmacion" role="status" style="margin-top:24px" data-consulta-enviada="<?= H::e($codigo) ?>" data-caja="<?= (int)$d['caja']['numero'] ?>">
-    <h1 tabindex="-1" id="ok" style="font-size:var(--t-h2)"><?= H::icono('check') ?>Recibimos tu pedido</h1>
+    <h1 tabindex="-1" id="ok" style="font-size:var(--t-titulo)"><?= H::icono('check') ?>Recibimos tu pedido</h1>
     <?php if ($numero): ?><p>Número de consulta: <span class="numero-consulta"><?= H::e($numero) ?></span>. Anotalo por si necesitás escribirnos.</p><?php endif ?>
     <p>Pediste la consulta del documento <span class="codigo"><?= H::e($codigo) ?></span>: <?= H::nombre($d) ?>.</p>
     <p>El equipo del archivo te va a responder por correo en un plazo de <b>[a definir por el cliente]</b> días hábiles.</p>

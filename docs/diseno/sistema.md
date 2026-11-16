@@ -1,10 +1,165 @@
-# Sistema visual del sitio público
+# Sistema visual: archivo e institucional
 
-Diseño web · 16/11/2026 · rama `diseno/direccion-c`. **Dirección B · Museografía con la máquina de escribir y el cursor de C**
-(decisión del PM del 15/11/2026, ver [`../decisiones.md`](../decisiones.md) «Diseño del sitio público»). Reemplaza el sistema
-anterior (papel sepia + Playfair), que queda en la historia de git.
-Referencias: propuestas `equipo/direcciones/propuestas/b/` y `…/c/` (construidas con `equipo/direcciones/_build/`) y la estructura de UX
-([`../ux/sitio-publico.md`](../ux/sitio-publico.md)). Tokens: [`public/sitio/tokens.css`](../../public/sitio/tokens.css). Componentes: [`componentes.md`](componentes.md).
+Diseño web · 16/11/2026.
+
+- **El archivo (catálogo en línea, `vistas/publico/` + `public/sitio/`) usa un lenguaje de sistema**: sección «Archivo: sistema», abajo.
+  Rama `diseno/archivo-sistema`. Decisión del PM del 16/11/2026 ([`../decisiones.md`](../decisiones.md) «Diseño del archivo: lenguaje de sistema»).
+- **El sitio institucional sigue con la dirección B inmersiva** (Museografía con la máquina de escribir y el cursor de C), documentada en §1–§11.
+  Esos tokens ya no están en `public/sitio/tokens.css` (el archivo los reemplazó); quedan en la historia de git (`35b0f85`) y en la rama del sitio institucional.
+- Lo que comparten: el **logo** de cajas, la **paleta** (azul `#0D5C9E`, rojo-naranja `#EF6A3A`, tinta `#1D1815`) y el **cursor** de la máquina de escribir.
+
+## Archivo: sistema
+
+Pedido del PM: «cuando digo sistema no me refiero a aburrido, pero 3 o 4 niveles de lectura y tipografías me parece mucho. Me siento más cómodo con
+menos variables, más prioridad a resultado de búsqueda rápido, y a todo lo que debe priorizar un sistema de archivo».
+Tokens: [`public/sitio/tokens.css`](../../public/sitio/tokens.css). Hoja: [`public/sitio/estilo.css`](../../public/sitio/estilo.css).
+
+### A.1 Criterio
+
+- **Menos variables.** 2 familias, 3 niveles de lectura, 2 pesos (400 y 600), 1 radio (2 px), 1 grosor de línea (1 px; 2 px solo bajo los títulos de bloque).
+- **Búsqueda primero.** El inicio es el buscador; Explorar es una lista densa de una fila por registro; la ficha y la caja son vistas de registro.
+- **Fondo blanco y neutro**, paneles en `fondo-2` (#F4F3F0, apenas cálido: el papel de B). Sin bandas, sin sombras, sin grano, sin fotos de ambiente.
+- **Acentos funcionales, no decorativos.** Azul = acción primaria, enlace, foco, selección (fila en hover, opción elegida, filtro activo, navegación actual).
+  Rojo-naranja = el cursor del buscador y el resaltado del término buscado (fondo `resaltado`). Los estados del documento conservan sus colores y formas.
+- **Densidad de herramienta**: filas de 40–56 px en escritorio, objetivos táctiles de 40–44 px en celular.
+
+### A.2 Tipografía: 2 familias, 3 niveles
+
+| Nivel | Uso | Familia | Celular | Escritorio | Interlínea |
+|---|---|---|---|---|---|
+| **1 · Título de pantalla** | Un `h1` por página | Inter 600 | 24 px | 28 px | 1,2 |
+| **2 · Texto** | Interfaz, filas, metadatos, prosa; `h2`/`h3` son este nivel en 600 | Inter 400 / 600 | 16 px | 16 px | 1,5 (prosa 1,65, 70 caracteres) |
+| **3 · Dato secundario** | Tipos, caja, año, conteos, ayudas, migas, etiquetas | Inter 400 | 14 px | 14 px | 1,5 |
+| Código | `C2R5` (filas, ficha, migas, anterior/siguiente) | Courier Prime 700 | como su contexto | | |
+| Buscador | Lo que se escribe en el campo | Courier Prime 400 | 17–18 px | | |
+
+- **Oswald sale del archivo**: la condensada queda solo en el logo (SVG). No se usa en el título del inicio: el inicio es el buscador y no suma.
+- **Sin rótulos en caja alta espaciada.** El orden lo dan los títulos de bloque (16 px 600 con línea de 2 px) y el encabezado de columnas.
+- **Registros sin título:** itálica (antes Courier itálica): se distinguen por forma, no por color.
+- Cifras con `tabular-nums` para que las columnas de conteos y años se alineen.
+
+### A.3 Paleta y contrastes
+
+Medidos con `node docs/diseno/contraste.js` (WCAG 2.1, luminancia relativa) sobre `tokens.css`.
+
+| Texto / elemento | Fondo | Uso | Contraste | Mínimo AA |
+|---|---|---|---|---|
+| `texto` #1D1815 | `fondo` #FFFFFF | Títulos, texto, filas | 17,59:1 ✔ | 4,5:1 |
+| `texto` #1D1815 | `fondo-2` #F4F3F0 | Texto en paneles (facetas, acciones, cita, pie) | 15,85:1 ✔ | 4,5:1 |
+| `texto` #1D1815 | `azul-suave` #EAF1F8 | Texto en fila con hover y opción elegida | 15,44:1 ✔ | 4,5:1 |
+| `texto` #1D1815 | `resaltado` #FFE0CC | Término buscado (<mark>) | 14,06:1 ✔ | 4,5:1 |
+| `texto-2` #5A544D | `fondo` #FFFFFF | Dato secundario | 7,47:1 ✔ | 4,5:1 |
+| `texto-2` #5A544D | `fondo-2` #F4F3F0 | Dato secundario en paneles y encabezado de columnas | 6,73:1 ✔ | 4,5:1 |
+| `texto-2` #5A544D | `azul-suave` #EAF1F8 | Dato secundario en fila con hover | 6,56:1 ✔ | 4,5:1 |
+| `azul` #0D5C9E | `fondo` #FFFFFF | Enlaces y títulos de fila | 6,90:1 ✔ | 4,5:1 |
+| `azul` #0D5C9E | `fondo-2` #F4F3F0 | Enlaces en paneles | 6,22:1 ✔ | 4,5:1 |
+| `azul` #0D5C9E | `resaltado` #FFE0CC | Término buscado dentro de un título-enlace | 5,52:1 ✔ | 4,5:1 |
+| `azul-osc` #0A4A80 | `azul-suave` #EAF1F8 | Título de fila en hover | 8,00:1 ✔ | 4,5:1 |
+| `blanco` #FFFFFF | `azul` #0D5C9E | Botón primario, chip activo en hover, conteo de faceta | 6,90:1 ✔ | 4,5:1 |
+| `blanco` #FFFFFF | `azul-osc` #0A4A80 | Botón primario en hover | 9,11:1 ✔ | 4,5:1 |
+| `blanco` #FFFFFF | `texto` #1D1815 | Barra del visor | 17,59:1 ✔ | 4,5:1 |
+| `blanco` #FFFFFF | `visor` #3A3734 | Zona del visor | 11,82:1 ✔ | 4,5:1 |
+| `digital` #2F5A2A | `digital-suave` #E6EEDF | Badge Documento digital | 6,75:1 ✔ | 4,5:1 |
+| `pedido` #A8361A | `pedido-suave` #FDEDE5 | Badge Consulta a pedido | 5,74:1 ✔ | 4,5:1 |
+| `duda` #7A5A0E | `duda-suave` #F4E8C4 | Badge Año sin confirmar | 5,21:1 ✔ | 4,5:1 |
+| `duda` #7A5A0E | `fondo` #FFFFFF | Año sin confirmar en texto | 6,37:1 ✔ | 4,5:1 |
+| `duda` #7A5A0E | `azul-suave` #EAF1F8 | Año sin confirmar en fila con hover | 5,59:1 ✔ | 4,5:1 |
+| `error` #A12A1A | `error-suave` #F9E1DA | Resumen de errores | 5,87:1 ✔ | 4,5:1 |
+| `error` #A12A1A | `fondo` #FFFFFF | Error junto al campo | 7,34:1 ✔ | 4,5:1 |
+| `borde` #767069 | `fondo` #FFFFFF | Borde de controles (1.4.11) | 4,89:1 ✔ | 3:1 |
+| `borde` #767069 | `fondo-2` #F4F3F0 | Borde de controles en paneles | 4,41:1 ✔ | 3:1 |
+| `azul` #0D5C9E | `fondo` #FFFFFF | Anillo de foco, checkbox, barra de avance | 6,90:1 ✔ | 3:1 |
+| `azul` #0D5C9E | `azul-suave` #EAF1F8 | Anillo de foco sobre fila con hover | 6,06:1 ✔ | 3:1 |
+| `blanco` #FFFFFF | `visor` #3A3734 | Anillo de foco en el visor | 11,82:1 ✔ | 3:1 |
+| `rojo` #EF6A3A | `fondo` #FFFFFF | Cursor del buscador (decorativo, NO texto) | 3,09:1 | — |
+
+Notas: el rojo-naranja no es texto ni borde de control; el cursor es decorativo (3,1:1 igual se ve). El resaltado lleva tinta o el azul del enlace encima.
+
+### A.4 El cursor: solo en el buscador
+
+El concepto que le gusta al PM se conserva en un solo lugar: **el buscador**. Inicio, Explorar, caja y 404 llevan el mismo campo.
+
+- Campo vacío y sin foco: un bloque rojo bajo la línea (la tecla subrayado de la máquina, `.buscador__cursor`, `aria-hidden`) delante del marcador,
+  que titila **4 veces (≈ 4 s, menos de 5 s: WCAG 2.2.2) y queda fijo**. Con `prefers-reduced-motion: reduce` no titila.
+- Al enfocar, el bloque desaparece y lo reemplaza el cursor real del campo, también rojo (`caret-color`), y el texto se escribe en Courier Prime.
+- **Sin tipeo animado de títulos** en el archivo (ni inicio, ni caja, ni ficha). `sitio.js` ya no tiene el código de tipeo.
+
+### A.5 Pantallas
+
+**Inicio.** Título «Buscar en el archivo de Aída Bortnik», buscador grande (56 px) con el cursor, ejemplos de búsqueda y **cifras en una línea**
+(cajas publicadas de 70 · documentos · digitalizados · años). Debajo, **accesos rápidos** en tres índices (Cajas, Tipos de documento, Décadas; Etapas
+aparece en la tercera columna solo cuando haya períodos asignados a cajas publicadas) y los últimos documentos digitales en filas. Sin hero, sin foto,
+sin frase; «Sobre el archivo», «Cómo citar» y «Cómo consultar a pedido» en una línea al pie.
+
+**Explorar.** Buscador arriba; a la izquierda, facetas compactas (panel `fondo-2`, 14 px, opciones de 32 px) y en celular el panel a pantalla completa
+de siempre; arriba de la lista, **conteo y orden** en una barra y los **chips de filtros activos** (azul suave con borde azul). La lista es una
+**fila por registro**, con encabezado de columnas en escritorio:
+
+| Código | Documento | Caja | Año | Acceso |
+|---|---|---|---|---|
+| `C2R5` (mono) | Título en azul (enlace) + tipos; si hay búsqueda, el fragmento del resumen donde aparece | Caja N · nombre | Año (dudoso punteado) | Digital / A pedido / Solo ficha |
+
+En celular la fila se apila: código · año · estado / título / tipos / caja. Toda la fila es un enlace (`h3 > a::after`), hover en azul suave, foco con
+anillo azul interior. El encabezado de columnas es `aria-hidden`: cada celda se entiende sola («Caja 2: …», «Documento Digital», «Consulta A pedido»).
+
+**Resaltado del término.** `Html::resaltar()` envuelve los términos de la búsqueda (2 letras o más) en `<mark>`, sin tildes ni mayúsculas como la
+base («aida» marca «Aída»), en código, título, tipos, caja y fragmento. `Html::fragmento()` recorta ~170 caracteres del resumen alrededor de la
+primera coincidencia; para eso la tarjeta trae ahora el `resumen` completo (`Sitio::armarTarjetas`, una línea). Se resalta en el servidor: funciona sin JS.
+
+**Ficha y caja: vista de registro.** Barra superior con migas y **Anterior / Siguiente** (código o número; con el nombre en el pie desde 700 px),
+«Volver a los resultados» si se llegó desde Explorar, línea de dato (`C2R5` · Caja 2, registro 5), título y estados. En la ficha, a la derecha
+(arriba en celular) el panel **Documento** con las acciones agrupadas: Ver documento (primaria) · Descargar · Pedir consulta / Consultar por este
+documento · Copiar cita · Copiar enlace. Metadatos en una **lista de definición compacta** (`dt` 14 px gris, `dd` 16 px, 150 px de columna, filas con
+línea de 1 px), descripción en prosa y cita en un panel. La caja muestra cifras en una línea, barra de avance, resumen plegado a 4 líneas, buscador de
+la caja, tipos como accesos y la lista de registros con las mismas filas (sin la columna Caja).
+
+**Las cajas.** Filas: Caja N · nombre · documentos · años · barra de digitalización (ancho fijo, comparable entre filas).
+
+### A.6 Respuesta inmediata
+
+- **Búsqueda mientras se escribe** en Explorar: 180 ms después de la última tecla se piden los resultados (`explorar.json`) y se reemplazan facetas,
+  chips y lista; una consulta por pausa, no por letra. El código exacto (`C14R3`) y las letras sueltas no disparan la búsqueda (Enter con el código
+  lleva a la ficha). El evento `search` de Estadísticas sale tras 1,5 s quieto, una vez por término (antes solo con Enter).
+- Si la persona no eligió orden, al buscar se ordena por relevancia y sin búsqueda por caja (igual que el servidor).
+- **Sin animaciones de entrada.** La lista se atenúa al 55 % solo si la respuesta tarda más de 150 ms (`transition-delay`), así no parpadea.
+  Esqueleto liviano (filas grises fijas, sin brillo) solo cuando no había lista.
+- **Atajo `/`**: enfoca el buscador de la página (Explorar, inicio, caja, filtro de Las cajas) y selecciona su texto; en las demás páginas lleva a
+  Explorar con el foco en el buscador. No actúa dentro de campos ni con modificadores. Los campos llevan `aria-keyshortcuts="/"` y la tecla se
+  muestra en la cabecera y en la ayuda del buscador (solo escritorio con mouse).
+
+### A.7 Estados y lo que se mantiene
+
+- Badges con forma: digital **borde lleno** + hoja; a pedido **borde rayado** + candado; año sin confirmar **punteado** + «?»; solo ficha neutro + ficha.
+- Foco: anillo azul de 3 px con 2 px de separación (interior en filas); blanco en el visor. Visor neutro oscuro (#3A3734), documento sin filtro.
+- `prefers-reduced-motion`, funcionamiento sin JS (formulario GET, chips y «Mostrar más» como enlaces), vista previa del backoffice (banner propio
+  sin cambios, verificado), sin desbordes a 390 px.
+
+### A.8 Verificación (16/11/2026)
+
+Playwright + Chrome y axe-core 4.11 (WCAG 2.0/2.1/2.2 A y AA + buenas prácticas), base `aida_ds` con las cajas 1, 2, 3, 6, 14 y 20 publicadas,
+puerto 8103. Script `/home/claude/qa/archivo-sistema/qa.py`; capturas antes/después e `informe-qa.json` en `/home/claude/qa/archivo-sistema/`.
+
+- 23 vistas a 390 y 21 a 1366 (inicio, explorar sin filtros / con búsqueda / filtrado / sin resultados / panel, cajas y sin coincidencias, cajas 2 y 14,
+  fichas digital / a pedido / solo ficha / año dudoso, visor, consulta con errores y enviada, «Sobre», 404, 410, menú, vista previa de ficha y de caja no
+  publicada). **axe: 0 hallazgos. Desborde: ninguno. Errores de JS: ninguno.**
+- Foco: 30 tabulaciones en inicio, explorar, ficha y caja, a 390 y 1366: todas con anillo visible.
+- Atajo `/`: desde la ficha lleva a Explorar con foco en `#q`; en inicio y caja enfoca su buscador.
+- Cursor: titila 4 veces (1,05 s) y queda fijo; con foco desaparece; con movimiento reducido, sin animación.
+- **Tiempos** (de la última tecla o el clic hasta que cambia la lista, 5 mediciones por caso, servidor local):
+  escribir **≈ 212 ms** de mediana (180 ms son la espera a que la persona deje de tipear; la respuesta y el pintado, ≈ 30 ms);
+  marcar un filtro **≈ 30 ms** (390: 32 ms, 1366: 34 ms de mediana).
+
+### A.9 Pendientes
+
+- Las maquetas estáticas de `docs/diseno/maquetas/` siguen con el marcado de B (hero, bandas): usan esta hoja y se ven a medio camino. Las plantillas PHP son la referencia.
+- Medir los tiempos contra el servidor real con la base completa publicada (acá: 135 registros publicados).
+- Si el PM quiere, atajos `j`/`k` o flechas para recorrer la lista y `[`/`]` para anterior/siguiente en la ficha.
+
+---
+
+# Sitio institucional: dirección B inmersiva (referencia)
+
+Lo que sigue describe la dirección B tal como quedó el 16/11/2026 en `35b0f85`. **Ya no se aplica al archivo.**
 
 ## 1. Criterio
 

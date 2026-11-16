@@ -1,62 +1,22 @@
-/* Las cajas de Aída — comportamiento del sitio público (vistas/publico/).
-   Todo funciona sin JS (los enlaces son reales); esto suma el menú en celular, «Leer más», el visor y «Copiar». */
+/* Las cajas de Aída — comportamiento del archivo (vistas/publico/).
+   Todo funciona sin JS (los enlaces son reales); esto suma el atajo «/», el menú en celular, «Leer más», el visor y «Copiar».
+   El archivo no tipea títulos (lenguaje de sistema, 16/11/2026): el cursor de la máquina queda solo en el buscador (CSS). */
 (function () {
   'use strict';
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
-  // Títulos que se tipean (h1[data-tipeo]): una sola vez por carga y nunca con movimiento reducido.
-  // El lector de pantalla tiene el título completo desde el principio (copia .solo-lector); la copia que se tipea es
-  // aria-hidden y las letras ocupan su lugar desde el inicio (opacity), así la página no salta. Al terminar se
-  // restituye el marcado original.
-  const tipear = h => {
-    const original = h.innerHTML;
-    const lector = document.createElement('span');
-    lector.className = 'solo-lector';
-    lector.innerHTML = original;
-    const visual = document.createElement('span');
-    visual.className = 'tipeo';
-    visual.setAttribute('aria-hidden', 'true');
-    visual.innerHTML = original;
-    visual.querySelectorAll('.solo-lector').forEach(n => n.remove());
-    const letras = [];
-    const recorrer = nodo => {
-      Array.from(nodo.childNodes).forEach(n => {
-        if (n.nodeType === 3) {
-          const f = document.createDocumentFragment();
-          for (const ch of n.textContent) {
-            const s = document.createElement('span');
-            s.className = 'tl';
-            s.textContent = ch;
-            f.appendChild(s);
-            letras.push(s);
-          }
-          n.replaceWith(f);
-        } else if (n.nodeType === 1) recorrer(n);
-      });
-    };
-    recorrer(visual);
-    if (!letras.length) { h.classList.add('tipeado'); return; }
-    h.textContent = '';
-    h.append(lector, visual);
-    h.classList.add('tipeando');
-    const total = Math.min(1400, letras.length * 38), paso = total / letras.length;
-    let t0 = null, hechas = 0;
-    const cuadro = t => {
-      if (t0 === null) t0 = t;
-      const k = Math.min(letras.length, Math.floor((t - t0) / paso) + 1);
-      for (; hechas < k; hechas++) letras[hechas].classList.add('ok');
-      letras.forEach(l => l.classList.remove('cursor'));
-      if (k < letras.length) { letras[k - 1].classList.add('cursor'); requestAnimationFrame(cuadro); }
-      else { h.innerHTML = original; h.classList.remove('tipeando'); h.classList.add('tipeado'); }
-    };
-    requestAnimationFrame(cuadro);
-  };
-  const movimiento = !window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (movimiento) {
-    const iniciar = () => $$('[data-tipeo]').forEach(tipear);
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
-  }
+  // Atajo «/»: lleva al buscador de la página (Explorar, inicio, caja o Las cajas) o, si no hay, a Explorar.
+  // No actúa mientras se escribe en un campo ni con modificadores.
+  document.addEventListener('keydown', e => {
+    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
+    const t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    const campo = $$('#q, #q-inicio, #q-caja, #filtro-cajas').find(c => c.offsetParent !== null);
+    e.preventDefault();
+    if (campo) { campo.focus(); campo.select(); }
+    else { const ir = $('.cabecera__buscar'); if (ir) location.href = ir.href; }
+  });
 
   document.addEventListener('DOMContentLoaded', () => {
     // Menú en celular

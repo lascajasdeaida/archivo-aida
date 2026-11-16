@@ -1,5 +1,12 @@
 # Componentes del sitio público
 
+> **16/11/2026 · Archivo con lenguaje de sistema** ([`sistema.md`](sistema.md) «Archivo: sistema»). Cambios de marcado ya aplicados en `vistas/publico/`:
+> fila de registro (`_tarjeta.php`: `.registro__codigo`, `__cuerpo`, `__titulo`, `__tipos`, `__fragmento`, `__caja`, `__anio`, `__estado`) con
+> encabezado `.columnas` (`aria-hidden`); fila de caja (`_tarjeta_caja.php`); `.buscador__cursor` dentro de `.buscador__campo` (sin ícono en el campo,
+> el ícono va en el botón); `.barra-registro` + `_paso_registro.php` (anterior/siguiente) + `.cabeza-registro` en ficha y caja (sin `.banda` ni
+> `data-tipeo`); `.acciones-registro` en la ficha; índices del inicio (`.indice`); `Html::resaltar()` y `Html::fragmento()` para el término buscado.
+> Lo que sigue documenta los componentes de la dirección B; las clases de estado, badges, facetas, chips, formulario y visor siguen valiendo.
+
 Diseño web · 15/11/2026, actualizado el 16/11/2026 a la **dirección B · Museografía con el cursor de C** ([`sistema.md`](sistema.md)).
 HTML de referencia para que Programación lo integre en las vistas PHP. Los fragmentos de abajo siguen valiendo: las clases no cambiaron, cambió la hoja.
 Cambios de marcado de la dirección B (ya aplicados en `vistas/publico/`):

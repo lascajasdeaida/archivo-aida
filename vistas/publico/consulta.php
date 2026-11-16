@@ -37,8 +37,8 @@ ob_start(); ?>
   <div class="pendiente-cliente" role="note" style="margin-top:16px"><b>Texto a definir por el cliente:</b> quién responde, por qué medio y en qué plazo; si la consulta es por copia digital, presencial o ambas.</div>
 
   <div class="consulta" style="margin-top:24px">
-    <div class="consulta__doc"><p class="kicker">Documento pedido</p>
-      <?php if ($t) { $nivel = 2; $etiqueta = 'div'; require __DIR__ . '/_tarjeta.php'; } ?></div>
+    <div class="consulta__doc"><h2 class="consulta__doc-titulo">Documento pedido</h2>
+      <?php if ($t) { $nivel = 3; $etiqueta = 'div'; require __DIR__ . '/_tarjeta.php'; } ?></div>
     <div>
       <?php if ($errores): ?>
       <div class="resumen-errores" id="resumen-errores" role="alert">

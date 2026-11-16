@@ -12,64 +12,66 @@ $caja = ['id' => (int)$c['id'], 'numero' => $n, 'nombre' => $c['nombre']];
 $tituloPagina = "Caja $n: {$c['nombre']}";
 $seccion = 'cajas';
 $resumen = trim((string)$c['resumen']);
+$vecina = fn(?array $o) => $o ? ['href' => $enl->caja($o), 'corto' => 'Caja ' . (int)$o['numero'], 'largo' => (string)$o['nombre']] : null;
+$paso = ['etiqueta' => 'Otras cajas', 'ant' => $vecina($d['anterior']), 'sig' => $vecina($d['siguiente'])];
 ob_start(); ?>
-<div class="banda"><div class="contenedor">
-  <nav class="migas" aria-label="Estás en"><ol>
-    <li><a href="<?= H::e($enl->inicio()) ?>">Inicio</a></li>
-    <li><a href="<?= H::e($enl->cajas()) ?>">Las 70 cajas</a></li>
-    <li aria-current="page">Caja <?= $n ?></li>
-  </ol></nav>
+<div class="contenedor">
+  <div class="barra-registro">
+    <nav class="migas" aria-label="Estás en"><ol>
+      <li><a href="<?= H::e($enl->inicio()) ?>">Inicio</a></li>
+      <li><a href="<?= H::e($enl->cajas()) ?>">Las 70 cajas</a></li>
+      <li aria-current="page">Caja <?= $n ?></li>
+    </ol></nav>
+    <?php require __DIR__ . '/_paso_registro.php'; ?>
+  </div>
 
-  <div class="cabeza-pagina">
-    <p class="kicker">Caja <?= $n ?><?= $d['total_cajas'] ? ' de ' . (int)$d['total_cajas'] : '' ?></p>
-    <h1 data-tipeo><?= H::e($c['nombre']) ?></h1>
-    <ul class="datos-caja">
-      <li><b><?= H::numero($cf['documentos']) ?></b> documentos</li>
-      <li><b><?= H::numero($cf['digitales']) ?></b> con documento digital</li>
-      <?php if ($cf['a_pedido']): ?><li><b><?= H::numero($cf['a_pedido']) ?></b> de consulta a pedido</li><?php endif ?>
-      <li><?= $cf['desde'] ? '<b>' . $cf['desde'] . ($cf['hasta'] !== $cf['desde'] ? '–' . $cf['hasta'] : '') . '</b>' : 'Sin años cargados' ?></li>
-      <?php if ($cf['sin_titulo']): ?><li><b><?= H::numero($cf['sin_titulo']) ?></b> sin título</li><?php endif ?>
-    </ul>
+  <header class="cabeza-registro">
+    <p class="cabeza-registro__codigo">Caja <?= $n ?><?= $d['total_cajas'] ? ' de ' . (int)$d['total_cajas'] : '' ?></p>
+    <h1><?= H::e($c['nombre']) ?></h1>
+    <p class="datos-caja">
+      <span><b><?= H::numero($cf['documentos']) ?></b> documentos</span>
+      <span><b><?= H::numero($cf['digitales']) ?></b> digitalizados</span>
+      <?php if ($cf['a_pedido']): ?><span><b><?= H::numero($cf['a_pedido']) ?></b> a pedido</span><?php endif ?>
+      <span><?= $cf['desde'] ? '<b>' . $cf['desde'] . ($cf['hasta'] !== $cf['desde'] ? '–' . $cf['hasta'] : '') . '</b>' : 'Sin años cargados' ?></span>
+      <?php if ($cf['sin_titulo']): ?><span><b><?= H::numero($cf['sin_titulo']) ?></b> sin título</span><?php endif ?>
+    </p>
     <?php if ($cf['documentos']): ?>
     <div class="avance avance--caja">
       <div class="avance__barra" role="img" aria-label="<?= $cf['avance'] ?> % digitalizado"><i style="width:<?= $cf['avance'] ?>%"></i></div>
-      <span><?= $cf['digitales'] ? H::numero($cf['digitales']) . ' de ' . H::numero($cf['documentos']) . ' digitalizados' : 'Sin digitalizar todavía' ?></span>
+      <span><?= $cf['avance'] ?> % digitalizado</span>
     </div>
     <?php endif ?>
-  </div>
-</div></div>
+  </header>
 
-<div class="contenedor">
-  <div class="cabeza-pagina">
-    <?php if ($resumen !== ''): ?>
-    <div class="texto-plegable plegado" data-plegable>
-      <div class="cuerpo" id="cuerpo-resumen">
-        <?php foreach (preg_split('/\R{2,}/u', $resumen) as $parrafo): ?><p><?= nl2br(H::e(trim($parrafo))) ?></p><?php endforeach ?>
-      </div>
-      <button type="button" class="boton boton--fantasma" aria-expanded="false" aria-controls="cuerpo-resumen" data-leer-mas hidden>Leer más</button>
+  <?php if ($resumen !== ''): ?>
+  <div class="texto-plegable plegado" data-plegable>
+    <div class="cuerpo" id="cuerpo-resumen">
+      <?php foreach (preg_split('/\R{2,}/u', $resumen) as $parrafo): ?><p><?= nl2br(H::e(trim($parrafo))) ?></p><?php endforeach ?>
     </div>
-    <?php endif ?>
-    <form class="buscador" action="<?= H::e($enl->explorar()) ?>" role="search" aria-label="Buscar en esta caja" style="margin-top:16px">
+    <button type="button" class="boton boton--fantasma" aria-expanded="false" aria-controls="cuerpo-resumen" data-leer-mas hidden>Leer más</button>
+  </div>
+  <?php endif ?>
+
+  <section class="bloque" aria-labelledby="h-docs">
+    <div class="bloque__cabeza"><h2 id="h-docs">Documentos de la caja</h2><span class="meta">En el orden en que están en la caja</span></div>
+    <form class="buscador" action="<?= H::e($enl->explorar()) ?>" role="search" aria-label="Buscar en esta caja">
       <?php if (!$enl->reescritura): ?><input type="hidden" name="ruta" value="explorar"><?php endif ?>
       <input type="hidden" name="caja" value="<?= $n ?>">
-      <div class="buscador__campo"><?= H::icono('buscar') ?><label class="solo-lector" for="q-caja">Buscar en la caja <?= $n ?></label>
-        <input type="search" id="q-caja" name="q" placeholder="Buscar en esta caja…"></div>
-      <button class="boton boton--primario">Buscar</button>
+      <div class="buscador__campo"><label class="solo-lector" for="q-caja">Buscar en la caja <?= $n ?></label>
+        <input type="search" id="q-caja" name="q" placeholder="Buscar en esta caja" aria-keyshortcuts="/"><span class="buscador__cursor" aria-hidden="true"></span></div>
+      <button class="boton boton--primario"><?= H::icono('buscar') ?>Buscar</button>
     </form>
-    <p style="margin-top:12px"><a href="<?= H::e($enl->explorar(['caja' => $n])) ?>">Ver esta caja en el buscador, con todos los filtros</a></p>
-  </div>
-
-  <section class="seccion" aria-labelledby="h-docs">
-    <div class="seccion-cabeza"><h2 id="h-docs">Documentos de la caja</h2><span class="meta">En el orden en que están en la caja</span></div>
     <?php if ($d['tipos']): ?>
-    <ul class="accesos" aria-label="Filtrar esta caja por tipo" style="margin-bottom:16px">
+    <ul class="accesos" aria-label="Ver esta caja por tipo de documento">
       <?php foreach ($d['tipos'] as $tp): ?>
         <li><a class="acceso" href="<?= H::e($enl->explorar(['caja' => $n, 'tipo' => $tp['slug']])) ?>"><?= H::e($tp['nombre']) ?> <span class="n"><?= (int)$tp['cantidad'] ?></span></a></li>
       <?php endforeach ?>
+      <li><a class="acceso acceso--todos" href="<?= H::e($enl->explorar(['caja' => $n])) ?>">Todos los filtros</a></li>
     </ul>
     <?php endif ?>
     <?php if ($d['registros']): ?>
-    <ol class="lista-registros" aria-label="Documentos de la caja <?= $n ?>">
+    <div class="columnas columnas--caja" aria-hidden="true"><span>Código</span><span>Documento</span><span>Año</span><span>Acceso</span></div>
+    <ol class="lista-registros lista-registros--caja" aria-label="Documentos de la caja <?= $n ?>">
       <?php foreach ($d['registros'] as $t) { require __DIR__ . '/_tarjeta.php'; } ?>
     </ol>
     <?php else: ?>
@@ -77,12 +79,7 @@ ob_start(); ?>
     <?php endif ?>
   </section>
 
-  <?php if ($d['anterior'] || $d['siguiente']): ?>
-  <nav class="vecinos" aria-label="Otras cajas">
-    <?php if ($o = $d['anterior']): ?><a href="<?= H::e($enl->caja($o)) ?>"><?= H::icono('flechaIzq') ?><span><small>Caja anterior</small>Caja <?= (int)$o['numero'] ?>: <?= H::e($o['nombre']) ?></span></a><?php endif ?>
-    <?php if ($o = $d['siguiente']): ?><a class="sig" href="<?= H::e($enl->caja($o)) ?>"><span><small>Caja siguiente</small>Caja <?= (int)$o['numero'] ?>: <?= H::e($o['nombre']) ?></span><?= H::icono('flechaDer') ?></a><?php endif ?>
-  </nav>
-  <?php endif ?>
+  <div class="pie-registro"><?php $paso['etiqueta'] .= ' (al pie)'; require __DIR__ . '/_paso_registro.php'; ?></div>
 </div>
 <?php $contenido = ob_get_clean();
 require __DIR__ . '/_sitio.php';

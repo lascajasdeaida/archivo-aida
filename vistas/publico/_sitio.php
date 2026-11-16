@@ -23,7 +23,7 @@ $actual = fn(string $s) => ($seccion ?? '') === $s ? ' aria-current="page"' : ''
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0D5C9E">
+<meta name="theme-color" content="#FFFFFF">
 <script>document.documentElement.className = document.documentElement.className.replace('sin-js', 'con-js');</script>
 <?php if (!empty($robots)): ?><meta name="robots" content="<?= H::e($robots) ?>">
 <?php endif ?>
@@ -54,7 +54,7 @@ $actual = fn(string $s) => ($seccion ?? '') === $s ? ' aria-current="page"' : ''
 <?= $antes ?? '' ?>
 <header class="cabecera"><div class="contenedor">
   <a class="marca" href="<?= H::e($enl->inicio()) ?>"><img src="<?= H::e($enl->recurso('sitio/img/logo-tinta.svg')) ?>" alt="Las cajas de Aída, inicio" width="120" height="53"></a>
-  <a class="cabecera__accion cabecera__buscar" href="<?= H::e($enl->explorar()) ?>#q"><?= H::icono('buscar') ?><span class="texto-largo">Buscar</span><span class="solo-lector">Buscar en el archivo</span></a>
+  <a class="cabecera__accion cabecera__buscar" href="<?= H::e($enl->explorar()) ?>#q"><?= H::icono('buscar') ?><span class="texto-largo">Buscar</span><span class="solo-lector">Buscar en el archivo</span><kbd class="atajo" aria-hidden="true">/</kbd></a>
   <button class="cabecera__accion menu-boton" type="button" aria-expanded="false" aria-controls="nav-principal"><?= H::icono('menu') ?>Menú</button>
   <nav class="nav-principal" id="nav-principal" aria-label="Principal"><ul>
     <li><a href="<?= H::e($enl->inicio()) ?>"<?= $actual('inicio') ?>>Inicio</a></li>
@@ -69,7 +69,7 @@ $actual = fn(string $s) => ($seccion ?? '') === $s ? ' aria-current="page"' : ''
 </main>
 
 <footer class="pie"><div class="contenedor">
-  <img class="pie__logo" src="<?= H::e($enl->recurso('sitio/img/logo-calado-blanco.svg')) ?>" alt="Las cajas de Aída" width="170" height="75">
+  <img class="pie__logo" src="<?= H::e($enl->recurso('sitio/img/logo-tinta.svg')) ?>" alt="Las cajas de Aída" width="120" height="53">
   <p>Archivo Aída Bortnik</p>
   <ul>
     <li><a href="<?= H::e($enl->sobre()) ?>">Sobre el archivo</a></li>

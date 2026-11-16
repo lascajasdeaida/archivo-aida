@@ -53,7 +53,7 @@
       p.delete('ruta');
       const n = ++pedido;
       zonas.resultados.setAttribute('aria-busy', 'true');
-      if (!zonas.resultados.querySelector('.lista-registros')) zonas.resultados.innerHTML = '<ul class="lista-registros">' + '<li class="esqueleto"></li>'.repeat(4) + '</ul>';
+      if (!zonas.resultados.querySelector('.lista-registros')) zonas.resultados.innerHTML = '<ul class="lista-registros" aria-hidden="true">' + '<li class="esqueleto"></li>'.repeat(6) + '</ul>';
       try {
         const r = await fetch(conRuta(jsonBase, p), { headers: { Accept: 'application/json' } });
         const d = await r.json();
@@ -111,7 +111,36 @@
       if (mas) { if (t) mas.open = true; $('summary', mas).hidden = !!t; }
       $('.faceta-sin-coincidencias', f).hidden = n > 0;
     }
-    form.addEventListener('input', e => { if (e.target.matches('.buscar-en-faceta')) filtrarFaceta(e.target); });
+    form.addEventListener('input', e => {
+      if (e.target.matches('.buscar-en-faceta')) filtrarFaceta(e.target);
+      else if (e.target.id === 'q') buscarMientrasEscribe();
+    });
+
+    // Búsqueda mientras se escribe: espera 180 ms sin teclas (una consulta por pausa, no por letra). El código exacto
+    // (C14R3) no se busca acá: Enter lleva directo a la ficha. El evento «search» de Estadísticas sale recién tras
+    // 1,5 s quieto, una vez por término, para no contar cada letra.
+    let tecleo, quieto, ultimoTermino = $('#q').value.trim();
+    // Si la persona no eligió un orden, al buscar se ordena por relevancia y sin búsqueda por caja (los defaults del servidor)
+    let ordenElegido = new URLSearchParams(location.search).has('orden');
+    $('#orden').addEventListener('change', () => { ordenElegido = true; });
+    function ordenPorDefecto() {
+      const sel = $('#orden'), q = $('#q').value.trim();
+      const rel = $('#orden option[value=relevancia]');
+      if (rel) rel.disabled = !q;
+      if (!ordenElegido || (!q && sel.value === 'relevancia')) sel.value = q ? 'relevancia' : 'caja';
+    }
+    function buscarMientrasEscribe() {
+      clearTimeout(tecleo); clearTimeout(quieto);
+      const q = $('#q').value.trim();
+      if (/^c\d+(r\d*)?$/i.test(q) || (q.length === 1)) return;
+      tecleo = setTimeout(() => {
+        if (q === ultimoTermino) return;
+        ultimoTermino = q;
+        ordenPorDefecto();
+        actualizar();
+        quieto = setTimeout(() => { if (q) evento('search', { search_term: q, origen: 'explorar_en_vivo' }); }, 1500);
+      }, 180);
+    }
     form.addEventListener('keydown', e => {
       if (e.key === 'Enter' && e.target.matches('.buscar-en-faceta')) e.preventDefault();
       if (e.key === 'Enter' && e.target.matches('#desde, #hasta')) { e.preventDefault(); $('#aplicar-rango').click(); }
@@ -125,6 +154,7 @@
       const q = $('#q').value.trim();
       if (/^c\d+r\d+$/i.test(q)) { evento('search', { search_term: q, origen: 'explorar' }); return; } // navegación normal
       e.preventDefault();
+      clearTimeout(tecleo); clearTimeout(quieto); ultimoTermino = q; ordenPorDefecto();
       evento('search', { search_term: q, origen: 'explorar' });
       actualizar({ foco: () => conteo.focus() });
     });

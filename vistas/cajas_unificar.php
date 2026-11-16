@@ -27,7 +27,7 @@ $clases = [
     <p><span class="chip <?= $chip ?>"><?= e($etq) ?></span> <span class="nota"><?= e($expl) ?></span></p>
     <?php if ($g['evidencia']): ?><p class="evidencia">Evidencia: <?= e(implode(' · ', $g['evidencia'])) ?>.</p><?php endif ?>
     <table>
-      <thead><tr><th style="width:40px"></th><th style="width:80px">Caja</th><th>Nombre actual</th><?php if ($conservar): ?><th>Quedaría</th><?php endif ?></tr></thead>
+      <thead><tr><th style="width:40px"><span class="solo-lector">Incluir</span></th><th style="width:80px">Caja</th><th>Nombre actual</th><?php if ($conservar): ?><th>Quedaría</th><?php endif ?></tr></thead>
       <?php foreach ($g['cajas'] as $c): ?>
         <tr>
           <td><input type="checkbox" name="cajas[]" value="<?= (int)$c['id'] ?>" aria-label="Incluir caja <?= (int)$c['numero'] ?>"></td>

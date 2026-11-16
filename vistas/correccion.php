@@ -66,7 +66,7 @@ $grupos = [
             <?php if ($k === 'conflicto'): ?><th>El archivo esperaba</th><?php endif ?><th>Nota</th></tr></thead>
           <tbody>
           <?php foreach ($filas as $p): ?>
-            <tr<?= $k === 'aplicar' && !empty($p['privado_publico']) ? ' style="background:var(--stop-soft)"' : '' ?>>
+            <tr<?= $k === 'aplicar' && !empty($p['privado_publico']) ? ' style="background:var(--c-error-suave)"' : '' ?>>
               <td class="num"><?= (int)$p['fila'] ?></td>
               <td><?php if ($p['url']): ?><a href="<?= App::url($p['url'][0], ['id' => $p['url'][1]]) ?>" target="_blank"><?= e($p['destino']) ?></a><?php else: ?><?= e($p['destino']) ?><?php endif ?>
                 <?php if ($k === 'aplicar' && !empty($p['privado_publico'])): ?><span class="chip chip-stop">PRIVADO en la planilla</span><?php endif ?></td>

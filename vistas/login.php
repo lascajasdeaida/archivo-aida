@@ -9,14 +9,16 @@
 <link rel="stylesheet" href="estilo.css">
 </head>
 <body class="pagina-login">
+<main class="login">
+<h1 class="login__logo"><img src="img/logo-claro.svg" alt="Las cajas de Aída" width="300" height="132"></h1>
+<p class="login__rotulo">Archivo · Backoffice</p>
 <form method="post" action="<?= App::url('login') ?>" class="caja-login">
   <?= App::campoToken() ?>
-  <p class="eyebrow">Archivo · Backoffice</p>
-  <h1>Las cajas de <em>Aída</em></h1>
   <?php if ($error): ?><div class="aviso aviso-error"><?= e($error) ?></div><?php endif ?>
   <label>Correo<input type="email" name="email" required autofocus autocomplete="username"></label>
   <label>Contraseña<input type="password" name="clave" required autocomplete="current-password"></label>
   <button class="btn btn-primario">Ingresar</button>
 </form>
+</main>
 </body>
 </html>

@@ -11,7 +11,7 @@ $base = ['tab' => $tab] + array_filter(['caja' => $_GET['caja'] ?? null, 'codigo
   </div>
 </div>
 
-<nav class="tabs">
+<nav class="tabs" aria-label="Estado de las verificaciones">
   <a href="<?= App::url('notificaciones', ['tab' => 'pendientes']) ?>" class="<?= $tab === 'pendientes' ? 'activo' : '' ?>">Pendientes <b class="contador"><?= (int)$cont['pendientes'] ?></b></a>
   <a href="<?= App::url('notificaciones', ['tab' => 'informativas']) ?>" class="<?= $tab === 'informativas' ? 'activo' : '' ?>">Informativas (<?= (int)$cont['informativas'] ?>)</a>
   <a href="<?= App::url('notificaciones', ['tab' => 'resueltas']) ?>" class="<?= $tab === 'resueltas' ? 'activo' : '' ?>">Resueltas (<?= (int)$cont['resueltas'] ?>)</a>
@@ -43,9 +43,9 @@ $base = ['tab' => $tab] + array_filter(['caja' => $_GET['caja'] ?? null, 'codigo
       <div>
         <h3><?= e($al['titulo']) ?>
           <?php if ($donde): ?> ·
-            <?php if ($i['registro_id']): ?><a href="<?= App::url('registro', ['id' => $i['registro_id']]) ?>"><?= $donde ?></a>
-            <?php elseif ($i['caja_id']): ?><a href="<?= App::url('caja', ['id' => $i['caja_id']]) ?>"><?= $donde ?></a>
-            <?php else: ?><?= $donde ?><?php endif ?>
+            <?php if ($i['registro_id']): ?><a href="<?= App::url('registro', ['id' => $i['registro_id']]) ?>" class="codigo"><?= $donde ?></a>
+            <?php elseif ($i['caja_id']): ?><a href="<?= App::url('caja', ['id' => $i['caja_id']]) ?>" class="codigo"><?= $donde ?></a>
+            <?php else: ?><span class="codigo"><?= $donde ?></span><?php endif ?>
           <?php endif ?>
         </h3>
         <?php if (mb_strtolower(trim($al['leyenda'], ' .')) !== mb_strtolower(trim((string)$i['detalle'], ' .'))): ?><div class="det"><?= e($al['leyenda']) ?></div><?php endif ?>

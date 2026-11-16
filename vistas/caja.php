@@ -49,7 +49,7 @@ $bloq = json_decode((string)$caja['campos_bloqueados'], true) ?: [];
       <tbody>
       <?php foreach ($registros as $r0): $url = App::url('registro', ['id' => $r0['id']]); ?>
         <tr class="fila-link <?= $r0['eliminado_en'] ? 'baja' : '' ?>" onclick="location.href='<?= $url ?>'">
-          <td><a href="<?= $url ?>"><?= e($r0['codigo']) ?></a></td>
+          <td><a class="codigo" href="<?= $url ?>"><?= e($r0['codigo']) ?></a></td>
           <td>
             <?php if ($r0['titulo']): ?><?= e($r0['titulo']) ?><?php if ($r0['tipos']): ?><br><span class="nota"><?= e($r0['tipos']) ?></span><?php endif ?>
             <?php elseif ($r0['tipos']): ?><?= e($r0['tipos']) ?>

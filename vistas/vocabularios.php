@@ -12,7 +12,7 @@ $otro = Vocabulario::PLURALES[Vocabulario::otro($tipo)];
   </div>
   <div class="acciones"><a class="btn" href="<?= App::url('vocab_informe') ?>">Cambios de curaduría<?= $cambiosCuraduria ? " ($cambiosCuraduria)" : '' ?></a></div>
 </div>
-<nav class="tabs">
+<nav class="tabs" aria-label="Tipo de vocabulario">
   <a href="<?= App::url('vocabularios', ['tipo' => 'tipo_documento']) ?>" class="<?= $tipo === 'tipo_documento' ? 'activo' : '' ?>">Tipos de documento</a>
   <a href="<?= App::url('vocabularios', ['tipo' => 'descriptor']) ?>" class="<?= $tipo === 'descriptor' ? 'activo' : '' ?>">Descriptores</a>
 </nav>

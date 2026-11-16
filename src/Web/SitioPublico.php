@@ -498,11 +498,14 @@ final class SitioPublico
     {
         $todas = self::$sitio->cajas();
         $q = is_scalar($_GET['q'] ?? null) ? mb_substr(trim((string)$_GET['q']), 0, 80) : '';
-        $orden = in_array($_GET['orden'] ?? '', ['numero', 'nombre', 'digit'], true) ? $_GET['orden'] : 'numero';
+        $orden = in_array($_GET['orden'] ?? '', ['numero', 'nombre', 'anio', 'digit'], true) ? $_GET['orden'] : 'numero';
         $lista = $q === '' ? $todas : array_values(array_filter($todas, fn($c) => str_contains(Texto::clave($c['nombre'] . ' ' . $c['numero']), Texto::clave($q))
             || (ctype_digit($q) && (int)$q === $c['numero'])));
         if ($orden === 'nombre') {
             usort($lista, fn($a, $b) => strcmp(Texto::clave($a['nombre']), Texto::clave($b['nombre'])));
+        } elseif ($orden === 'anio') {
+            // Por el primer año de la caja; las que no tienen años, al final
+            usort($lista, fn($a, $b) => [$a['desde'] === null, $a['desde'], $a['numero']] <=> [$b['desde'] === null, $b['desde'], $b['numero']]);
         } elseif ($orden === 'digit') {
             usort($lista, fn($a, $b) => $b['digitales'] <=> $a['digitales'] ?: $a['numero'] <=> $b['numero']);
         }

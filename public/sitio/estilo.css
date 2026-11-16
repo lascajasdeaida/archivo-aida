@@ -163,7 +163,7 @@ fieldset.campo { border: 0; padding: 0; margin: 0 0 var(--e-4); }
 @media (min-width: 900px) { .inicio { padding: var(--e-7) 0 var(--e-6); } }
 
 .accesos-rapidos { display: grid; gap: var(--e-5); margin-top: var(--e-5); }
-@media (min-width: 900px) { .accesos-rapidos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-6); } }
+@media (min-width: 900px) { .accesos-rapidos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-6); } }
 .indice h2 { margin: 0; padding-bottom: var(--e-2); border-bottom: 2px solid var(--c-texto); }
 .indice__sub { margin-top: var(--e-4) !important; }
 .indice ul { list-style: none; margin: 0; padding: 0; }
@@ -247,29 +247,57 @@ fieldset.campo { border: 0; padding: 0; margin: 0 0 var(--e-4); }
 #resultados[aria-busy="true"] .lista-registros { opacity: .55; transition: opacity 0s 150ms; }
 
 /* =========================================================
-   Fila de caja (Las cajas): número · nombre · documentos · años · digitalización
+   Módulo-caja: el frente de una caja de archivo en línea fina (tapa, troquel de la manija, rótulo pegado) y,
+   al pie, su contenido (registros y digitalización). Anclaje físico del archivo: Las cajas, inicio y página de la caja.
    ========================================================= */
-.grilla-cajas { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--c-linea); }
-.caja { position: relative; display: grid; gap: 2px var(--e-3); padding: var(--e-3) var(--e-2); border-bottom: 1px solid var(--c-linea);
-  grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "num anios" "nombre nombre" "datos datos" "avance avance"; align-items: baseline; }
-.caja p { margin: 0; max-width: none; }
-.caja:hover { background: var(--c-azul-suave); }
-.caja:has(a:focus-visible) { outline: 3px solid var(--c-azul); outline-offset: -3px; }
-.caja a:focus-visible { outline: none; }
-.caja__num { grid-area: num; font-size: var(--t-dato); color: var(--c-texto-2); }
-.caja__num b { color: var(--c-texto); }
-.caja__nombre { grid-area: nombre; margin: 0; font-size: var(--t-texto); line-height: 1.35; }
-.caja__nombre a { color: var(--c-azul); text-decoration: none; }
-.caja__nombre a::after { content: ""; position: absolute; inset: 0; }
-.caja:hover .caja__nombre a { text-decoration: underline; color: var(--c-azul-osc); }
-.caja__datos, .caja__anios { font-size: var(--t-dato); color: var(--c-texto-2); }
-.caja__datos { grid-area: datos; }
-.caja__anios { grid-area: anios; }
-.caja .avance { grid-area: avance; margin-top: var(--e-1); }
-@media (min-width: 900px) {
-  .caja, .columnas--cajas { grid-template-columns: 76px minmax(0, 1fr) 180px 110px 220px; grid-template-areas: "num nombre datos anios avance"; align-items: center; padding: 10px var(--e-2); }
-  .caja .avance { margin: 0; }
-}
+.grilla-mcajas { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-5) var(--e-3); }
+@media (min-width: 600px) { .grilla-mcajas { grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: var(--e-6) var(--e-5); } }
+@media (min-width: 600px) { .grilla-mcajas--chica { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--e-5) var(--e-4); } }
+.mcaja { --trazo: 1.5px; position: relative; display: flex; flex-direction: column; min-width: 0; padding-top: 6px; } /* aire para que la tapa se levante */
+.mcaja p { margin: 0; max-width: none; }
+.mcaja__tapa { display: block; height: 14px; margin: 0 -3px; border: var(--trazo) solid var(--c-texto); border-radius: var(--r) var(--r) 0 0; background: var(--c-fondo-2);
+  transition: transform var(--m-tapa) ease-out, border-color var(--m-rapido); }
+.mcaja__frente { flex: 1; display: flex; flex-direction: column; padding: var(--e-2) var(--e-3) var(--e-3); border: var(--trazo) solid var(--c-texto); border-top: 0;
+  border-radius: 0 0 var(--r) var(--r); background: var(--c-fondo); transition: border-color var(--m-rapido); }
+.mcaja__troquel { display: block; width: 40%; height: 9px; margin: 2px auto var(--e-3); border: var(--trazo) solid var(--c-texto); border-radius: 999px; background: var(--c-fondo-2); }
+.mcaja__rotulo { border: 1px solid var(--c-borde); background: var(--c-fondo); padding: var(--e-2) var(--e-3) var(--e-3); }
+.mcaja__num { font: 700 2.25rem/1 var(--f-codigo); color: var(--c-texto); }
+.mcaja__titulo { margin: var(--e-2) 0 2px; font-size: var(--t-texto); line-height: 1.25; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.mcaja__titulo a { color: var(--c-texto); text-decoration: none; }
+.mcaja__titulo a::after { content: ""; position: absolute; inset: 0; } /* toda la caja es un solo enlace */
+.mcaja a:focus-visible { outline: none; }
+.mcaja__anios, .mcaja__contenido { font-size: var(--t-dato); color: var(--c-texto-2); }
+.mcaja__contenido { margin-top: auto !important; padding-top: var(--e-3); }
+.mcaja__avance { margin-top: var(--e-1); }
+.mcaja__avance .avance__barra { flex: 1; width: auto; }
+.mcaja__avance span { min-width: 3.2em; text-align: right; }
+/* Hover y foco: la tapa se levanta apenas (la caja «se abre»); con movimiento reducido solo cambia el color */
+.mcaja:hover .mcaja__tapa, .mcaja:has(a:focus-visible) .mcaja__tapa { transform: translateY(-5px) rotate(-1.5deg); border-color: var(--c-azul); }
+.mcaja:hover .mcaja__frente, .mcaja:has(a:focus-visible) .mcaja__frente { border-color: var(--c-azul); }
+.mcaja:hover .mcaja__titulo a { color: var(--c-azul-osc); text-decoration: underline; }
+.mcaja:has(a:focus-visible) { outline: 3px solid var(--c-azul); outline-offset: 4px; border-radius: var(--r); }
+@media (prefers-reduced-motion: reduce) { .mcaja:hover .mcaja__tapa, .mcaja:has(a:focus-visible) .mcaja__tapa { transform: none; } }
+/* Chica (accesos del inicio) */
+.mcaja--chica .mcaja__tapa { height: 11px; }
+.mcaja--chica .mcaja__frente { padding: var(--e-2) var(--e-2) var(--e-2); }
+.mcaja--chica .mcaja__troquel { height: 7px; margin-bottom: var(--e-2); }
+.mcaja--chica .mcaja__rotulo { padding: var(--e-1) var(--e-2) var(--e-2); }
+.mcaja--chica .mcaja__num { font-size: 1.75rem; }
+.mcaja--chica .mcaja__titulo { font-size: var(--t-dato); }
+.mcaja--chica .mcaja__contenido { padding-top: var(--e-2); }
+/* Encabezado de la página de la caja: la caja dibujada junto al título (decorativa) */
+.cabeza-caja { display: flex; gap: var(--e-4); align-items: flex-start; }
+.cabeza-caja__texto { flex: 1; min-width: 0; }
+.mcaja--encabezado { flex: none; width: 92px; }
+.mcaja--encabezado .mcaja__tapa { height: 10px; }
+.mcaja--encabezado .mcaja__frente { padding: var(--e-1) var(--e-2) var(--e-2); }
+.mcaja--encabezado .mcaja__troquel { height: 6px; margin-bottom: var(--e-2); }
+.mcaja--encabezado .mcaja__rotulo { padding: var(--e-1) var(--e-2) var(--e-2); text-align: center; }
+.mcaja--encabezado .mcaja__num { font-size: 2rem; }
+.mcaja--encabezado .mcaja__anios { font-size: .75rem; }
+@media (min-width: 900px) { .mcaja--encabezado { width: 128px; } .mcaja--encabezado .mcaja__num { font-size: 2.75rem; } .mcaja--encabezado .mcaja__anios { font-size: var(--t-dato); } }
+
 .avance { display: flex; align-items: center; gap: var(--e-2); font-size: var(--t-dato); color: var(--c-texto-2); }
 .avance__barra { flex: none; width: 96px; height: 8px; background: var(--c-fondo); border: 1px solid var(--c-borde); border-radius: var(--r); overflow: hidden; }
 .avance__barra i { display: block; height: 100%; background: var(--c-azul); }

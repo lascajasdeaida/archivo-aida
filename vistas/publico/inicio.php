@@ -43,17 +43,14 @@ ob_start(); ?>
   </section>
 
 <?php if ($hay): ?>
-  <div class="accesos-rapidos">
-    <section class="indice" aria-labelledby="h-cajas">
-      <h2 id="h-cajas">Cajas</h2>
-      <ul>
-        <?php foreach ($cajas as $c): ?>
-        <li><a href="<?= H::e($enl->caja($c)) ?>"><span><span class="indice__num">Caja <?= (int)$c['numero'] ?></span> <?= H::e($c['nombre']) ?></span><span class="n"><?= H::numero($c['documentos']) ?></span></a></li>
-        <?php endforeach ?>
-      </ul>
-      <p class="indice__mas"><a href="<?= H::e($enl->cajas()) ?>">Todas las cajas publicadas</a></p>
-    </section>
+  <section class="bloque bloque--cajas" aria-labelledby="h-cajas">
+    <div class="bloque__cabeza"><h2 id="h-cajas">Cajas</h2><a href="<?= H::e($enl->cajas()) ?>">Todas las cajas publicadas</a></div>
+    <ul class="grilla-mcajas grilla-mcajas--chica">
+      <?php $variante = 'chica'; foreach ($cajas as $c) { require __DIR__ . '/_modulo_caja.php'; } unset($variante); ?>
+    </ul>
+  </section>
 
+  <div class="accesos-rapidos">
     <?php if ($tipos): ?>
     <section class="indice" aria-labelledby="h-tipo">
       <h2 id="h-tipo">Tipos de documento</h2>

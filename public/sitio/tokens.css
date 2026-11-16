@@ -59,6 +59,7 @@
 
   /* ---------- Movimiento: casi nada ---------- */
   --m-rapido: 80ms;
+  --m-tapa: 160ms;             /* la tapa del módulo-caja se levanta */
 }
 
 @media (min-width: 900px) {
@@ -66,5 +67,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --m-rapido: 0ms; }
+  :root { --m-rapido: 0ms; --m-tapa: 0ms; }
 }

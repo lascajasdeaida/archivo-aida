@@ -25,7 +25,10 @@ ob_start(); ?>
     <?php require __DIR__ . '/_paso_registro.php'; ?>
   </div>
 
-  <header class="cabeza-registro">
+  <header class="cabeza-registro cabeza-caja">
+    <?php $mc = $caja + ['desde' => $cf['desde'], 'hasta' => $cf['hasta']]; $c2 = $c; $c = $mc; $variante = 'encabezado'; $etiqueta = 'div';
+      require __DIR__ . '/_modulo_caja.php'; $c = $c2; unset($variante, $etiqueta); ?>
+    <div class="cabeza-caja__texto">
     <p class="cabeza-registro__codigo">Caja <?= $n ?><?= $d['total_cajas'] ? ' de ' . (int)$d['total_cajas'] : '' ?></p>
     <h1><?= H::e($c['nombre']) ?></h1>
     <p class="datos-caja">
@@ -41,6 +44,7 @@ ob_start(); ?>
       <span><?= $cf['avance'] ?> % digitalizado</span>
     </div>
     <?php endif ?>
+    </div>
   </header>
 
   <?php if ($resumen !== ''): ?>

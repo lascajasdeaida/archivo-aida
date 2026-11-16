@@ -32,6 +32,7 @@ Tokens: [`public/sitio/tokens.css`](../../public/sitio/tokens.css). Hoja: [`publ
 | **3 · Dato secundario** | Tipos, caja, año, conteos, ayudas, migas, etiquetas | Inter 400 | 14 px | 14 px | 1,5 |
 | Código | `C2R5` (filas, ficha, migas, anterior/siguiente) | Courier Prime 700 | como su contexto | | |
 | Buscador | Lo que se escribe en el campo | Courier Prime 400 | 17–18 px | | |
+| Número de caja | El rótulo del módulo-caja (§A.10): única cifra grande | Courier Prime 700 | 28–36 px | 28–44 px | 1 |
 
 - **Oswald sale del archivo**: la condensada queda solo en el logo (SVG). No se usa en el título del inicio: el inicio es el buscador y no suma.
 - **Sin rótulos en caja alta espaciada.** El orden lo dan los títulos de bloque (16 px 600 con línea de 2 px) y el encabezado de columnas.
@@ -87,8 +88,8 @@ El concepto que le gusta al PM se conserva en un solo lugar: **el buscador**. In
 ### A.5 Pantallas
 
 **Inicio.** Título «Buscar en el archivo de Aída Bortnik», buscador grande (56 px) con el cursor, ejemplos de búsqueda y **cifras en una línea**
-(cajas publicadas de 70 · documentos · digitalizados · años). Debajo, **accesos rápidos** en tres índices (Cajas, Tipos de documento, Décadas; Etapas
-aparece en la tercera columna solo cuando haya períodos asignados a cajas publicadas) y los últimos documentos digitales en filas. Sin hero, sin foto,
+(cajas publicadas de 70 · documentos · digitalizados · años). Debajo, las **cajas como módulos-caja chicos** (§A.10) y **accesos rápidos** en dos
+índices (Tipos de documento, Décadas; Etapas aparece bajo Décadas solo cuando haya períodos asignados a cajas publicadas) y los últimos documentos digitales en filas. Sin hero, sin foto,
 sin frase; «Sobre el archivo», «Cómo citar» y «Cómo consultar a pedido» en una línea al pie.
 
 **Explorar.** Buscador arriba; a la izquierda, facetas compactas (panel `fondo-2`, 14 px, opciones de 32 px) y en celular el panel a pantalla completa
@@ -113,7 +114,25 @@ documento · Copiar cita · Copiar enlace. Metadatos en una **lista de definici�
 línea de 1 px), descripción en prosa y cita en un panel. La caja muestra cifras en una línea, barra de avance, resumen plegado a 4 líneas, buscador de
 la caja, tipos como accesos y la lista de registros con las mismas filas (sin la columna Caja).
 
-**Las cajas.** Filas: Caja N · nombre · documentos · años · barra de digitalización (ancho fijo, comparable entre filas).
+**Las cajas.** Grilla de **módulos-caja** (§A.10) con búsqueda por nombre o número arriba (filtra mientras se escribe), orden por número, título,
+año (las cajas sin años al final) o más digitalizadas, y conteo. 2 columnas a 390 px; columnas de 176 px como mínimo desde 600 px (4 a 900, 6 a 1366).
+La página de una caja lleva el mismo módulo, chico y decorativo, junto al título.
+
+### A.10 Módulo-caja: el anclaje físico (16/11/2026)
+
+Pedido del PM: «La sección "cajas" que refleje módulos con cierto diseño minimalista de una caja, haciendo alusión a un anclaje físico de lo que se
+relevó». Parcial [`vistas/publico/_modulo_caja.php`](../../vistas/publico/_modulo_caja.php), estilos «Módulo-caja» en `estilo.css`. Solo CSS, sin imágenes.
+
+- **El dibujo:** el frente de una caja de archivo de cartón en línea fina (1,5 px tinta): la **tapa** (una franja apenas más ancha, en `fondo-2`), el
+  **troquel** de la manija (una ranura redondeada) y el **rótulo pegado** (marco de 1 px) con el **número grande a máquina**, la obra y los años. Al pie
+  del frente, el **contenido**: cantidad de registros (y a pedido) y la barra de digitalización con su porcentaje. Sin texturas, ilustración ni sombras.
+- **Hover y foco:** la tapa se levanta 5 px con un giro de 1,5° (160 ms) y la caja pasa a azul: la caja «se abre». Con `prefers-reduced-motion` solo
+  cambia el color. Foco: anillo azul de 3 px alrededor de toda la caja (`:has(a:focus-visible)`).
+- **Accesibilidad:** tapa, troquel y número son `aria-hidden`; el enlace (el título, extendido a toda la caja con `::after`) dice «Caja N: nombre»; la
+  barra tiene `role="img"` con «N % digitalizado».
+- **Variantes:** `grande` (Las cajas), `chica` (inicio: número 28 px, título 14 px) y `encabezado` (página de la caja: sin enlace ni contenido, todo
+  `aria-hidden`, 92/128 px de ancho, junto al `h1`).
+- Es la única excepción a los tres niveles: el número de la caja, como en el rótulo físico.
 
 ### A.6 Respuesta inmediata
 
@@ -148,6 +167,10 @@ puerto 8103. Script `/home/claude/qa/archivo-sistema/qa.py`; capturas antes/desp
 - **Tiempos** (de la última tecla o el clic hasta que cambia la lista, 5 mediciones por caso, servidor local):
   escribir **≈ 212 ms** de mediana (180 ms son la espera a que la persona deje de tipear; la respuesta y el pintado, ≈ 30 ms);
   marcar un filtro **≈ 30 ms** (390: 32 ms, 1366: 34 ms de mediana).
+
+**Módulo-caja (16/11/2026, segunda pasada).** Mismo script con salida en `/home/claude/qa/archivo-sistema/cajas/` (capturas antes/después, hover,
+foco): 26 vistas a 390 y 24 a 1366, incluidas Las cajas por año, por título, filtrada y sin coincidencias. **axe: 0. Desborde: ninguno. JS: sin
+errores.** Foco: 30 tabulaciones en Las cajas e inicio, todas con anillo (el anillo está en el `li`, 5 niveles arriba del enlace).
 
 ### A.9 Pendientes
 

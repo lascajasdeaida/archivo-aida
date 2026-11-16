@@ -247,6 +247,9 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   término; atajo `/` para ir al buscador desde cualquier página.
 - **Ficha y caja como vista de registro:** metadatos en lista compacta, acciones agrupadas (ver, descargar, pedir consulta, copiar cita, copiar enlace),
   anterior/siguiente y volver a los resultados. **Sin tipeo animado de títulos**: el cursor queda solo en el buscador.
+- **Las cajas como módulos-caja** (decisión del PM, 16/11/2026): cada caja se muestra como el frente de una caja de archivo en línea fina (tapa,
+  troquel, rótulo con número a máquina, obra y años; registros y digitalización al pie), en Las cajas, en el inicio y junto al título de cada caja:
+  el anclaje físico de lo que se relevó. Las cajas se ordenan también por año.
 
 ## Pendientes
 

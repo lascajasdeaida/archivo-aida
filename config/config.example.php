@@ -36,6 +36,10 @@ return [
     // 'sitio' => ['url' => 'https://lascajasdeaida.com.ar', 'reescritura' => false],
     // Secreto para firmar el formulario de consulta (64 caracteres al azar). Si falta, se crea solo en var/secreto.
     // 'secreto' => 'cambiar-por-64-caracteres-al-azar',
+    // Medición (docs/medicion.md): contenedor de Google Tag Manager del sitio público. Sin esta clave no se carga GTM ni se
+    // empuja nada al dataLayer (local queda limpio). El backoffice y su vista previa nunca miden.
+    // hosts_produccion: opcional; fuera de estos hosts el dataLayer marca entorno 'prueba', tráfico interno y DebugView.
+    // 'analitica' => ['gtm' => 'GTM-M83WNDH5' /*, 'hosts_produccion' => ['lascajasdeaida.com.ar', 'www.lascajasdeaida.com.ar'] */],
     // Consultas a pedido: clase que avisa cuando llega una (implementa Aida\NotificadorConsultas). Por ahora ninguna.
     // 'consultas' => ['notificador' => null],
 ];

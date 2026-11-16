@@ -749,7 +749,9 @@ final class SitioPublico
         if ($equipo !== null) {
             header('Cache-Control: private, no-store'); // la página lleva el botón de edición: no se guarda en cachés compartidas
         }
-        echo self::parcial("publico/$vista", $datos + ['enl' => self::$enl, 'equipo' => $equipo]);
+        // Medición (docs/medicion.md): solo acá, nunca en el backoffice ni en su vista previa
+        $medicion = Medicion::pagina($vista, $datos, $equipo !== null);
+        echo self::parcial("publico/$vista", $datos + ['enl' => self::$enl, 'equipo' => $equipo, 'medicion' => $medicion]);
         exit;
     }
 

@@ -10,8 +10,13 @@
  *  - $antes      opcional: HTML que va arriba de todo (banner de la vista previa)
  *  - $cabezaExtra opcional: <link>/<script> extra en el <head>
  *  - $meta       opcional (sitio público): descripcion, canonical (absoluta), og_tipo ('website' por defecto)
+ *  - $medicion   opcional (solo SitioPublico::pagina): contexto de GTM/GA4 (Aida\Web\Medicion, docs/medicion.md).
+ *                La vista previa del backoffice no lo pasa: ahí no se carga GTM ni se mide nada.
  */
 use Aida\Web\Html as H;
+use Aida\Web\Medicion;
+
+$medicion = $medicion ?? null;
 
 $meta = $meta ?? [];
 $tituloCompleto = $tituloPagina . ' · Las cajas de Aída';
@@ -24,6 +29,7 @@ $actual = fn(string $s) => ($seccion ?? '') === $s ? ' aria-current="page"' : ''
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#FFFFFF">
+<?= Medicion::cabeza($medicion) ?>
 <script>document.documentElement.className = document.documentElement.className.replace('sin-js', 'con-js');</script>
 <?php if (!empty($robots)): ?><meta name="robots" content="<?= H::e($robots) ?>">
 <?php endif ?>
@@ -44,11 +50,14 @@ $actual = fn(string $s) => ($seccion ?? '') === $s ? ' aria-current="page"' : ''
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="<?= H::e($enl->recurso('sitio/estilo.css')) ?>">
 <?= $cabezaExtra ?? '' ?>
+<?php if ($medicion): ?><script src="<?= H::e($enl->recurso('sitio/medicion.js')) ?>" defer></script>
+<?php endif ?>
 <script src="<?= H::e($enl->recurso('sitio/sitio.js')) ?>" defer></script>
 <?php foreach ($scripts ?? [] as $js): ?><script src="<?= H::e($enl->recurso($js)) ?>" defer></script>
 <?php endforeach ?>
 </head>
 <body>
+<?= Medicion::noscript($medicion) ?>
 <?php require __DIR__ . '/_iconos.php'; ?>
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 <?= $antes ?? '' ?>

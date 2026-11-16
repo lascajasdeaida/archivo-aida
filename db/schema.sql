@@ -313,10 +313,13 @@ CREATE TABLE IF NOT EXISTS evento_uso (
   archivo_id  INT UNSIGNED NULL,
   tipo        ENUM('vista','descarga','busqueda') NOT NULL,
   termino     VARCHAR(255) NULL,
+  referer     VARCHAR(255) NULL,                 -- ruta del mismo sitio o solo el dominio de afuera (007)
+  sesion_hash CHAR(16) NULL,                     -- HMAC del día (fecha|IP|navegador): personas distintas sin guardar IP (007)
   creado_en   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_ev_registro (registro_id),
-  KEY idx_ev_fecha (creado_en)
+  KEY idx_ev_fecha (creado_en),
+  KEY idx_ev_archivo_fecha (archivo_id, creado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Migraciones aplicadas (bin/migrar.php). Este esquema ya incluye las que se registran abajo.
@@ -335,6 +338,7 @@ INSERT IGNORE INTO migracion (version, nombre) VALUES
   ('003', '003_correccion_masiva.sql'),
   ('004', '004_registro_anio.sql'),
   ('005', '005_consultas_y_sitio.sql'),
-  ('006', '006_archivo_drive.sql');
+  ('006', '006_archivo_drive.sql'),
+  ('007', '007_evento_uso_contexto.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

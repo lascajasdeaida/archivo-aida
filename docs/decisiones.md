@@ -296,6 +296,21 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
   - los id cambian si el cliente re-sube un archivo: hay que volver a cargar el listado;
   - el visor embebido carga recursos de Google en la ficha (cookies de terceros, privacidad de los visitantes).
 
+## Medición: prueba y producción (16/11/2026, pedido del PM)
+
+- Un solo contenedor GTM (`GTM-M83WNDH5`) y una sola propiedad GA4 (`G-5EGY68N1ZX`) para el sitio institucional y el archivo;
+  el archivo se distingue por `tipo_contenido: 'archivo'` y `content_group: 'Archivo'`. Detalle en [`medicion.md`](medicion.md).
+- **Prueba / producción por host**, sin tocar el contenedor: fuera de `lascajasdeaida.com.ar`, `www.lascajasdeaida.com.ar` y
+  `lascajasdeaida.com` (con y sin www), el dataLayer recibe antes de GTM `entorno: 'prueba'`, `traffic_type: 'internal'` y
+  `debug_mode: true`; en producción, `entorno: 'produccion'` y nada más. Quien navega el sitio con sesión del backoffice
+  también es `traffic_type: 'internal'`.
+- El archivo carga GTM solo con `'analitica' => ['gtm' => …]` en `config/config.php`. El backoffice y su vista previa **nunca**
+  miden.
+- **Nada que identifique personas:** códigos de registro y números de caja, nunca datos del formulario. Las búsquedas se limpian
+  en el navegador (correos y números de 7 o más cifras); los enlaces de correo no mandan la dirección.
+- `evento_uso` guarda además la página que pidió el archivo (ruta del sitio o dominio externo) y un hash del día (fecha, IP y
+  navegador con el secreto del sitio) para contar personas distintas sin guardar la IP (migración 007).
+
 ## Pendientes
 
 - Versiones livianas para web de los PDF pesados (hay archivos de 500–780 MB).

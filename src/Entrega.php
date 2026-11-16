@@ -88,15 +88,47 @@ final class Entrega
         return self::MIME[strtolower($formato)] ?? 'application/octet-stream';
     }
 
-    /** Registra una vista o descarga. Sin datos personales: solo registro, archivo, tipo y fecha. */
-    public function registrarUso(array $a, string $tipo): void
+    /**
+     * Registra una vista o descarga (docs/medicion.md “evento_uso”). Sin datos personales: registro, archivo, tipo, fecha,
+     * la página que lo pidió (ruta del sitio o solo el dominio externo) y un hash del día que no guarda la IP.
+     */
+    public function registrarUso(array $a, string $tipo, ?array $server = null): void
     {
+        $server ??= $_SERVER;
         try {
-            $this->db->prepare('INSERT INTO evento_uso (registro_id, archivo_id, tipo) VALUES (?,?,?)')
-                     ->execute([(int)$a['registro_id'], (int)$a['id'], $tipo === 'descarga' ? 'descarga' : 'vista']);
+            $this->db->prepare('INSERT INTO evento_uso (registro_id, archivo_id, tipo, referer, sesion_hash) VALUES (?,?,?,?,?)')
+                     ->execute([(int)$a['registro_id'], (int)$a['id'], $tipo === 'descarga' ? 'descarga' : 'vista',
+                                self::referer($server), self::sesionHash($server)]);
         } catch (\PDOException $e) {
             error_log('[aida-entrega] no se pudo registrar el uso: ' . $e->getMessage());
         }
+    }
+
+    /** Ruta sin consulta si el pedido viene del mismo sitio; solo el dominio si viene de afuera; null si no hay. */
+    public static function referer(array $server): ?string
+    {
+        $ref = (string)($server['HTTP_REFERER'] ?? '');
+        $p = $ref !== '' ? parse_url($ref) : false;
+        if (!$p || empty($p['host'])) {
+            return null;
+        }
+        $host = strtolower((string)$p['host']);
+        $propio = strtolower(preg_replace('/:\d+$/', '', (string)($server['HTTP_HOST'] ?? '')));
+        if ($host !== $propio) {
+            return mb_substr($host, 0, 255);
+        }
+        return mb_substr((string)($p['path'] ?? '/'), 0, 255);
+    }
+
+    /** 16 caracteres de HMAC(secreto, fecha|IP|navegador): cambia cada día, no se revierte y la IP no se guarda. */
+    public static function sesionHash(array $server): ?string
+    {
+        $ip = (string)($server['REMOTE_ADDR'] ?? '');
+        if ($ip === '') {
+            return null;
+        }
+        $dato = 'uso|' . date('Y-m-d') . '|' . $ip . '|' . substr((string)($server['HTTP_USER_AGENT'] ?? ''), 0, 300);
+        return substr(Web\SitioPublico::firma($dato), 0, 16);
     }
 
     /**

@@ -17,9 +17,10 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
 
 App::iniciarSesion();
+App::revalidarSesion();
 
 $ruta = (string)($_GET['r'] ?? (App::usuario() ? 'cajas' : 'login'));
-$publicas = ['login'];
+$publicas = ['login', 'olvide', 'restablecer'];
 $rutas = [
     'login', 'salir', 'cajas', 'cajas_unificar', 'caja', 'caja_nueva', 'caja_guardar', 'caja_baja', 'caja_restaurar',
     'registro', 'registro_guardar', 'registro_nuevo', 'registro_baja', 'registro_restaurar',
@@ -27,6 +28,7 @@ $rutas = [
     'notificaciones', 'validar', 'procesos', 'proceso_deshacer', 'importar', 'importar_confirmar', 'importar_descartar', 'correccion', 'correccion_aplicar', 'correccion_descartar', 'vocabularios', 'vocab_accion', 'vocab_curar', 'vocab_informe', 'curaduria_deshacer', 'base', 'vista_previa',
     'caja_publicar', 'consultas', 'consulta', 'consulta_guardar',
     'almacenamiento', 'drive_listado_aplicar', 'drive_listado_descartar', 'drive_reescanear',
+    'usuarios', 'usuario', 'usuario_guardar', 'usuario_enlace', 'olvide', 'restablecer', 'cuenta',
 ];
 
 if (!in_array($ruta, $rutas, true)) {

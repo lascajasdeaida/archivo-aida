@@ -19,10 +19,12 @@
 <p class="login__rotulo">Archivo · Backoffice</p>
 <form method="post" action="<?= App::url('login') ?>" class="caja-login">
   <?= App::campoToken() ?>
-  <?php if ($error): ?><div class="aviso aviso-error"><?= e($error) ?></div><?php endif ?>
+  <?php foreach (App::avisos() as [$tipo, $texto]): ?><div class="aviso aviso-<?= e($tipo) ?>" role="status"><?= e($texto) ?></div><?php endforeach ?>
+  <?php if ($error): ?><div class="aviso aviso-error" role="alert"><?= e($error) ?></div><?php endif ?>
   <label>Correo<input type="email" name="email" required autofocus autocomplete="username"></label>
   <label>Contraseña<input type="password" name="clave" required autocomplete="current-password"></label>
   <button class="btn btn-primario">Ingresar</button>
+  <p class="login__extra"><a href="<?= App::url('olvide') ?>">Olvidé mi contraseña</a></p>
 </form>
 </main>
 </body>

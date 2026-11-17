@@ -23,6 +23,7 @@ $consNuevas = $u && App::puede('consultas') ? App::consultasNuevas() : 0; ?>
     <a href="<?= App::url('procesos') ?>" class="<?= in_array($sec, ['procesos', 'importar', 'proceso_deshacer', 'correccion'], true) ? 'activo' : '' ?>">Importaciones</a>
     <?php if ($u && App::puede('consultas')): ?><a href="<?= App::url('consultas', ['estado' => 'nueva']) ?>" class="<?= in_array($sec, ['consultas', 'consulta'], true) ? 'activo' : '' ?>" title="Consultas a pedido del sitio">Consultas<?php if ($consNuevas): ?> <b class="contador" aria-label="<?= $consNuevas ?> sin atender"><?= $consNuevas ?></b><?php endif ?></a><?php endif ?>
     <a href="<?= App::url('almacenamiento') ?>" class="<?= $sec === 'almacenamiento' ? 'activo' : '' ?>" title="Origen de los archivos y espacio que ocupan">Almacenamiento</a>
+    <?php if ($u && App::puede('usuarios')): ?><a href="<?= App::url('usuarios') ?>" class="<?= in_array($sec, ['usuarios', 'usuario'], true) ? 'activo' : '' ?>">Usuarios</a><?php endif ?>
     <?php if ($u && App::puede('migraciones')): ?><a href="<?= App::url('base') ?>" class="<?= $sec === 'base' ? 'activo' : '' ?>">Base de datos</a><?php endif ?>
     <a href="<?= App::url('notificaciones') ?>" class="campana <?= $sec === 'notificaciones' ? 'activo' : '' ?>" title="Verificaciones pendientes">
       🔔 <span>Verificaciones</span><?php if ($pend): ?> <b class="contador"><?= $pend ?></b><?php endif ?>
@@ -31,7 +32,7 @@ $consNuevas = $u && App::puede('consultas') ? App::consultasNuevas() : 0; ?>
   <?php if ($u): ?>
   <form method="post" action="<?= App::url('salir') ?>" class="usuario">
     <?= App::campoToken() ?>
-    <span><?= e($u['nombre'] ?: $u['email']) ?> · <?= e(App::ROLES[$u['rol']] ?? $u['rol']) ?></span>
+    <a href="<?= App::url('cuenta') ?>" title="Mi cuenta: cambiar la contraseña"<?= $sec === 'cuenta' ? ' aria-current="page"' : '' ?>><?= e($u['nombre'] ?: $u['email']) ?></a> <span>· <?= e(App::ROLES[$u['rol']] ?? $u['rol']) ?></span>
     <button class="link">Salir</button>
   </form>
   <?php endif ?>

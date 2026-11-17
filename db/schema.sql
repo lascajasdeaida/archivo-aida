@@ -253,9 +253,27 @@ CREATE TABLE IF NOT EXISTS usuario (
   nombre        VARCHAR(120) NULL,
   rol           ENUM('admin','editor','data_entry','qa','visitante') NOT NULL DEFAULT 'visitante',
   activo        TINYINT(1)   NOT NULL DEFAULT 1,
+  ultimo_ingreso    DATETIME NULL,
+  clave_cambiada_en DATETIME NULL,                  -- las sesiones abiertas antes se cierran solas
   creado_en     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_usuario_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Enlaces de un solo uso para crear o restablecer la contraseña. Solo se guarda el hash SHA-256 del enlace.
+CREATE TABLE IF NOT EXISTS usuario_token (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  usuario_id  INT UNSIGNED NOT NULL,
+  hash        CHAR(64)     NOT NULL,
+  tipo        ENUM('restablecer','alta') NOT NULL,
+  vence_en    DATETIME     NOT NULL,
+  usado_en    DATETIME     NULL,
+  creado_por  INT UNSIGNED NULL,
+  creado_en   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_token_hash (hash),
+  KEY idx_token_usuario (usuario_id, creado_en),
+  CONSTRAINT fk_token_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Historial de cambios con valor anterior y nuevo de cada campo. Permite volver atrás
@@ -339,6 +357,7 @@ INSERT IGNORE INTO migracion (version, nombre) VALUES
   ('004', '004_registro_anio.sql'),
   ('005', '005_consultas_y_sitio.sql'),
   ('006', '006_archivo_drive.sql'),
-  ('007', '007_evento_uso_contexto.sql');
+  ('007', '007_evento_uso_contexto.sql'),
+  ('008', '008_usuarios_acceso.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

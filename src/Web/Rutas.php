@@ -16,6 +16,8 @@ use Aida\Curaduria;
 use Aida\Historial;
 use Aida\Sitio;
 use Aida\Texto;
+use Aida\Usuarios;
+use Aida\Correo;
 use Aida\Vocabulario;
 
 /**
@@ -57,11 +59,13 @@ final class Rutas
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             App::verificarPost();
             $st = self::db()->prepare('SELECT * FROM usuario WHERE email = ? AND activo = 1');
-            $st->execute([trim((string)($_POST['email'] ?? ''))]);
+            $st->execute([Usuarios::normalizarEmail((string)($_POST['email'] ?? ''))]);
             $u = $st->fetch();
             if ($u && password_verify((string)($_POST['clave'] ?? ''), $u['password_hash']) && $u['rol'] !== 'visitante') {
                 session_regenerate_id(true);
                 $_SESSION['usuario'] = ['id' => (int)$u['id'], 'email' => $u['email'], 'nombre' => $u['nombre'], 'rol' => $u['rol']];
+                $_SESSION['desde'] = time();
+                (new Usuarios(self::db()))->registrarIngreso((int)$u['id']);
                 App::redirigir('cajas');
             }
             $error = 'Usuario o contraseña incorrectos.';
@@ -1730,5 +1734,211 @@ final class Rutas
             @unlink(CargaExcel::directorio() . '/' . $s['archivo']);
         }
         unset($_SESSION['listado_drive']);
+    }
+
+    // ------------------------------------------------------------------
+    // Usuarios (solo administradores) y acceso
+    // ------------------------------------------------------------------
+
+    private static function usuarios_(): Usuarios
+    {
+        return new Usuarios(self::db(), App::usuarioId());
+    }
+
+    /** @return array{email:string,nombre:string,rol:string,activo:int} */
+    private static function datosUsuario(): array
+    {
+        return [
+            'email'  => Usuarios::normalizarEmail((string)($_POST['email'] ?? '')),
+            'nombre' => trim((string)preg_replace('/\s+/u', ' ', (string)($_POST['nombre'] ?? ''))),
+            'rol'    => (string)($_POST['rol'] ?? ''),
+            'activo' => isset($_POST['activo']) ? 1 : 0,
+        ];
+    }
+
+    public static function usuarios(): void
+    {
+        App::exigir('usuarios');
+        App::render('usuarios', ['usuarios' => self::usuarios_()->listar(), 'correo' => Correo::configurado()]);
+    }
+
+    public static function usuario(): void
+    {
+        App::exigir('usuarios');
+        $id = self::int('id');
+        $u = $id ? self::usuarios_()->buscar($id) : null;
+        if ($id && (!$u || $u['rol'] === 'visitante')) {
+            App::aviso('error', 'Ese usuario no existe.');
+            App::redirigir('usuarios');
+        }
+        $enlace = $_SESSION['enlace_generado'] ?? null;
+        unset($_SESSION['enlace_generado']);
+        if ($enlace && (int)$enlace['usuario'] !== $id) {
+            $enlace = null;
+        }
+        App::render('usuario', ['u' => $u, 'form' => $u ?: ['email' => '', 'nombre' => '', 'rol' => 'editor', 'activo' => 1],
+                                'errores' => [], 'enlace' => $enlace, 'correo' => Correo::configurado()]);
+    }
+
+    public static function usuario_guardar(): void
+    {
+        App::exigir('usuarios');
+        App::verificarPost();
+        $id = self::int('id') ?: null;
+        $us = self::usuarios_();
+        $d = self::datosUsuario();
+        $err = $us->validar($d, $id);
+        if ($err) {
+            $u = $id ? $us->buscar($id) : null;
+            App::render('usuario', ['u' => $u, 'form' => $d, 'errores' => $err, 'enlace' => null, 'correo' => Correo::configurado()]);
+            return;
+        }
+        if ($id) {
+            $us->actualizar($id, $d);
+            App::aviso('ok', 'Cambios guardados.');
+            App::redirigir('usuario', ['id' => $id]);
+        }
+        $id = $us->crear($d);
+        $msj = self::mandarEnlace($us, $id, 'alta');
+        App::aviso('ok', 'Usuario creado. ' . $msj);
+        App::redirigir('usuario', ['id' => $id]);
+    }
+
+    /** Genera un enlace de alta o restablecimiento para otro usuario (o para uno mismo). */
+    public static function usuario_enlace(): void
+    {
+        App::exigir('usuarios');
+        App::verificarPost();
+        $id = self::int('id');
+        $us = self::usuarios_();
+        $u = $us->buscar($id);
+        if (!$u || !(int)$u['activo'] || $u['rol'] === 'visitante') {
+            App::aviso('error', 'Solo se puede mandar el enlace a un usuario activo.');
+            App::redirigir('usuarios');
+        }
+        $tipo = $u['ultimo_ingreso'] ? 'restablecer' : 'alta';
+        App::aviso('ok', self::mandarEnlace($us, $id, $tipo));
+        App::redirigir('usuario', ['id' => $id]);
+    }
+
+    /** Crea el enlace, intenta mandarlo por correo y deja una copia para mostrarle una sola vez al administrador. */
+    private static function mandarEnlace(Usuarios $us, int $id, string $tipo): string
+    {
+        $u = $us->buscar($id);
+        $url = self::urlAcceso($us->crearEnlace($id, $tipo), true);
+        $enviado = Correo::enviar((string)$u['email'],
+            $tipo === 'alta' ? 'Tu acceso al backoffice · Las cajas de Aída' : 'Restablecer tu contraseña · Las cajas de Aída',
+            Usuarios::textoCorreo($tipo, $url, $u['nombre']));
+        $_SESSION['enlace_generado'] = ['usuario' => $id, 'url' => $url, 'tipo' => $tipo, 'enviado' => $enviado];
+        $horas = Usuarios::VIGENCIA[$tipo];
+        return $enviado
+            ? "Le mandamos el enlace a {$u['email']} (vale $horas horas)."
+            : "No se pudo mandar el correo: copiá el enlace de abajo y pasáselo por otro medio (vale $horas horas).";
+    }
+
+    /**
+     * URL absoluta del enlace de acceso. Con config 'backoffice' => ['url' => ...] se usa esa (recomendado: evita que
+     * un encabezado Host falso cambie el dominio del enlace). Sin ella, solo para un administrador logueado, se arma
+     * con el host del pedido.
+     */
+    private static function urlAcceso(string $valor, bool $permitirHost): ?string
+    {
+        $base = rtrim((string)(aida_config()['backoffice']['url'] ?? ''), '/');
+        if ($base === '') {
+            if (!$permitirHost) {
+                return null;
+            }
+            $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+            $dir = rtrim(str_replace('\\', '/', dirname((string)($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
+            $base = ($https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . $dir;
+        }
+        return $base . '/?r=restablecer&t=' . $valor;
+    }
+
+    /** «Olvidé mi contraseña». Siempre responde lo mismo, exista o no el correo. */
+    public static function olvide(): void
+    {
+        if (App::usuario()) {
+            App::redirigir('cuenta');
+        }
+        $enviado = false;
+        $error = null;
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::verificarPost();
+            $email = Usuarios::normalizarEmail((string)($_POST['email'] ?? ''));
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = 'Escribí un correo válido.';
+            } else {
+                $us = new Usuarios(self::db());
+                $u = $us->porEmail($email);
+                if ($u && (int)$u['activo'] && $u['rol'] !== 'visitante' && !$us->enlaceReciente((int)$u['id'])) {
+                    $valor = $us->crearEnlace((int)$u['id'], 'restablecer');
+                    $url = self::urlAcceso($valor, false);
+                    if (!$url || !Correo::enviar($u['email'], 'Restablecer tu contraseña · Las cajas de Aída', Usuarios::textoCorreo('restablecer', $url, $u['nombre']))) {
+                        $us->anularEnlaces((int)$u['id']);
+                        error_log('[aida-bo] olvide: no se pudo mandar el correo (revisar config correo / backoffice.url)');
+                    }
+                }
+                usleep(random_int(200000, 500000));
+                $enviado = true;
+            }
+        }
+        App::render('acceso', ['modo' => 'olvide', 'enviado' => $enviado, 'error' => $error]);
+    }
+
+    /** Crear o restablecer la contraseña desde un enlace. */
+    public static function restablecer(): void
+    {
+        $valor = (string)($_REQUEST['t'] ?? '');
+        $us = new Usuarios(self::db());
+        $e = $us->enlaceVigente($valor);
+        if (!$e) {
+            App::render('acceso', ['modo' => 'vencido']);
+            return;
+        }
+        $error = null;
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::verificarPost();
+            $clave = (string)($_POST['clave'] ?? '');
+            $error = Usuarios::errorClave($clave, (string)($_POST['clave2'] ?? ''), (string)$e['usuario']['email']);
+            if (!$error) {
+                if (!$us->usarEnlace($valor, $clave)) {
+                    App::render('acceso', ['modo' => 'vencido']);
+                    return;
+                }
+                $_SESSION = [];
+                session_regenerate_id(true);
+                App::aviso('ok', 'Listo: ya podés ingresar con tu nueva contraseña.');
+                App::redirigir('login');
+            }
+        }
+        App::render('acceso', ['modo' => $e['tipo'], 'valor' => $valor, 'email' => $e['usuario']['email'], 'error' => $error]);
+    }
+
+    /** Mi cuenta: cambiar la propia contraseña. */
+    public static function cuenta(): void
+    {
+        App::exigir('ver');
+        $error = null;
+        $us = self::usuarios_();
+        $u = $us->buscar((int)App::usuarioId());
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            App::verificarPost();
+            if (!password_verify((string)($_POST['actual'] ?? ''), (string)$u['password_hash'])) {
+                $error = 'La contraseña actual no es correcta.';
+                usleep(400000);
+            } else {
+                $clave = (string)($_POST['clave'] ?? '');
+                $error = Usuarios::errorClave($clave, (string)($_POST['clave2'] ?? ''), (string)$u['email']);
+                if (!$error) {
+                    $us->cambiarClave((int)$u['id'], $clave);
+                    session_regenerate_id(true);
+                    $_SESSION['desde'] = time() + 1;
+                    App::aviso('ok', 'Contraseña cambiada. Las otras sesiones abiertas con tu usuario se cerraron.');
+                    App::redirigir('cuenta');
+                }
+            }
+        }
+        App::render('cuenta', ['u' => $u, 'error' => $error]);
     }
 }

@@ -46,6 +46,32 @@ final class App
         }
     }
 
+    /**
+     * En cada pedido: si el usuario fue desactivado, cambió de perfil o cambió la contraseña después de abrir esta
+     * sesión, se actualiza o se cierra. Así una baja o un restablecimiento corta las sesiones abiertas.
+     */
+    public static function revalidarSesion(): void
+    {
+        if (empty($_SESSION['usuario'])) {
+            return;
+        }
+        try {
+            $st = aida_db()->prepare('SELECT email, nombre, rol, activo, clave_cambiada_en FROM usuario WHERE id = ?');
+            $st->execute([(int)$_SESSION['usuario']['id']]);
+            $u = $st->fetch();
+        } catch (\PDOException) {
+            return; // migración 008 pendiente: se sigue como antes
+        }
+        $desde = (int)($_SESSION['desde'] ?? 0);
+        $cambio = $u && $u['clave_cambiada_en'] ? (int)strtotime((string)$u['clave_cambiada_en']) : 0;
+        if (!$u || !(int)$u['activo'] || $u['rol'] === 'visitante' || ($cambio && $cambio > $desde)) {
+            $_SESSION = [];
+            session_regenerate_id(true);
+            return;
+        }
+        $_SESSION['usuario'] = ['id' => (int)$_SESSION['usuario']['id'], 'email' => $u['email'], 'nombre' => $u['nombre'], 'rol' => $u['rol']];
+    }
+
     /** @return array{id:int,email:string,nombre:?string,rol:string}|null */
     public static function usuario(): ?array
     {
@@ -137,7 +163,7 @@ final class App
         ob_start();
         require dirname(__DIR__, 2) . "/vistas/$vista.php";
         $contenido = ob_get_clean();
-        if ($vista === 'login') {
+        if (in_array($vista, ['login', 'acceso'], true)) {
             echo $contenido;
             return;
         }

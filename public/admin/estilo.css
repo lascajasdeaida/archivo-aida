@@ -310,3 +310,14 @@ form:has(> .lote) { padding-bottom: var(--e-3); }
 .caja-login :focus-visible { outline-color: var(--c-azul); }
 .caja-login label { margin-bottom: var(--e-4); }
 .caja-login .btn { width: 100%; margin-top: var(--e-2); }
+
+/* --- acceso: olvido y restablecimiento ------------------------------------ */
+.login__extra { margin: var(--e-4) 0 0; text-align: center; font-size: var(--t-dato); }
+.caja-login h2 { margin: 0 0 var(--e-3); font-size: 1.15rem; }
+.caja-login .nota { margin: 0 0 var(--e-4); }
+.enlace-copiar { display: flex; gap: var(--e-2); align-items: stretch; margin-top: var(--e-2); }
+.enlace-copiar input { flex: 1; font-family: var(--f-codigo); font-size: var(--t-dato); }
+.campo-error { display: block; margin-top: 4px; color: var(--c-error); font-size: var(--t-dato); font-weight: var(--peso-fuerte); }
+.casilla { display: flex; gap: var(--e-2); align-items: center; }
+.casilla input { width: auto; margin: 0; }
+.usuario a { color: var(--c-barra-texto); }

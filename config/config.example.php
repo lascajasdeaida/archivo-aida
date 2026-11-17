@@ -42,4 +42,8 @@ return [
     // 'analitica' => ['gtm' => 'GTM-M83WNDH5' /*, 'hosts_produccion' => ['lascajasdeaida.com.ar', 'www.lascajasdeaida.com.ar'] */],
     // Consultas a pedido: clase que avisa cuando llega una (implementa Aida\NotificadorConsultas). Por ahora ninguna.
     // 'consultas' => ['notificador' => null],
+    // Backoffice (docs/backoffice.md §17). url: base de los enlaces de alta y de «Olvidé mi contraseña».
+    // 'backoffice' => ['url' => 'https://lascajasdeaida.com.ar/archivo/admin'],
+    // Correos del sistema (enlaces de acceso). Sin remitente no se manda nada y el enlace se muestra para copiarlo.
+    // 'correo' => ['remitente' => 'no-responder@lascajasdeaida.com.ar', 'nombre' => 'Las cajas de Aída'],
 ];

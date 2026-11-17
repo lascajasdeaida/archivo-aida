@@ -348,3 +348,25 @@ Menú **Almacenamiento** (ver: todos; cargar el listado: permiso `procesos`, adm
   compartido con cualquiera con el enlace, en amarillo si un público no lo está. Sin «Vista previa» para los que solo se descargan.
 - **Verificaciones:** `DRIVE_RESTRINGIDO_COMPARTIDO` (pendiente de validar), `DRIVE_PUBLICO_SIN_COMPARTIR`, `DRIVE_SIN_ID` y
   `LISTADO_LINEA_INVALIDA` (informativas), con leyenda y acción sugerida en `src/Alertas.php`.
+
+## 17. Usuarios y acceso (16/11/2026)
+
+Pantalla **Usuarios** (solo administradores) y **Mi cuenta** (todos, desde el nombre en la barra). Migración 008.
+
+- **Alta:** correo, nombre y perfil. No se escribe ninguna contraseña: al crear el usuario se genera un **enlace de alta**
+  (vale 72 h, un solo uso) que se manda por correo y además se muestra una vez al administrador para copiarlo.
+- **Edición y baja:** los usuarios no se borran; se **desactivan**. Desactivar corta en el acto las sesiones abiertas
+  y anula los enlaces pendientes. Nadie puede cambiarse su propio perfil ni desactivarse, y siempre queda al menos un
+  administrador activo. Los cambios de datos quedan en `auditoria` (entidad `usuario`); la contraseña nunca.
+- **Olvidé mi contraseña** (en el ingreso): pide el correo y responde siempre lo mismo, exista o no. Si corresponde a un
+  usuario activo manda un enlace (vale 2 h, un solo uso), como mucho uno cada 5 minutos por usuario.
+- **Contraseñas:** al menos 10 caracteres, distinta del correo. Cambiarla (por enlace o en Mi cuenta) cierra las otras
+  sesiones abiertas de ese usuario (`usuario.clave_cambiada_en`).
+- **Enlaces:** 32 bytes al azar en la URL; en la base solo el hash SHA-256 (`usuario_token`). Generar uno nuevo anula
+  los anteriores.
+- **Configuración** (`config/config.php`):
+  - `'backoffice' => ['url' => 'https://dominio/archivo/admin']` — base de los enlaces. Sin ella, «Olvidé mi contraseña»
+    no manda nada (evita enlaces armados con un encabezado Host falso) y los enlaces que genera un administrador usan el
+    dominio del pedido.
+  - `'correo' => ['remitente' => 'no-responder@dominio', 'nombre' => 'Las cajas de Aída']` — sale por `mail()` de PHP.
+    Sin remitente no se manda correo: el administrador copia el enlace y lo pasa por otro medio.

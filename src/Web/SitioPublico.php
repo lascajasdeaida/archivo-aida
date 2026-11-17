@@ -58,7 +58,7 @@ final class SitioPublico
             header('Allow: GET, HEAD, POST');
             exit;
         }
-        if ($metodo === 'POST' && !preg_match('~^consulta/[^/]+$~', $ruta)) {
+        if ($metodo === 'POST' && !preg_match('~^(consulta/[^/]+|muestra/consulta)$~', $ruta)) {
             http_response_code(405);
             header('Allow: GET, HEAD');
             exit;
@@ -72,6 +72,7 @@ final class SitioPublico
                 $ruta === 'cajas' => self::cajas(),
                 (bool)preg_match('~^caja/(\d{1,4})(?:-([a-z0-9-]*))?$~', $ruta, $m) => self::caja($m[1], $m[2] ?? ''),
                 (bool)preg_match('~^registro/([^/]+)$~', $ruta, $m) => self::registro($m[1]),
+                $ruta === 'muestra/consulta' && $metodo === 'POST' => self::consultaMuestra(),
                 (bool)preg_match('~^consulta/([^/]+)$~', $ruta, $m) => self::consulta($m[1]),
                 (bool)preg_match('~^consulta/([^/]+)/enviada$~', $ruta, $m) => self::consultaEnviada($m[1]),
                 $ruta === 'sobre' => self::sobre(),
@@ -619,6 +620,9 @@ final class SitioPublico
         if (time() - $t < 3) {
             return [[], $valores, 'Lo enviaste muy rápido. Esperá unos segundos y volvé a enviarlo.', null];
         }
+        if (!\Aida\Turnstile::verificar('consulta')) {
+            return [[], $valores, 'No pudimos verificar que no seas un robot. Esperá a que aparezca el tilde y volvé a enviarlo.', null];
+        }
         if ($errores) {
             return [$errores, $valores, null, null];
         }
@@ -628,6 +632,86 @@ final class SitioPublico
             return [[], $valores, 'Recibimos varios pedidos seguidos desde tu conexión. Probá de nuevo en una hora.', null];
         }
         return [[], $valores, null, $c->guardar($d['registro'], $tipo, $valores, $ip)];
+    }
+
+    /**
+     * Formulario «¿Querés llevar la muestra a tu espacio?» del sitio institucional (mismo dominio). Responde JSON.
+     * Defensas: mismo origen, campo trampa, Turnstile y como mucho 5 envíos por hora por conexión. Se manda por correo
+     * a config 'muestra' => ['destino' => ...] (por defecto lascajasdeaida@gmail.com) con Responder a = quien consulta.
+     */
+    private static function consultaMuestra(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+        header('X-Robots-Tag: noindex');
+        $responder = static function (int $codigo, array $cuerpo): never {
+            http_response_code($codigo);
+            echo json_encode($cuerpo, JSON_UNESCAPED_UNICODE);
+            exit;
+        };
+        $origen = (string)($_SERVER['HTTP_ORIGIN'] ?? '');
+        $host = (string)($_SERVER['HTTP_HOST'] ?? '');
+        if ($origen === '' || parse_url($origen, PHP_URL_HOST) !== preg_replace('/:\d+$/', '', $host)) {
+            $responder(403, ['ok' => false, 'error' => 'Origen no permitido.']);
+        }
+        if (trim((string)($_POST['sitio_web'] ?? '')) !== '') {
+            $responder(200, ['ok' => true]);   // a un robot no se le explica nada
+        }
+        $campos = ['espacio' => 200, 'ciudad' => 120, 'fechas' => 120, 'superficie' => 40, 'nombre' => 120, 'correo' => 200, 'telefono' => 60, 'mensaje' => 4000];
+        $v = [];
+        foreach ($campos as $k => $max) {
+            $v[$k] = trim(mb_substr(str_replace("\0", '', (string)($_POST[$k] ?? '')), 0, $max));
+        }
+        $errores = [];
+        foreach (['espacio' => 'el espacio o institución', 'ciudad' => 'la ciudad', 'nombre' => 'tu nombre'] as $k => $txt) {
+            if ($v[$k] === '') {
+                $errores[$k] = "Falta $txt.";
+            }
+        }
+        if (!filter_var($v['correo'], FILTER_VALIDATE_EMAIL)) {
+            $errores['correo'] = 'Escribí un correo válido.';
+        }
+        if ($errores) {
+            $responder(422, ['ok' => false, 'errores' => $errores]);
+        }
+        if (!\Aida\Turnstile::verificar('muestra')) {
+            $responder(422, ['ok' => false, 'error' => 'No pudimos verificar que no seas un robot. Esperá a que aparezca el tilde y volvé a enviarlo.']);
+        }
+        if (self::muestraExcedeLimite()) {
+            $responder(429, ['ok' => false, 'error' => 'Recibimos varios envíos seguidos desde tu conexión. Probá de nuevo en una hora o escribinos a lascajasdeaida@gmail.com.']);
+        }
+        $etq = ['espacio' => 'Espacio o institución', 'ciudad' => 'Ciudad', 'fechas' => 'Fechas tentativas', 'superficie' => 'Superficie aproximada (m²)',
+                'nombre' => 'Nombre de contacto', 'correo' => 'Correo', 'telefono' => 'Teléfono', 'mensaje' => 'Mensaje'];
+        $texto = "Nueva consulta desde el sitio: «¿Querés llevar la muestra a tu espacio?»\n\n";
+        foreach ($etq as $k => $e) {
+            $texto .= "$e: " . ($v[$k] !== '' ? $v[$k] : '—') . "\n";
+        }
+        $texto .= "\nPara responder, contestá este correo: va a {$v['correo']}.\n";
+        $destino = (string)(aida_config()['muestra']['destino'] ?? 'lascajasdeaida@gmail.com');
+        $asunto = 'Muestra itinerante: consulta de ' . preg_replace('/[\r\n]+/', ' ', $v['espacio']) . ' (' . preg_replace('/[\r\n]+/', ' ', $v['ciudad']) . ')';
+        if (!\Aida\Correo::enviar($destino, $asunto, $texto, $v['correo'])) {
+            error_log('[aida-muestra] no se pudo mandar la consulta por correo');
+            $responder(503, ['ok' => false, 'error' => 'No pudimos enviar la consulta. Escribinos directamente a lascajasdeaida@gmail.com.']);
+        }
+        $responder(200, ['ok' => true]);
+    }
+
+    /** Hasta 5 envíos por hora por conexión (IP firmada, en var/). */
+    private static function muestraExcedeLimite(): bool
+    {
+        $dir = dirname(__DIR__, 2) . '/var/limites';
+        if (!is_dir($dir) && !@mkdir($dir, 0700, true)) {
+            return false;
+        }
+        $f = $dir . '/muestra-' . substr(self::firma('ip|' . ($_SERVER['REMOTE_ADDR'] ?? '')), 0, 32);
+        $ahora = time();
+        $marcas = array_filter(array_map('intval', is_file($f) ? (array)file($f, FILE_IGNORE_NEW_LINES) : []), fn($t) => $ahora - $t < 3600);
+        if (count($marcas) >= 5) {
+            return true;
+        }
+        $marcas[] = $ahora;
+        @file_put_contents($f, implode("\n", $marcas), LOCK_EX);
+        return false;
     }
 
     private static function consultaEnviada(string $codigo): void

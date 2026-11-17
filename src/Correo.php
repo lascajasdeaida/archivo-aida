@@ -18,7 +18,7 @@ final class Correo
         return (string)(aida_config()['correo']['remitente'] ?? '') !== '';
     }
 
-    public static function enviar(string $para, string $asunto, string $texto): bool
+    public static function enviar(string $para, string $asunto, string $texto, ?string $responderA = null): bool
     {
         $cfg = aida_config()['correo'] ?? [];
         $de = (string)($cfg['remitente'] ?? '');
@@ -33,6 +33,9 @@ final class Correo
             'Content-Transfer-Encoding' => '8bit',
             'Auto-Submitted' => 'auto-generated',
         ];
+        if ($responderA !== null && filter_var($responderA, FILTER_VALIDATE_EMAIL) && !preg_match('/[\r\n]/', $responderA)) {
+            $cab['Reply-To'] = $responderA;
+        }
         try {
             return mail($para, mb_encode_mimeheader($asunto, 'UTF-8'), $texto, $cab, '-f' . $de);
         } catch (\Throwable $e) {

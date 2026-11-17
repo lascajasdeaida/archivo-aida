@@ -46,4 +46,8 @@ return [
     // 'backoffice' => ['url' => 'https://lascajasdeaida.com.ar/archivo/admin'],
     // Correos del sistema (enlaces de acceso). Sin remitente no se manda nada y el enlace se muestra para copiarlo.
     // 'correo' => ['remitente' => 'no-responder@lascajasdeaida.com.ar', 'nombre' => 'Las cajas de Aída'],
+    // Cloudflare Turnstile en los formularios (docs/backoffice.md §18). Sin claves queda apagado.
+    // 'turnstile' => ['sitio' => '<site key>', 'secreto' => '<secret key>'],
+    // Destino del formulario de la Muestra del sitio institucional.
+    // 'muestra' => ['destino' => 'lascajasdeaida@gmail.com'],
 ];

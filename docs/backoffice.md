@@ -370,3 +370,20 @@ Pantalla **Usuarios** (solo administradores) y **Mi cuenta** (todos, desde el no
     dominio del pedido.
   - `'correo' => ['remitente' => 'no-responder@dominio', 'nombre' => 'Las cajas de Aída']` — sale por `mail()` de PHP.
     Sin remitente no se manda correo: el administrador copia el enlace y lo pasa por otro medio.
+
+## 18. Turnstile en los formularios (17/11/2026)
+
+Cloudflare Turnstile (`src/Turnstile.php`) protege los formularios que puede usar cualquiera: ingreso al backoffice,
+«Olvidé mi contraseña», pedido de consulta de un documento y el formulario de la Muestra del sitio institucional.
+
+- Se suma a las defensas que ya había (CSRF, campo trampa, tiempo mínimo y límites por conexión); no las reemplaza.
+- Configuración: `'turnstile' => ['sitio' => '<site key>', 'secreto' => '<secret key>']`. Sin las dos claves queda apagado.
+  En el sitio institucional (estático) la site key va en `TURNSTILE_SITIO` de `_build/generar.py`.
+- Hostnames del widget en Cloudflare: lascajasdeaida.com.ar, lascajasdeaida.com y el dominio provisorio.
+- Si Cloudflare no responde se deja pasar y se anota en el log (un corte ajeno no deja a nadie afuera). Un token inválido,
+  vencido o de otro formulario (`action` distinta) se rechaza.
+- Formulario de la Muestra: ahora se envía al archivo (`POST /archivo/muestra/consulta`, mismo dominio, JSON) y llega por
+  correo a `'muestra' => ['destino' => ...]` (por defecto lascajasdeaida@gmail.com) con Responder a = quien consulta.
+  Si el servidor no está (por ejemplo en la vista previa), se abre el correo como antes. Hasta 5 envíos por hora por conexión.
+- Turnstile no protege el sitio entero: eso se hace al apuntar el dominio, poniéndolo detrás de Cloudflare (proxy, reglas
+  de WAF y Bot Fight Mode).

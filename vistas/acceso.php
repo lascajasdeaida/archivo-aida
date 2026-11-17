@@ -40,6 +40,7 @@ $error = $error ?? null;
     <form method="post" action="<?= App::url('olvide') ?>">
       <?= App::campoToken() ?>
       <label>Correo<input type="email" name="email" required autofocus autocomplete="username"></label>
+      <?= \Aida\Turnstile::widget('olvide') ?>
       <button class="btn btn-primario">Mandar enlace</button>
     </form>
     <p class="login__extra"><a href="<?= App::url('login') ?>">Volver a ingresar</a></p>

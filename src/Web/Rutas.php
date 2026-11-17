@@ -18,6 +18,7 @@ use Aida\Sitio;
 use Aida\Texto;
 use Aida\Usuarios;
 use Aida\Correo;
+use Aida\Turnstile;
 use Aida\Vocabulario;
 
 /**
@@ -58,6 +59,10 @@ final class Rutas
         $error = null;
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             App::verificarPost();
+            if (!Turnstile::verificar('login')) {
+                App::render('login', ['error' => 'No pudimos verificar que no seas un robot. Esperá a que aparezca el tilde y volvé a probar.']);
+                return;
+            }
             $st = self::db()->prepare('SELECT * FROM usuario WHERE email = ? AND activo = 1');
             $st->execute([Usuarios::normalizarEmail((string)($_POST['email'] ?? ''))]);
             $u = $st->fetch();
@@ -1868,6 +1873,8 @@ final class Rutas
             $email = Usuarios::normalizarEmail((string)($_POST['email'] ?? ''));
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Escribí un correo válido.';
+            } elseif (!Turnstile::verificar('olvide')) {
+                $error = 'No pudimos verificar que no seas un robot. Esperá a que aparezca el tilde y volvé a probar.';
             } else {
                 $us = new Usuarios(self::db());
                 $u = $us->porEmail($email);

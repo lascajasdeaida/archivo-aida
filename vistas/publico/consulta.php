@@ -76,6 +76,7 @@ ob_start(); ?>
         <div class="campo"><label class="check"><input type="checkbox" id="condiciones" name="condiciones" value="1"<?= !empty($valores['condiciones']) ? ' checked' : '' ?> aria-describedby="condiciones-error"<?= $inv('condiciones') ?>>
           <span>Acepto las <a href="<?= H::e($enl->sobre('condiciones')) ?>">condiciones de uso del material</a>.</span></label><?= $err('condiciones') ?></div>
         <p class="meta">Usamos tus datos solo para responder este pedido.</p>
+        <?= \Aida\Turnstile::widget('consulta') ?>
         <button class="boton boton--primario" type="submit"><?= H::icono('sobre') ?>Enviar pedido</button>
       </form>
     </div>

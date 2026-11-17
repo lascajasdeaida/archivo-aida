@@ -33,7 +33,7 @@ El sitio actual tiene 5 etapas: Inicios 1963–1976 · Exilio 1976–1979 · Reg
 - **Cajas que parecen la misma obra:** 3 y 5 (Noticia de un secuestro), 8 y 12 (Why Me? / La víctima), 9 y 13 (Azucena Villaflor). ¿Confirman?
 - **«Aida Bortnik Ferreira»** en 8 registros de la caja 14: ¿es correcto el segundo apellido?
 - **Años con barra entre dos años no seguidos** («1982 /1986», «1973/1986»): ¿es un rango (todos los años del medio) o solo esos dos años? Hoy se toman como rango, marcados «sin confirmar». Son 10 registros: C7R2, C15R17, C21R5–R8, C46R11, C46R19, C54R1, C54R2.
-- **Planilla de correcciones** (302 celdas) enviada al equipo de digitalización: seguimiento de lo corregido.
+- **Planilla de correcciones** (302 celdas): se manda adjunta en el mail de consultas (17/11/2026) para que el equipo marque cuáles aplicar.
 
 ## 6. Sitio institucional (versión en dirección B, 16/11/2026)
 
@@ -61,5 +61,4 @@ Referencia: primer pedido del cliente, mail «La página de Las cajas ja!» (21/
 ### Para confirmar
 - Apellidos: ¿Villaronga o Villalonga?, ¿Igartua o Igartúa?, ¿Rollandi o Rolandi? ¿«Gabriela Tania Fantl» o «Gabriela Fantl»?
 - Muestra: la frase que pidieron reescribir quedó en pasado («se presentó…»). ¿Va así?
-- Prólogo: sacamos un epígrafe de foto que había quedado suelto en el texto («Aída Bortnik junto a -izq- y Juan José Campanella -der-», le falta un nombre). ¿Quién es la otra persona?
 - Documental: de los dos textos enviados usamos la sinopsis larga. ¿Va esa?

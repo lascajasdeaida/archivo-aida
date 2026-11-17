@@ -181,6 +181,7 @@ fieldset.campo { border: 0; padding: 0; margin: 0 0 var(--e-4); }
   padding-bottom: var(--e-2); margin-bottom: var(--e-3); border-bottom: 2px solid var(--c-texto); }
 .bloque__cabeza h2 { margin: 0; }
 .bloque__cabeza a, .bloque__cabeza .meta { font-size: var(--t-dato); }
+.bloque__cabeza a { display: inline-flex; align-items: center; min-height: 44px; }   /* área táctil (QA 16/11/2026) */
 .bloque .buscador { margin-bottom: var(--e-3); }
 .bloque .accesos { margin-bottom: var(--e-4); }
 

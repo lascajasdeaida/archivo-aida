@@ -321,3 +321,7 @@ form:has(> .lote) { padding-bottom: var(--e-3); }
 .casilla { display: flex; gap: var(--e-2); align-items: center; }
 .casilla input { width: auto; margin: 0; }
 .usuario a { color: var(--c-barra-texto); }
+.perfiles { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--e-1) var(--e-4); }
+.perfiles dt { font-weight: var(--peso-fuerte); margin-top: var(--e-2); }
+.perfiles dd { margin: 0; }
+@media (min-width: 640px) { .perfiles { grid-template-columns: 11rem minmax(0, 1fr); } .perfiles dt { margin-top: 0; } }

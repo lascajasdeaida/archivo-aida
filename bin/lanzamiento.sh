@@ -82,7 +82,7 @@ EOF
 echo "-- .htaccess nuevo:"; sed 's/^/   /' "$NUEVO_HT"
 # 3. robots.txt -------------------------------------------------------
 NUEVO_ROB=$(mktemp)
-printf 'User-agent: *\nAllow: /\nDisallow: /archivo/admin/\n\nSitemap: %s/sitemap.xml\n' "$BASE" > "$NUEVO_ROB"
+printf 'User-agent: *\nAllow: /\nDisallow: /archivo/admin/\n\nSitemap: %s/sitemap.xml\nSitemap: %s/archivo/sitemap.xml\n' "$BASE" "$BASE" > "$NUEVO_ROB"
 echo "-- robots.txt nuevo:"; sed 's/^/   /' "$NUEVO_ROB"
 # 4. og:image ---------------------------------------------------------
 HTMLS=$(grep -l "http://$PROVISORIO/" "$WEB"/*.html 2>/dev/null || true)

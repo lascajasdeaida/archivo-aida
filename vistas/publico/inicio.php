@@ -21,7 +21,7 @@ ob_start(); ?>
       <?php if (!$enl->reescritura): ?><input type="hidden" name="ruta" value="explorar"><?php endif ?>
       <div class="buscador__campo">
         <label class="solo-lector" for="q-inicio">Buscar en el archivo</label>
-        <input type="search" id="q-inicio" name="q" placeholder="Obra, persona, tipo de documento, año o código" autocomplete="off" aria-keyshortcuts="/" aria-describedby="ayuda-inicio">
+        <input type="search" id="q-inicio" name="q" placeholder="Obra, persona, año o código" autocomplete="off" aria-keyshortcuts="/" aria-describedby="ayuda-inicio">
         <span class="buscador__cursor" aria-hidden="true"></span></div>
       <button class="boton boton--primario"><?= H::icono('buscar') ?>Buscar</button>
     </form>

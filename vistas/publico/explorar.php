@@ -23,7 +23,7 @@ ob_start(); ?>
     <div class="buscador" role="search" aria-label="Buscar en el archivo">
       <div class="buscador__campo">
         <label class="solo-lector" for="q">Buscar en el archivo</label>
-        <input type="search" id="q" name="q" value="<?= H::e($e['q']) ?>" placeholder="Título, persona, obra, tipo, año o código" autocomplete="off" aria-keyshortcuts="/" aria-describedby="ayuda-q">
+        <input type="search" id="q" name="q" value="<?= H::e($e['q']) ?>" placeholder="Obra, persona, año o código" autocomplete="off" aria-keyshortcuts="/" aria-describedby="ayuda-q">
         <span class="buscador__cursor" aria-hidden="true"></span></div>
       <button class="boton boton--primario"><?= H::icono('buscar') ?>Buscar</button>
     </div>

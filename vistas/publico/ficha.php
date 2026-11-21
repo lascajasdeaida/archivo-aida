@@ -108,10 +108,15 @@ ob_start(); ?>
         <?= $fila('Título', $d['sinTitulo'] ? '<span class="sin-titulo">Sin título</span>' : H::e($d['titulo'])) ?>
         <?= $fila('Tipo de documento', $vlinks($d['tipos'], 'tipo')) ?>
         <?= $fila('Autor/es', H::e($r['autor'])) ?>
-        <?= $fila('Fecha', H::e($r['fecha_texto'])) ?>
-        <?= $fila('Año', $anio['etiqueta'] === null ? null
+        <?php
+          $anioHtml = $anio['etiqueta'] === null ? null
             : ($anio['decada'] !== null && !$anio['dudoso'] ? '<a href="' . H::e($enl->explorar(['decada' => $anio['decada']])) . '">' . H::e($anio['etiqueta']) . '</a>' : H::anio($anio))
-              . ($anio['original'] !== null ? '<br><span class="meta">En el catálogo: “' . H::e($anio['original']) . '”</span>' : '')) ?>
+              . ($anio['original'] !== null ? '<br><span class="meta">En el catálogo: “' . H::e($anio['original']) . '”</span>' : '');
+          // Si la fecha es solo el año, una fila alcanza (antes salía «Fecha 1983» y «Año 1983»).
+          $mismoAnio = $anioHtml !== null && trim((string)$r['fecha_texto']) === (string)$anio['etiqueta'];
+        ?>
+        <?= $fila('Fecha', $mismoAnio ? $anioHtml : H::e($r['fecha_texto'])) ?>
+        <?= $fila('Año', $mismoAnio ? null : $anioHtml) ?>
         <?= $fila('Lugar', H::e($r['lugar'])) ?>
         <?= $fila('Páginas', $r['paginas'] ? (string)(int)$r['paginas'] : null) ?>
         <?= $fila('Descriptores', $vlinks($d['descriptores'], 'descriptor')) ?>

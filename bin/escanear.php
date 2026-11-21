@@ -4,11 +4,13 @@ declare(strict_types=1);
 /**
  * Asocia los archivos digitalizados a los registros.
  *
- *   php bin/escanear.php [carpeta] [--simular]          escanea la carpeta (por defecto, archivos_raiz de config)
+ *   php bin/escanear.php [--simular]                    escanea el origen configurado ('archivos.origen'):
+ *                                                       disco → la carpeta; drive → el último listado de Drive cargado
+ *   php bin/escanear.php carpeta [--simular]            escanea esa carpeta del disco
  *   php bin/escanear.php --listado=archivos.tsv [--simular]
  *
- * El listado sirve cuando los archivos todavía no están en el servidor (p. ej., en Drive):
- * una línea por archivo «ruta<TAB>bytes<TAB>fecha», con la ruta relativa C14/C14R3.pdf.
+ * El --listado (formato viejo “ruta<TAB>bytes<TAB>fecha”) sirve para probar sin los archivos. Para cargar los id de
+ * Drive se usa bin/drive-listado.php.
  */
 
 require dirname(__DIR__) . '/src/bootstrap.php';
@@ -25,7 +27,14 @@ foreach (array_slice($argv, 1) as $a) {
 }
 
 $esc = new Aida\Escaner(aida_db());
-$rep = $listado !== null
-    ? $esc->procesarListado($listado, $simular)
-    : $esc->escanearCarpeta($carpeta ?? aida_config()['archivos_raiz'], $simular);
+try {
+    $rep = match (true) {
+        $listado !== null => $esc->procesarListado($listado, $simular),
+        $carpeta !== null => $esc->escanearCarpeta($carpeta, $simular),
+        default => $esc->escanear(Aida\Archivos\Origenes::desdeConfig(aida_config()), $simular),
+    };
+} catch (RuntimeException $e) {
+    fwrite(STDERR, $e->getMessage() . "\n");
+    exit(1);
+}
 echo $rep->texto();

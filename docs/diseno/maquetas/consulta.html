@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Consulta a pedido · Las cajas de Aída</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../../../public/sitio/estilo.css">
+</head>
+<body>
+<main id="contenido" tabindex="-1"><div class="contenedor">
+  <div id="migas"></div>
+  <h1 id="h-consulta">Pedir la consulta de un documento</h1>
+  <p>Algunos documentos del archivo se consultan a pedido: la ficha es pública y el documento lo comparte el equipo del archivo después de recibir tu pedido. No hace falta crear una cuenta.</p>
+  <div class="consulta" style="margin-top:24px">
+    <div class="consulta__doc" id="doc-pedido"></div>
+    <div id="zona-form">
+      <div class="resumen-errores" id="resumen-errores" hidden></div>
+      <form class="form" id="form-consulta" novalidate>
+        <p class="meta">Todos los campos son obligatorios, salvo los marcados como opcionales.</p>
+        <div class="campo"><label for="nombre">Nombre y apellido</label>
+          <input id="nombre" name="nombre" type="text" autocomplete="name" aria-describedby="nombre-error"><p class="error" id="nombre-error" hidden></p></div>
+        <div class="campo"><label for="correo">Correo electrónico</label>
+          <span class="ayuda" id="correo-ayuda">Te respondemos a este correo.</span>
+          <input id="correo" name="correo" type="email" autocomplete="email" aria-describedby="correo-ayuda correo-error"><p class="error" id="correo-error" hidden></p></div>
+        <div class="campo"><label for="institucion">Institución o pertenencia <span class="meta">(opcional)</span></label>
+          <input id="institucion" name="institucion" type="text" autocomplete="organization"></div>
+        <div class="campo"><label for="motivo">¿Para qué lo querés consultar?</label>
+          <select id="motivo" name="motivo" aria-describedby="motivo-error"><option value="">Elegí una opción</option>
+            <option value="investigacion">Investigación académica</option><option value="prensa">Nota periodística</option>
+            <option value="produccion">Producción audiovisual o teatral</option><option value="personal">Interés personal</option><option value="otro">Otro</option></select>
+          <p class="error" id="motivo-error" hidden></p></div>
+        <fieldset class="campo"><legend>¿Cómo preferís consultarlo?</legend>
+          <label class="check"><input type="radio" name="modo" value="digital" checked> Copia digital por correo</label>
+          <label class="check"><input type="radio" name="modo" value="presencial"> En persona, con cita previa</label></fieldset>
+        <div class="campo"><label for="mensaje">Mensaje</label>
+          <span class="ayuda" id="mensaje-ayuda">Contanos qué buscás. Si te interesan otros documentos, anotá sus códigos (ej. C2R12).</span>
+          <textarea id="mensaje" name="mensaje" rows="5" aria-describedby="mensaje-ayuda mensaje-error"></textarea><p class="error" id="mensaje-error" hidden></p></div>
+        <div class="campo"><label class="check"><input type="checkbox" id="condiciones" aria-describedby="condiciones-error"> <span>Acepto las <a href="sobre.html#condiciones">condiciones de uso del material</a> (uso no comercial, citar la fuente).</span></label>
+          <p class="error" id="condiciones-error" hidden></p></div>
+        <button class="boton boton--primario" type="submit"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-sobre"/></svg>Enviar pedido</button>
+      </form>
+    </div>
+  </div>
+</div></main>
+<script src="../../ux/wireframes/datos.js"></script>
+<script src="vocabulario-final.js"></script>
+<script src="maqueta.js"></script>
+<script>MAQ.consulta();</script>
+</body>
+</html>

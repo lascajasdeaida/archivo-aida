@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 spl_autoload_register(static function (string $class): void {
     if (str_starts_with($class, 'Aida\\')) {
-        $file = __DIR__ . '/' . substr($class, 5) . '.php';
+        $file = __DIR__ . '/' . str_replace('\\', '/', substr($class, 5)) . '.php';
         if (is_file($file)) {
             require $file;
         }
@@ -35,7 +35,9 @@ function aida_db(): PDO
     if ($pdo === null) {
         $c = aida_config()['db'];
         $pdo = new PDO(
-            sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $c['host'], $c['port'] ?? 3306, $c['name']),
+            !empty($c['socket'])
+                ? sprintf('mysql:unix_socket=%s;dbname=%s;charset=utf8mb4', $c['socket'], $c['name'])
+                : sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $c['host'], $c['port'] ?? 3306, $c['name']),
             $c['user'],
             $c['pass'],
             [

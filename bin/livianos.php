@@ -154,22 +154,31 @@ function bajar(string $url, string $dest): bool
  */
 function resolucionPorPixeles(string $pdf): ?int
 {
-    $txt = file_get_contents($pdf);
-    if ($txt === false || !preg_match('~/MediaBox\s*\[\s*([\d.-]+)\s+([\d.-]+)\s+([\d.]+)\s+([\d.]+)\s*\]~', $txt, $m)) {
+    // Se lee por partes (hay PDF de cientos de MB): MediaBox de la primera página y el diccionario de imagen más grande.
+    $fh = fopen($pdf, 'rb');
+    if ($fh === false) {
         return null;
     }
-    $anchoPt = (float)$m[3] - (float)$m[1];
-    $altoPt = (float)$m[4] - (float)$m[2];
+    $anchoPt = $altoPt = 0.0;
     $maxW = $maxH = 0;
-    // Diccionarios de imagen (sin anidar): /Width y /Height en cualquier orden
-    if (preg_match_all('~<<(?:(?!<<|>>).){0,600}?/Subtype\s*/Image(?:(?!<<|>>).){0,600}?>>~s', $txt, $mm)) {
-        foreach ($mm[0] as $d) {
-            if (preg_match('~/Width\s+(\d+)~', $d, $a) && preg_match('~/Height\s+(\d+)~', $d, $b)) {
-                if ((int)$a[1] * (int)$b[1] > $maxW * $maxH) { $maxW = (int)$a[1]; $maxH = (int)$b[1]; }
+    $cola = '';
+    while (!feof($fh)) {
+        $txt = $cola . fread($fh, 4 * 1024 * 1024);
+        if ($anchoPt <= 0 && preg_match('~/MediaBox\s*\[\s*([\d.-]+)\s+([\d.-]+)\s+([\d.]+)\s+([\d.]+)\s*\]~', $txt, $m)) {
+            $anchoPt = (float)$m[3] - (float)$m[1];
+            $altoPt = (float)$m[4] - (float)$m[2];
+        }
+        // Diccionarios de imagen (sin anidar): /Width y /Height en cualquier orden
+        if (preg_match_all('~<<(?:(?!<<|>>).){0,600}?/Subtype\s*/Image(?:(?!<<|>>).){0,600}?>>~s', $txt, $mm)) {
+            foreach ($mm[0] as $d) {
+                if (preg_match('~/Width\s+(\d+)~', $d, $a) && preg_match('~/Height\s+(\d+)~', $d, $b)) {
+                    if ((int)$a[1] * (int)$b[1] > $maxW * $maxH) { $maxW = (int)$a[1]; $maxH = (int)$b[1]; }
+                }
             }
         }
+        $cola = substr($txt, -2048);
     }
-    unset($txt);
+    fclose($fh);
     if ($maxW === 0 || $anchoPt <= 0 || $altoPt <= 0) {
         return null;
     }

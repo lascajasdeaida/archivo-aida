@@ -18,6 +18,9 @@ declare(strict_types=1);
 
 require dirname(__DIR__) . '/src/bootstrap.php';
 
+/** Lado mayor permitido, en píxeles, para las imágenes de la versión liviana (≈ A4 a 170 dpi). */
+const LADO_MAX = 2000;
+
 $simular = in_array('--simular', $argv, true);
 $reintentar = in_array('--reintentar', $argv, true);
 $limite = null;
@@ -144,8 +147,6 @@ function bajar(string $url, string $dest): bool
     return $ok;
 }
 
-/** Lado mayor permitido, en píxeles, para las imágenes de la versión liviana (≈ A4 a 170 dpi). */
-const LADO_MAX = 2000;
 
 /**
  * Resolución a pedirle a Ghostscript para que el lado mayor de las imágenes quede en LADO_MAX píxeles,

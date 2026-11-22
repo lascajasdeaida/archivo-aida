@@ -9,6 +9,7 @@ declare(strict_types=1);
  *   php bin/livianos.php                    genera las que faltan, de a una (se puede cortar y volver a correr)
  *   php bin/livianos.php --limite 5         solo las primeras 5 que falten
  *   php bin/livianos.php --solo C1R9        un registro (o una caja: --solo C1)
+ *   php bin/livianos.php --reintentar       vuelve a probar los que antes «no achicaban»
  *
  * Necesita Ghostscript (gs) y 'archivos' => ['livianos' => ['raiz' => …]] en config.php.
  * Corre con prioridad baja (nice/ionice): el servidor es compartido.
@@ -18,6 +19,7 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/src/bootstrap.php';
 
 $simular = in_array('--simular', $argv, true);
+$reintentar = in_array('--reintentar', $argv, true);
 $limite = null;
 $solo = null;
 foreach ($argv as $i => $a) {
@@ -50,7 +52,7 @@ foreach ($filas as $f) {
     if ($solo !== null && $codigo !== $solo && !str_starts_with(strtoupper($f['ruta']), $solo . '/')) {
         continue; // --solo C1R9 (un registro) o --solo C1 (una caja)
     }
-    if (is_file("$raiz/{$f['ruta']}") || ($f['liviano_bytes'] !== null && (int)$f['liviano_bytes'] === 0)) {
+    if (is_file("$raiz/{$f['ruta']}") || (!$reintentar && $f['liviano_bytes'] !== null && (int)$f['liviano_bytes'] === 0)) {
         continue; // ya está, o ya se probó y no convenía (0 = «no achica»)
     }
     $pend[] = $f;
@@ -96,6 +98,15 @@ foreach ($pend as $n => $f) {
         escapeshellarg($gs), $dpi, escapeshellarg($sal), escapeshellarg($orig));
     exec($cmd, $salida, $codigo);
     $po = filesize($orig);
+    // Segundo intento: PDF que declaran una página enorme (escaneos guardados a 72 o 96 ppi nominales) no se achican por
+    // resolución. Ahí se limita por píxeles: el lado mayor de cada imagen a LADO_MAX (≈ A4 a 170 dpi) y se recomprime.
+    if ($codigo === 0 && is_file($sal) && filesize($sal) > $po * 0.8 && ($res = resolucionPorPixeles($orig)) !== null) {
+        @unlink($sal);
+        $cmd2 = str_replace(['-dColorImageResolution=' . $dpi, '-dGrayImageResolution=' . $dpi, '-dJPEGQ=72'],
+            ["-dColorImageResolution=$res -dColorImageDownsampleThreshold=1.0 -dPassThroughJPEGImages=false",
+             "-dGrayImageResolution=$res -dGrayImageDownsampleThreshold=1.0", '-dJPEGQ=75'], $cmd);
+        exec($cmd2, $salida, $codigo);
+    }
     if ($codigo !== 0 || !is_file($sal) || filesize($sal) < 1000) {
         printf("[%d/%d] %s: Ghostscript falló (%d), se saltea\n", $n + 1, count($pend), $f['ruta'], $codigo);
         continue;
@@ -131,4 +142,45 @@ function bajar(string $url, string $dest): bool
     $ok = curl_exec($ch) !== false;
     fclose($fp);
     return $ok;
+}
+
+/** Lado mayor permitido, en píxeles, para las imágenes de la versión liviana (≈ A4 a 170 dpi). */
+const LADO_MAX = 2000;
+
+/**
+ * Resolución a pedirle a Ghostscript para que el lado mayor de las imágenes quede en LADO_MAX píxeles,
+ * calculada con el tamaño declarado de la página y el de la imagen más grande. null si no hace falta o no se puede leer.
+ */
+function resolucionPorPixeles(string $pdf): ?int
+{
+    $txt = file_get_contents($pdf);
+    if ($txt === false || !preg_match('~/MediaBox\s*\[\s*([\d.-]+)\s+([\d.-]+)\s+([\d.]+)\s+([\d.]+)\s*\]~', $txt, $m)) {
+        return null;
+    }
+    $anchoPt = (float)$m[3] - (float)$m[1];
+    $altoPt = (float)$m[4] - (float)$m[2];
+    $maxW = $maxH = 0;
+    // Diccionarios de imagen (sin anidar): /Width y /Height en cualquier orden
+    if (preg_match_all('~<<(?:(?!<<|>>).){0,600}?/Subtype\s*/Image(?:(?!<<|>>).){0,600}?>>~s', $txt, $mm)) {
+        foreach ($mm[0] as $d) {
+            if (preg_match('~/Width\s+(\d+)~', $d, $a) && preg_match('~/Height\s+(\d+)~', $d, $b)) {
+                if ((int)$a[1] * (int)$b[1] > $maxW * $maxH) { $maxW = (int)$a[1]; $maxH = (int)$b[1]; }
+            }
+        }
+    }
+    unset($txt);
+    if ($maxW === 0 || $anchoPt <= 0 || $altoPt <= 0) {
+        return null;
+    }
+    // ppi nominal de la imagen en su página. Puede estar girada (escaneo apaisado en página vertical): se toma
+    // la orientación en la que ancho y alto dan el mismo ppi.
+    $derecho = [$maxW / ($anchoPt / 72), $maxH / ($altoPt / 72)];
+    $girado = [$maxW / ($altoPt / 72), $maxH / ($anchoPt / 72)];
+    $dif = fn(array $p) => max($p) / max(0.001, min($p));
+    $ppi = array_sum($dif($girado) < $dif($derecho) ? $girado : $derecho) / 2;
+    $lado = max($maxW, $maxH);
+    if ($lado <= LADO_MAX) {
+        return null;
+    }
+    return max(36, (int)floor($ppi * LADO_MAX / $lado));
 }

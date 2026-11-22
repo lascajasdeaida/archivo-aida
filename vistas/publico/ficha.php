@@ -79,6 +79,15 @@ ob_start(); ?>
           <li><a class="boton <?= !$a['visor'] && !$conVisor && $i === 0 ? 'boton--primario' : 'boton--secundario' ?> boton--ancho" href="<?= H::e($enl->archivo($a['id'], true)) ?>"<?= Medicion::atributosArchivo($medicion, 'descargar_archivo', $a, $i + 1, 'ficha') ?>>
               <?= H::icono('descargar') ?>Descargar <?= $etiquetaFormato($a) ?><?= $varias ? ' (parte ' . ($i + 1) . ')' : '' ?><?php if ($peso): ?> <span class="peso">(<?= H::e($peso) ?>)</span><?php endif ?></a></li>
           <?php endforeach ?>
+          <?php $originales = array_values(array_filter($d['archivos'], fn($a) => ($a['original'] ?? null) !== null)); ?>
+          <?php if ($originales): ?>
+          <li class="original">
+            <?php foreach ($originales as $i => $a): ?>
+              <a href="<?= H::e($enl->archivo($a['id'], true, true)) ?>"<?= Medicion::atributosArchivo($medicion, 'descargar_archivo', $a, $i + 1, 'original') ?>>Descargar original en alta resolución<?= count($originales) > 1 ? ' (parte ' . ($i + 1) . ')' : '' ?> <span class="peso">(<?= H::e((string)H::peso($a['original'])) ?>)</span></a><br>
+            <?php endforeach ?>
+            <span class="meta">La versión de arriba está optimizada para leer en pantalla. El original es el escaneo completo, para investigación o impresión.</span>
+          </li>
+          <?php endif ?>
         </ul>
       <?php elseif ($d['documento'] === 'pedido'): ?>
         <div class="aviso aviso--pedido" role="note"><?= H::icono('candado') ?>

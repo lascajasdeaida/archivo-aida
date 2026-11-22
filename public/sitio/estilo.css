@@ -566,3 +566,8 @@ body.panel-abierto { overflow: hidden; }
 
 /* Botón de edición para quien tiene sesión del backoffice (ficha y caja) */
 .barra-equipo{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:8px 0 0}
+
+/* Ficha: descarga del original cuando hay versión liviana (21/11/2026) */
+.original { margin-top: var(--e-2); font-size: var(--t-dato); }
+.original a { display: inline-flex; align-items: center; min-height: 44px; }
+.original .meta { display: block; margin-top: var(--e-1); }

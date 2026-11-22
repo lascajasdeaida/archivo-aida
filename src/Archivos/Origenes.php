@@ -20,11 +20,18 @@ final class Origenes
     {
         $a = is_array($cfg['archivos'] ?? null) ? $cfg['archivos'] : [];
         $origen = (string)($a['origen'] ?? self::DISCO);
-        return match ($origen) {
+        $base = match ($origen) {
             self::DISCO => new Disco((string)($a['raiz'] ?? $cfg['archivos_raiz'] ?? '')),
             self::DRIVE => self::drive($cfg),
             default => throw new \RuntimeException("Origen de archivos desconocido en la configuración: “{$origen}” (disco o drive)"),
         };
+        // Versiones livianas (bin/livianos.php): si están configuradas, el visor y la descarga usan esas.
+        $liv = (string)($a['livianos']['raiz'] ?? '');
+        if ($liv !== '' && is_dir($liv)) {
+            $max = (int)round(((float)($a['drive']['visor_max_mb'] ?? 100)) * 1000 * 1000);
+            return new ConLivianos($base, $liv, $max);
+        }
+        return $base;
     }
 
     /** El origen Drive aunque la configuración diga disco (para cargar los id antes de cambiar de origen). */

@@ -124,9 +124,9 @@ final class Enlaces
     }
 
     /** Visor o descarga: siempre por id de archivo (public/archivo.php decide si se entrega). */
-    public function archivo(int $id, bool $descargar = false): string
+    public function archivo(int $id, bool $descargar = false, bool $original = false): string
     {
-        return $this->base . 'archivo.php?' . http_build_query(['id' => $id] + ($descargar ? ['descargar' => 1] : []));
+        return $this->base . 'archivo.php?' . http_build_query(['id' => $id] + ($descargar ? ['descargar' => 1] : []) + ($original ? ['original' => 1] : []));
     }
 
     public function inicio(): string

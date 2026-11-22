@@ -464,7 +464,7 @@ final class Sitio
      */
     private function archivos(int $registroId): array
     {
-        $st = $this->db->prepare('SELECT a.id, a.registro_id, a.ruta, a.nombre_archivo, a.formato, a.parte, a.peso_bytes,
+        $st = $this->db->prepare('SELECT a.id, a.registro_id, a.ruta, a.nombre_archivo, a.formato, a.parte, a.peso_bytes, a.liviano_bytes,
                 a.drive_id, a.presente, a.eliminado_en archivo_baja, r.acceso, r.publicado, r.eliminado_en registro_baja, c.eliminado_en caja_baja
             FROM archivo_digital a JOIN registro r ON r.id = a.registro_id JOIN caja c ON c.id = r.caja_id
             WHERE a.registro_id = ? ORDER BY a.parte, a.nombre_archivo');
@@ -476,7 +476,13 @@ final class Sitio
             if (Entrega::decidir($a, true) === Entrega::SERVIR && $this->origen->entregable($a)) {
                 $out[] = ['id' => (int)$a['id'], 'nombre' => $a['nombre_archivo'], 'formato' => strtolower((string)$a['formato']),
                           'parte' => (int)$a['parte'], 'peso' => $a['peso_bytes'] !== null ? (int)$a['peso_bytes'] : null,
-                          'visor' => $this->origen->admiteVisor($a)];
+                          'visor' => $this->origen->admiteVisor($a), 'original' => null];
+                // Con versión liviana: el peso que se muestra es el de esa, y el original queda como descarga aparte.
+                if ($this->origen instanceof \Aida\Archivos\ConLivianos && $a['liviano_bytes'] !== null && $this->origen->liviano($a) !== null) {
+                    $i = array_key_last($out);
+                    $out[$i]['original'] = $out[$i]['peso'];
+                    $out[$i]['peso'] = (int)$a['liviano_bytes'];
+                }
             }
         }
         return $out;

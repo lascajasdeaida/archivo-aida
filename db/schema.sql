@@ -192,6 +192,8 @@ CREATE TABLE IF NOT EXISTS archivo_digital (
   formato        VARCHAR(10)  NOT NULL,             -- pdf, jpg, tif, mp3, mp4…
   tipo_medio     ENUM('documento','imagen','audio','video','otro') NOT NULL DEFAULT 'documento',
   peso_bytes     BIGINT UNSIGNED NULL,
+  liviano_bytes  BIGINT UNSIGNED NULL,               -- copia para leer en pantalla (bin/livianos.php); el original no se toca
+  liviano_en     DATETIME NULL,
   modificado_en  DATETIME     NULL,                 -- mtime del archivo
   version_web    VARCHAR(512) NULL,                 -- copia liviana para visualizar (pendiente)
   miniatura      VARCHAR(512) NULL,
@@ -358,6 +360,7 @@ INSERT IGNORE INTO migracion (version, nombre) VALUES
   ('005', '005_consultas_y_sitio.sql'),
   ('006', '006_archivo_drive.sql'),
   ('007', '007_evento_uso_contexto.sql'),
-  ('008', '008_usuarios_acceso.sql');
+  ('008', '008_usuarios_acceso.sql'),
+  ('009', '009_archivo_liviano.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

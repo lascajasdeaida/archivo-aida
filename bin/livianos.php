@@ -10,6 +10,7 @@ declare(strict_types=1);
  *   php bin/livianos.php --limite 5         solo las primeras 5 que falten
  *   php bin/livianos.php --solo C1R9        un registro (o una caja: --solo C1)
  *   php bin/livianos.php --reintentar       vuelve a probar los que antes «no achicaban»
+ *   php bin/livianos.php --grandes          rehace las livianas que siguen pesando más que el máximo del visor
  *
  * Necesita Ghostscript (gs) y 'archivos' => ['livianos' => ['raiz' => …]] en config.php.
  * Corre con prioridad baja (nice/ionice): el servidor es compartido.
@@ -20,9 +21,12 @@ require dirname(__DIR__) . '/src/bootstrap.php';
 
 /** Lado mayor permitido, en píxeles, para las imágenes de la versión liviana (≈ A4 a 170 dpi). */
 const LADO_MAX = 2000;
+/** Por encima de este peso la liviana tampoco entra en el visor: se intenta también el recorte por píxeles. */
+const VISOR_MAX = 100 * 1000 * 1000;
 
 $simular = in_array('--simular', $argv, true);
 $reintentar = in_array('--reintentar', $argv, true);
+$grandes = in_array('--grandes', $argv, true);
 $limite = null;
 $solo = null;
 foreach ($argv as $i => $a) {
@@ -55,7 +59,12 @@ foreach ($filas as $f) {
     if ($solo !== null && $codigo !== $solo && !str_starts_with(strtoupper($f['ruta']), $solo . '/')) {
         continue; // --solo C1R9 (un registro) o --solo C1 (una caja)
     }
-    if (is_file("$raiz/{$f['ruta']}") || (!$reintentar && $f['liviano_bytes'] !== null && (int)$f['liviano_bytes'] === 0)) {
+    $hay = is_file("$raiz/{$f['ruta']}");
+    if ($grandes) {
+        if (!$hay || filesize("$raiz/{$f['ruta']}") <= VISOR_MAX) {
+            continue;
+        }
+    } elseif ($hay || (!$reintentar && $f['liviano_bytes'] !== null && (int)$f['liviano_bytes'] === 0)) {
         continue; // ya está, o ya se probó y no convenía (0 = «no achica»)
     }
     $pend[] = $f;
@@ -103,12 +112,18 @@ foreach ($pend as $n => $f) {
     $po = filesize($orig);
     // Segundo intento: PDF que declaran una página enorme (escaneos guardados a 72 o 96 ppi nominales) no se achican por
     // resolución. Ahí se limita por píxeles: el lado mayor de cada imagen a LADO_MAX (≈ A4 a 170 dpi) y se recomprime.
-    if ($codigo === 0 && is_file($sal) && filesize($sal) > $po * 0.8 && ($res = resolucionPorPixeles($orig)) !== null) {
-        @unlink($sal);
-        $cmd2 = str_replace(['-dColorImageResolution=' . $dpi, '-dGrayImageResolution=' . $dpi, '-dJPEGQ=72'],
+    if ($codigo === 0 && is_file($sal) && (filesize($sal) > $po * 0.8 || filesize($sal) > VISOR_MAX)
+        && ($res = resolucionPorPixeles($orig)) !== null) {
+        $sal2 = "$tmp/liviano2.pdf";
+        @unlink($sal2);
+        $cmd2 = str_replace(['-dColorImageResolution=' . $dpi, '-dGrayImageResolution=' . $dpi, '-dJPEGQ=72', escapeshellarg($sal)],
             ["-dColorImageResolution=$res -dColorImageDownsampleThreshold=1.0 -dPassThroughJPEGImages=false",
-             "-dGrayImageResolution=$res -dGrayImageDownsampleThreshold=1.0", '-dJPEGQ=75'], $cmd);
-        exec($cmd2, $salida, $codigo);
+             "-dGrayImageResolution=$res -dGrayImageDownsampleThreshold=1.0", '-dJPEGQ=75', escapeshellarg($sal2)], $cmd);
+        exec($cmd2, $salida2, $codigo2);
+        if ($codigo2 === 0 && is_file($sal2) && filesize($sal2) > 1000 && filesize($sal2) < filesize($sal)) {
+            rename($sal2, $sal);   // se queda la más chica de las dos
+        }
+        @unlink($sal2);
     }
     if ($codigo !== 0 || !is_file($sal) || filesize($sal) < 1000) {
         printf("[%d/%d] %s: Ghostscript falló (%d), se saltea\n", $n + 1, count($pend), $f['ruta'], $codigo);

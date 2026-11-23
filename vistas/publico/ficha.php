@@ -139,7 +139,7 @@ ob_start(); ?>
       <?php $resumen = trim((string)$r['resumen']); ?>
       <?php if ($resumen !== ''): foreach (preg_split('/\R{2,}/u', $resumen) as $parrafo):
             // El catálogo separa los ítems de una carpeta con « / »: con tres o más, se leen mejor como lista.
-            $items = preg_split('~\s+/\s+~u', trim($parrafo)); ?>
+            $items = preg_split('~\s*/\s+~u', trim($parrafo)); ?>
         <?php if (count($items) >= 3): ?>
         <ul class="ficha__items"><?php foreach ($items as $it): if (trim($it) === '') continue; ?><li><?= H::e(trim($it)) ?></li><?php endforeach ?></ul>
         <?php else: ?>

@@ -81,15 +81,27 @@ $actual = fn(string $s) => ($seccion ?? '') === $s ? ' aria-current="page"' : ''
 </main>
 
 <footer class="pie"><div class="contenedor">
-  <img class="pie__logo" src="<?= H::e($enl->recurso('sitio/img/logo-tinta.svg')) ?>" alt="Las cajas de Aída" width="120" height="53">
-  <p>Archivo Aída Bortnik</p>
-  <ul>
-    <li><a href="<?= H::e($enl->sobre()) ?>">Sobre el archivo</a></li>
-    <li><a href="<?= H::e($enl->sobre('citar')) ?>">Cómo citar</a></li>
-    <li><a href="<?= H::e($enl->sobre('condiciones')) ?>">Condiciones de uso</a></li>
-    <li><a href="<?= H::e($enl->sobre('accesibilidad')) ?>">Accesibilidad</a></li>
-    <li><a href="<?= H::e($enl->sobre('contacto')) ?>">Contacto</a></li>
-  </ul>
+  <div class="pie__marca">
+    <a href="/"><img class="pie__logo" src="<?= H::e($enl->recurso('sitio/img/logo-calado-blanco.svg')) ?>" alt="Las cajas de Aída: inicio del sitio" width="170" height="75"></a>
+    <p>Archivo Aída Bortnik (1938–2013)<br><a href="mailto:lascajasdeaida@gmail.com">lascajasdeaida@gmail.com</a></p>
+  </div>
+  <nav class="pie__nav" aria-label="Pie de página">
+    <ul class="pie__proyectos">
+      <li><a href="/catalogo.html">Catálogo</a></li><li><a href="/muestra.html">Muestra</a></li><li><a href="/conservacion.html">Conservación</a></li>
+      <li><a href="/digitalizacion.html">Digitalización</a></li><li><a href="/documental.html">Documental</a></li>
+    </ul>
+    <ul class="pie__archivo">
+      <li><a href="<?= H::e($enl->sobre()) ?>">Sobre el archivo</a></li>
+      <li><a href="<?= H::e($enl->sobre('citar')) ?>">Cómo citar</a></li>
+      <li><a href="<?= H::e($enl->sobre('condiciones')) ?>">Condiciones de uso</a></li>
+      <li><a href="<?= H::e($enl->sobre('accesibilidad')) ?>">Accesibilidad</a></li>
+    </ul>
+    <p class="pie__contacto"><a class="boton-pie" href="/contacto.html">Contacto</a></p>
+  </nav>
+  <div class="pie__legal">
+    <p>© 2026 Las cajas de Aída — Archivo Aída Bortnik. Todos los derechos reservados.</p>
+    <p class="pie__credito">Desarrollado por <a href="https://www.p3design.com" rel="noopener">P3Design</a></p>
+  </div>
 </div></footer>
 </body>
 </html>

@@ -533,13 +533,27 @@ body.panel-abierto { overflow: hidden; }
 /* =========================================================
    Pie
    ========================================================= */
-.pie { margin-top: var(--e-7); background: var(--c-fondo-2); border-top: 1px solid var(--c-linea); padding: var(--e-5) 0; font-size: var(--t-dato); color: var(--c-texto-2); }
-.pie .contenedor { display: flex; flex-wrap: wrap; gap: var(--e-2) var(--e-5); align-items: center; }
-.pie__logo { display: block; width: 72px; height: auto; }
+/* Pie: igual al del sitio institucional (22/11/2026) — 5 proyectos, enlaces del archivo, Contacto aparte, crédito a la derecha */
+.pie { margin-top: var(--e-7); background: #1d1815; color: #f5f0e4; padding: var(--e-6) 0 var(--e-5); font-size: var(--t-dato); }
+.pie .contenedor { display: grid; gap: var(--e-5); }
+@media (min-width: 860px) { .pie .contenedor { grid-template-columns: 1fr 1.4fr; } }
+.pie__logo { display: block; width: 150px; height: auto; margin-bottom: var(--e-3); }
 .pie p { margin: 0; }
-.pie ul { list-style: none; padding: 0; margin: 0 0 0 auto; display: flex; flex-wrap: wrap; gap: 0 var(--e-4); }
-.pie a { color: var(--c-texto); display: inline-flex; align-items: center; min-height: var(--toque); }
-.pie a:hover { color: var(--c-azul-osc); }
+.pie a { color: #f5f0e4; display: inline-flex; align-items: center; min-height: var(--toque); }
+.pie a:hover, .pie a:focus-visible { color: #ef6a3a; }
+.pie__nav { display: grid; gap: var(--e-3) var(--e-5); align-content: start; }
+@media (min-width: 560px) { .pie__nav { grid-template-columns: 1fr 1fr; } .pie__contacto { grid-column: 1 / -1; } }
+.pie ul { list-style: none; padding: 0; margin: 0; display: grid; }
+.pie__proyectos a { font-family: var(--f-display, inherit); text-transform: uppercase; letter-spacing: .1em; text-decoration: underline; text-underline-offset: .25em; }
+.boton-pie { padding: .5rem 1.25rem; border: 2px solid #ef6a3a; text-transform: uppercase; letter-spacing: .12em; text-decoration: none; }
+.boton-pie:hover, .boton-pie:focus-visible { background: #ef6a3a; color: #1d1815 !important; }
+.pie__legal { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--e-2) var(--e-5);
+  border-top: 1px solid rgba(245,240,228,.25); padding-top: var(--e-4); font-size: .85rem; }
+.pie__credito { margin-left: auto !important; }
+.pie__credito a { text-decoration: underline; min-height: 0; }
+/* Ficha: ítems de una carpeta como lista */
+.ficha__items { margin: 0 0 var(--e-3); padding-left: 1.2em; }
+.ficha__items li { margin: .2em 0; }
 @media (max-width: 699px) { .pie ul { margin-left: 0; flex-basis: 100%; } }
 
 /* =========================================================

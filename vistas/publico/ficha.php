@@ -85,7 +85,7 @@ ob_start(); ?>
             <?php foreach ($originales as $i => $a): ?>
               <a href="<?= H::e($enl->archivo($a['id'], true, true)) ?>"<?= Medicion::atributosArchivo($medicion, 'descargar_archivo', $a, $i + 1, 'original') ?>>Descargar original en alta resolución<?= count($originales) > 1 ? ' (parte ' . ($i + 1) . ')' : '' ?> <span class="peso">(<?= H::e((string)H::peso($a['original'])) ?>)</span></a><br>
             <?php endforeach ?>
-            <span class="meta">La versión de arriba está optimizada para leer en pantalla. El original es el escaneo completo, para investigación o impresión.</span>
+            <span class="meta">La versión de arriba está optimizada para leer en pantalla. El original es el escaneo completo, para investigación o impresión.<?= max(array_map(fn($a) => (int)$a['original'], $originales)) > 50 * 1000 * 1000 ? ' Es pesado: conviene bajarlo con wifi.' : '' ?></span>
           </li>
           <?php endif ?>
         </ul>
@@ -137,8 +137,14 @@ ob_start(); ?>
       <h2>Descripción</h2>
       <div class="ficha__texto">
       <?php $resumen = trim((string)$r['resumen']); ?>
-      <?php if ($resumen !== ''): foreach (preg_split('/\R{2,}/u', $resumen) as $parrafo): ?>
+      <?php if ($resumen !== ''): foreach (preg_split('/\R{2,}/u', $resumen) as $parrafo):
+            // El catálogo separa los ítems de una carpeta con « / »: con tres o más, se leen mejor como lista.
+            $items = preg_split('~\s+/\s+~u', trim($parrafo)); ?>
+        <?php if (count($items) >= 3): ?>
+        <ul class="ficha__items"><?php foreach ($items as $it): if (trim($it) === '') continue; ?><li><?= H::e(trim($it)) ?></li><?php endforeach ?></ul>
+        <?php else: ?>
         <p><?= nl2br(H::e(trim($parrafo))) ?></p>
+        <?php endif ?>
       <?php endforeach; else: ?><p class="meta">Sin descripción.</p><?php endif ?>
       <?php if (trim((string)$r['obs_editorial']) !== ''): ?><h3>Observaciones</h3><p><?= nl2br(H::e(trim((string)$r['obs_editorial']))) ?></p><?php endif ?>
       </div>

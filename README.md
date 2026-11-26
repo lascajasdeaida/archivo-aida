@@ -10,10 +10,14 @@ Extensiones de PHP necesarias: `pdo_mysql`, `zip`, `xmlreader`, `simplexml`, `mb
 
 | Pieza | Estado |
 |---|---|
-| Modelo de datos (`db/schema.sql`) | ✅ v0.2 |
+| Modelo de datos (`db/schema.sql`) | ✅ v0.5 (ABM, bajas lógicas, historial reversible, búsqueda FULLTEXT) |
+| Migraciones (`db/migraciones/`, `bin/migrar.php`) | ✅ |
+| Buscador (`src/Buscador.php`, `docs/busqueda.md`) | ✅ falta conectarlo al backoffice y al front |
+| Backups (`bin/backup.sh`, `bin/restaurar.sh`, `docs/backups.md`) | ✅ restauración probada en MariaDB 10.11 y MySQL 8.4 |
 | Importador del Excel del catálogo (`bin/importar.php`) | ✅ probado con las 70 pestañas |
 | Escaneo de archivos digitalizados (`bin/escanear.php`) | ✅ probado con la muestra de 8 cajas |
-| Backoffice | pendiente |
+| Historial reversible (`src/Historial.php`, `bin/revertir.php`) | ✅ |
+| Backoffice (`public/admin/`) | ✅ primera versión: cajas, fichas, ABM, historial con deshacer, verificaciones, importaciones, vocabularios |
 | Front público | maqueta aprobada (v4); falta conectar |
 | Versiones livianas para web de los PDF pesados | pendiente |
 
@@ -24,6 +28,34 @@ cp config/config.example.php config/config.php     # completar base y carpeta de
 mysql -u root -p -e "CREATE DATABASE aida CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 mysql -u root -p aida < db/schema.sql
 ```
+
+## Actualizar una base existente
+
+Los cambios de esquema van en `db/schema.sql` y además como migración numerada en `db/migraciones/`.
+Una base instalada con `schema.sql` ya trae registradas las que incluye.
+
+```bash
+php bin/migrar.php --estado      # aplicadas y pendientes
+php bin/migrar.php --simular     # qué se aplicaría, sin tocar la base
+php bin/migrar.php               # aplica las pendientes (son idempotentes)
+```
+
+## Backups
+
+```bash
+bin/backup.sh --simular && bin/backup.sh                    # dump comprimido, verificado, conserva 8
+bin/restaurar.sh backups-aida/ARCHIVO.sql.gz aida_restore   # restaurar en otra base (ver docs/backups.md)
+```
+
+## Backoffice
+
+```bash
+php bin/crear-usuario.php andres@p3design.com "Andy" admin     # pide la contraseña
+php -S 127.0.0.1:8090 -t public/admin                          # para probar en local
+```
+
+En el servidor, el sitio tiene que apuntar a `public/` (nada fuera de esa carpeta debe quedar accesible desde la web).
+Perfiles: `admin`, `editor`, `data_entry`, `qa` (permisos en `src/Web/App.php` y `docs/backoffice.md`).
 
 ## Carga de datos
 
@@ -41,23 +73,36 @@ php bin/escanear.php /ruta/a/los/archivos                 # carpetas C1/, C2/, �
 php bin/escanear.php --listado=datos/listado_drive_20261114.tsv   # si todavía están en Drive
 ```
 
+## Deshacer cambios
+
+```bash
+php bin/revertir.php --ver=registro:C14R3      # historial de un registro (cada cambio con su número)
+php bin/revertir.php --cambio=209              # deshace un cambio puntual
+php bin/revertir.php --proceso=2               # deshace todo lo que hizo una importación
+```
+
+Si un campo se modificó de nuevo después, no se aplica nada y se listan los conflictos (`--forzar` para aplicarlo igual).
+
 Cada corrida deja un registro en las tablas `proceso` e `incidencia` y muestra un resumen por consola
 con lo que hay que revisar (nomenclaturas mal tipeadas, archivos sin registro, PDF pendientes de subir, etc.).
 
 ## Estructura
 
 ```
-bin/        scripts de línea de comandos (importar, escanear)
+bin/        scripts de línea de comandos (importar, escanear, revertir, crear-usuario, migrar, backup, restaurar)
+public/     lo único expuesto a la web (public/admin = backoffice)
 config/     configuración (config.php no se versiona)
 datos/      listados de referencia (no van los Excel ni los PDF)
-db/         esquema SQL
+db/         esquema SQL (schema.sql) y migraciones (migraciones/NNN_*.sql)
 docs/       decisiones y reglas de negocio
-src/        clases PHP (namespace Aida)
+src/        clases PHP (namespace Aida; src/Web = controladores del backoffice)
+vistas/     plantillas PHP del backoffice
 ```
 
 ## Documentación
 
 - [`docs/decisiones.md`](docs/decisiones.md): reglas de importación y por qué son así. **Leer antes de tocar el importador.**
+- [`docs/backoffice.md`](docs/backoffice.md): ABM, leyendas, confirmaciones, notificaciones de verificaciones pendientes e historial con deshacer.
 
 ## Equipo
 

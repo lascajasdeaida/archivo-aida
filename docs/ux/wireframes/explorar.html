@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explorar el archivo · Las cajas de Aída (wireframe)</title>
+<link rel="stylesheet" href="wf.css">
+</head>
+<body>
+<main id="contenido" tabindex="-1"><div class="contenedor">
+  <h1 style="margin-top:16px">Explorar el archivo</h1>
+  <form class="buscador" id="form-buscar" role="search" aria-label="Buscar en el archivo">
+    <label class="solo-lector" for="q">Buscar en el archivo</label>
+    <input type="search" id="q" name="q" placeholder="Título, persona, obra, tipo, año…" autocomplete="off">
+    <button class="boton">Buscar</button>
+  </form>
+  <div class="explorar" style="margin-top:12px">
+    <div>
+      <button type="button" class="boton sec boton-filtros" id="boton-filtros" aria-expanded="false" aria-controls="panel-filtros">Filtros <span id="boton-filtros-n"></span></button>
+      <div class="panel-filtros" id="panel-filtros" role="region" aria-labelledby="h-filtros">
+        <div class="cabeza-panel"><h2 id="h-filtros">Filtrar</h2><button type="button" class="boton link cerrar-panel">Cerrar</button></div>
+        <div id="facetas"></div>
+        <div class="pie-panel">
+          <button type="button" class="boton sec" data-limpiar>Limpiar</button>
+          <button type="button" class="boton" id="ver-resultados">Ver <span id="ver-n"></span> resultados</button>
+        </div>
+      </div>
+    </div>
+    <section aria-labelledby="conteo">
+      <div class="barra-resultados">
+        <h2 class="conteo" id="conteo" tabindex="-1" style="margin:0;font-size:1rem"></h2>
+        <label>Ordenar por
+          <select id="orden">
+            <option value="relevancia">Más relevantes</option>
+            <option value="caja">Caja y número</option>
+            <option value="anio-asc">Año: más antiguos</option>
+            <option value="anio-desc">Año: más recientes</option>
+            <option value="digital">Con documento digital primero</option>
+          </select></label>
+      </div>
+      <ul class="chips" id="chips" aria-label="Filtros activos"></ul>
+      <div id="resultados"></div>
+      <p class="solo-lector" aria-live="polite" id="anuncio"></p>
+    </section>
+  </div>
+  <p class="wf-nota">Estados: <a href="explorar.html?q=xyzzy">sin resultados</a> · <a href="explorar.html?tipo=carta&decada=1940">combinación vacía con sugerencias</a> · <a href="explorar.html?simular=cargando">cargando</a> · <a href="explorar.html?simular=error">error</a> · <a href="explorar.html?panel=abierto">panel de filtros abierto (celular)</a></p>
+</div></main>
+<script src="datos.js"></script>
+<script src="wf.js"></script>
+<script>WF.explorar();</script>
+</body>
+</html>

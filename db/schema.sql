@@ -1,7 +1,14 @@
 -- =====================================================================
 -- Archivo AIDA BORTNIK · Las cajas de Aída
 -- Esquema MySQL / MariaDB · InnoDB · utf8mb4
--- Versión 0.2 (14/11/2026) — alineado con la muestra real de 8 cajas
+-- Versión 1.0 (16/11/2026) — origen de archivos intercambiable: id de Drive y si está compartido (archivo_digital)
+-- Versión 0.9 (15/11/2026) — consultas a pedido del sitio público (consulta) y publicación por caja
+-- Versión 0.8 (15/11/2026) — años de cada registro (registro_anio): las listas salteadas filtran solo sus años
+-- Versión 0.7 (15/11/2026) — corrección masiva por planilla (proceso 'correccion')
+-- Versión 0.6 (15/11/2026) — curaduría de vocabularios (mover, descartar, alias) y años con rango
+--
+-- Los cambios posteriores a una instalación van además como migración en
+-- db/migraciones/NNN_*.sql (se aplican con php bin/migrar.php).
 -- =====================================================================
 
 SET NAMES utf8mb4;
@@ -33,11 +40,14 @@ CREATE TABLE IF NOT EXISTS caja (
   anio_hasta       SMALLINT     NULL,
   publicada        TINYINT(1)   NOT NULL DEFAULT 0,
   campos_bloqueados JSON        NULL,              -- campos editados a mano: el importador no los pisa
+  eliminado_en     DATETIME     NULL,              -- baja desde el backoffice: el importador no la vuelve a crear
+  eliminado_por    INT UNSIGNED NULL,
   creado_en        TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   actualizado_en   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_caja_numero (numero),
-  FULLTEXT KEY ft_caja (nombre, resumen)
+  FULLTEXT KEY ft_caja (nombre, resumen),
+  FULLTEXT KEY ft_caja_nombre (nombre)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Una caja puede pertenecer a más de un período (decisión sep 2026).
@@ -63,7 +73,9 @@ CREATE TABLE IF NOT EXISTS registro (
   autor                VARCHAR(500) NULL,              -- col. G
   lugar                VARCHAR(500) NULL,              -- col. I
   fecha_texto          VARCHAR(500) NULL,              -- col. J "Fecha como dice el doc" (solo se muestra)
-  anio                 SMALLINT     NULL,              -- col. K cuando es un año limpio (filtrable)
+  anio                 SMALLINT     NULL,              -- col. K: resumen, el menor de sus años (orden; el filtro usa registro_anio)
+  anio_hasta           SMALLINT     NULL,              -- resumen, el mayor de sus años (= anio si es un año solo)
+  anio_sin_confirmar   TINYINT(1)   NOT NULL DEFAULT 0, -- 1 = alguno de sus años viene con duda («1972?»)
   anio_texto           VARCHAR(60)  NULL,              -- col. K tal cual ("1972?", "1982 /1986")
   paginas              INT UNSIGNED NULL,              -- col. L
   resumen              TEXT         NULL,              -- col. M
@@ -85,7 +97,11 @@ CREATE TABLE IF NOT EXISTS registro (
   publicado            TINYINT(1)   NOT NULL DEFAULT 1,
 
   campos_bloqueados    JSON         NULL,              -- campos editados en el backoffice
-  origen               ENUM('excel','backoffice') NOT NULL DEFAULT 'excel',
+  origen               ENUM('excel','backoffice') NOT NULL DEFAULT 'excel', -- 'backoffice': el importador no lo toca
+  eliminado_en         DATETIME     NULL,              -- baja desde el backoffice: el importador no lo vuelve a crear
+  eliminado_por        INT UNSIGNED NULL,
+  creado_por           INT UNSIGNED NULL,
+  actualizado_por      INT UNSIGNED NULL,
   importado_en         DATETIME     NULL,
   creado_en            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   actualizado_en       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -94,8 +110,12 @@ CREATE TABLE IF NOT EXISTS registro (
   UNIQUE KEY uq_registro_caja_numero (caja_id, numero),
   UNIQUE KEY uq_registro_codigo (codigo),
   KEY idx_registro_anio (anio),
+  KEY idx_registro_anio_rango (anio, anio_hasta),
   KEY idx_registro_acceso (acceso, publicado),
-  FULLTEXT KEY ft_registro (titulo, autor, lugar, resumen),
+  -- Búsqueda (src/Buscador.php, docs/busqueda.md). Tildes y mayúsculas: las ignora la colación.
+  FULLTEXT KEY ft_registro_publico (codigo, titulo, autor, lugar, fecha_texto, anio_texto, resumen, isbn, obs_editorial, edicion_catalogo),
+  FULLTEXT KEY ft_registro_titulo (titulo),
+  FULLTEXT KEY ft_registro_interno (obs_conservacion, obs_digitalizacion, seleccion_digit, excel_nomenclatura, excel_privado),
   CONSTRAINT fk_registro_caja FOREIGN KEY (caja_id) REFERENCES caja(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -109,12 +129,44 @@ CREATE TABLE IF NOT EXISTS vocabulario (
   tipo       ENUM('tipo_documento','descriptor') NOT NULL,
   nombre     VARCHAR(120) NOT NULL,
   clave      VARCHAR(120) NOT NULL,                 -- nombre normalizado (sin tildes, minúscula) para deduplicar
-  estado     ENUM('aprobado','propuesto') NOT NULL DEFAULT 'propuesto',
-  fusionado_en SMALLINT UNSIGNED NULL,              -- si se fusionó con otro término
+  estado     ENUM('aprobado','propuesto','descartado') NOT NULL DEFAULT 'propuesto', -- descartado: basura, la importación lo ignora
+  fusionado_en SMALLINT UNSIGNED NULL,              -- si se fusionó con otro término o se movió al otro vocabulario
+  regla      ENUM('fusion','movido') NULL,          -- por qué apunta a fusionado_en
+  motivo     VARCHAR(500) NULL,                     -- motivo del último cambio de curaduría
+  eliminado_en  DATETIME NULL,                      -- se deshizo su alta (la importación lo revive si vuelve a venir)
+  eliminado_por INT UNSIGNED NULL,
   creado_en  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_vocab (tipo, clave),
   CONSTRAINT fk_vocab_fusion FOREIGN KEY (fusionado_en) REFERENCES vocabulario(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Grafías anteriores de términos renombrados: la importación las resuelve al término vigente.
+CREATE TABLE IF NOT EXISTS vocabulario_alias (
+  id             SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tipo           ENUM('tipo_documento','descriptor') NOT NULL,
+  clave          VARCHAR(120) NOT NULL,
+  nombre         VARCHAR(120) NOT NULL,
+  vocabulario_id SMALLINT UNSIGNED NOT NULL,
+  eliminado_en   DATETIME NULL,
+  eliminado_por  INT UNSIGNED NULL,
+  creado_en      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_alias (tipo, clave),
+  KEY idx_alias_vocab (vocabulario_id),
+  CONSTRAINT fk_alias_vocab FOREIGN KEY (vocabulario_id) REFERENCES vocabulario(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Años a los que responde cada registro (col. K, Texto::anio; ver src/Anios.php y docs/decisiones.md).
+-- «1998/2006/2007/2008» = 4 filas; «1981/82» o «Entre 1983 y 1986» = todos los años del rango.
+-- Filtro por año, rango y década y faceta de décadas (src/Buscador.php). Derivada: la mantienen Historial e Importador.
+CREATE TABLE IF NOT EXISTS registro_anio (
+  registro_id    INT UNSIGNED NOT NULL,
+  anio           SMALLINT     NOT NULL,
+  sin_confirmar  TINYINT(1)   NOT NULL DEFAULT 0,       -- ese año está con duda en la planilla («1980?»)
+  PRIMARY KEY (registro_id, anio),
+  KEY idx_registro_anio_anio (anio, registro_id),
+  CONSTRAINT fk_ra_registro FOREIGN KEY (registro_id) REFERENCES registro(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS registro_vocabulario (
@@ -140,14 +192,22 @@ CREATE TABLE IF NOT EXISTS archivo_digital (
   formato        VARCHAR(10)  NOT NULL,             -- pdf, jpg, tif, mp3, mp4…
   tipo_medio     ENUM('documento','imagen','audio','video','otro') NOT NULL DEFAULT 'documento',
   peso_bytes     BIGINT UNSIGNED NULL,
+  liviano_bytes  BIGINT UNSIGNED NULL,               -- copia para leer en pantalla (bin/livianos.php); el original no se toca
+  liviano_en     DATETIME NULL,
   modificado_en  DATETIME     NULL,                 -- mtime del archivo
   version_web    VARCHAR(512) NULL,                 -- copia liviana para visualizar (pendiente)
   miniatura      VARCHAR(512) NULL,
+  drive_id       VARCHAR(200) NULL,                 -- id en el Drive del cliente (listado de Drive); se conserva con origen «disco»
+  drive_compartido TINYINT(1) NULL,                 -- 1 = «cualquiera con el enlace», 0 = no, NULL = sin dato
   presente       TINYINT(1)   NOT NULL DEFAULT 1,   -- 0 si desapareció en el último escaneo
+  origen         ENUM('escaneo','backoffice') NOT NULL DEFAULT 'escaneo',
+  eliminado_en   DATETIME     NULL,                 -- quitado desde el backoffice: el escaneo no lo vuelve a asociar
+  eliminado_por  INT UNSIGNED NULL,
   visto_en       DATETIME     NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uq_archivo_ruta (ruta),
   KEY idx_archivo_registro (registro_id),
+  KEY idx_archivo_drive (drive_id),
   CONSTRAINT fk_archivo_registro FOREIGN KEY (registro_id) REFERENCES registro(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -156,9 +216,10 @@ CREATE TABLE IF NOT EXISTS archivo_digital (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS proceso (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  tipo        ENUM('importacion','escaneo','acceso_masivo') NOT NULL,
+  tipo        ENUM('importacion','escaneo','acceso_masivo','curaduria','correccion') NOT NULL, -- correccion: corrección masiva (backoffice)
   fuente      VARCHAR(512) NULL,
   simulacion  TINYINT(1)   NOT NULL DEFAULT 0,
+  usuario_id  INT UNSIGNED NULL,                    -- quién lo hizo (curaduría desde el backoffice)
   resumen     JSON         NULL,
   iniciado_en DATETIME     NOT NULL,
   terminado_en DATETIME    NULL,
@@ -173,7 +234,11 @@ CREATE TABLE IF NOT EXISTS incidencia (
   caja        SMALLINT UNSIGNED NULL,
   registro    INT UNSIGNED NULL,
   detalle     VARCHAR(1000) NOT NULL,
+  requiere_validacion TINYINT(1) NOT NULL DEFAULT 0, -- 1 = el operador tiene que revisarla y confirmarla
   resuelta    TINYINT(1)   NOT NULL DEFAULT 0,
+  resuelta_por INT UNSIGNED NULL,
+  resuelta_en DATETIME     NULL,
+  resolucion  VARCHAR(500) NULL,                   -- qué decidió el operador
   PRIMARY KEY (id),
   KEY idx_inc_proceso (proceso_id),
   KEY idx_inc_codigo (codigo, resuelta),
@@ -190,9 +255,75 @@ CREATE TABLE IF NOT EXISTS usuario (
   nombre        VARCHAR(120) NULL,
   rol           ENUM('admin','editor','data_entry','qa','visitante') NOT NULL DEFAULT 'visitante',
   activo        TINYINT(1)   NOT NULL DEFAULT 1,
+  ultimo_ingreso    DATETIME NULL,
+  clave_cambiada_en DATETIME NULL,                  -- las sesiones abiertas antes se cierran solas
   creado_en     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_usuario_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Enlaces de un solo uso para crear o restablecer la contraseña. Solo se guarda el hash SHA-256 del enlace.
+CREATE TABLE IF NOT EXISTS usuario_token (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  usuario_id  INT UNSIGNED NOT NULL,
+  hash        CHAR(64)     NOT NULL,
+  tipo        ENUM('restablecer','alta') NOT NULL,
+  vence_en    DATETIME     NOT NULL,
+  usado_en    DATETIME     NULL,
+  creado_por  INT UNSIGNED NULL,
+  creado_en   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_token_hash (hash),
+  KEY idx_token_usuario (usuario_id, creado_en),
+  CONSTRAINT fk_token_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Historial de cambios con valor anterior y nuevo de cada campo. Permite volver atrás
+-- un cambio puntual o todo lo que hizo una importación (ver src/Historial.php).
+CREATE TABLE IF NOT EXISTS auditoria (
+  id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  usuario_id   INT UNSIGNED NULL,
+  origen       ENUM('backoffice','importacion','escaneo','reversion','sitio') NOT NULL DEFAULT 'backoffice', -- sitio: alta de una consulta
+  proceso_id   INT UNSIGNED NULL,                   -- si lo hizo una importación o un escaneo
+  entidad      ENUM('caja','registro','archivo_digital','vocabulario','vocabulario_alias','periodo','usuario','consulta') NOT NULL,
+  entidad_id   INT UNSIGNED NOT NULL,
+  accion       ENUM('alta','modificacion','baja','restauracion','reversion') NOT NULL,
+  cambios      JSON NULL,                           -- {campo: [antes, después]}
+  revierte_id  BIGINT UNSIGNED NULL,                -- si este cambio deshace otro
+  revertido_en DATETIME NULL,                       -- si este cambio fue deshecho
+  creado_en    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_aud_entidad (entidad, entidad_id),
+  KEY idx_aud_proceso (proceso_id),
+  KEY idx_aud_fecha (creado_en)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Consultas a pedido del sitio público (/consulta/C2R5). Datos personales: solo acá y en el backoffice.
+CREATE TABLE IF NOT EXISTS consulta (
+  id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  registro_id   INT UNSIGNED NULL,                    -- documento pedido (NULL si después se borró el registro)
+  codigo        VARCHAR(20)  NOT NULL,                -- código del documento al momento del pedido (C2R5)
+  tipo          ENUM('a_pedido','original') NOT NULL DEFAULT 'a_pedido', -- a_pedido: restringido; original: sin digitalizar u otro
+  nombre        VARCHAR(120) NOT NULL,
+  correo        VARCHAR(190) NOT NULL,
+  institucion   VARCHAR(160) NULL,
+  uso           ENUM('investigacion','prensa','produccion','personal','otro') NOT NULL, -- uso previsto
+  modalidad     ENUM('digital','presencial') NOT NULL DEFAULT 'digital',
+  motivo        TEXT         NOT NULL,                -- qué busca y por qué (mensaje del formulario)
+  estado        ENUM('nueva','respondida','descartada') NOT NULL DEFAULT 'nueva',
+  notas         TEXT         NULL,                    -- notas internas del equipo (no se le muestran a quien pidió)
+  atendida_por  INT UNSIGNED NULL,
+  atendida_en   DATETIME     NULL,
+  ip_hash       CHAR(64)     NULL,                    -- HMAC de la IP: solo para limitar envíos seguidos; no se muestra
+  eliminado_en  DATETIME     NULL,
+  eliminado_por INT UNSIGNED NULL,
+  creado_en     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  actualizado_en TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_consulta_estado (estado, creado_en),
+  KEY idx_consulta_registro (registro_id),
+  KEY idx_consulta_ip (ip_hash, creado_en),
+  CONSTRAINT fk_consulta_registro FOREIGN KEY (registro_id) REFERENCES registro(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Métricas propias (complementan GA4)
@@ -202,10 +333,34 @@ CREATE TABLE IF NOT EXISTS evento_uso (
   archivo_id  INT UNSIGNED NULL,
   tipo        ENUM('vista','descarga','busqueda') NOT NULL,
   termino     VARCHAR(255) NULL,
+  referer     VARCHAR(255) NULL,                 -- ruta del mismo sitio o solo el dominio de afuera (007)
+  sesion_hash CHAR(16) NULL,                     -- HMAC del día (fecha|IP|navegador): personas distintas sin guardar IP (007)
   creado_en   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_ev_registro (registro_id),
-  KEY idx_ev_fecha (creado_en)
+  KEY idx_ev_fecha (creado_en),
+  KEY idx_ev_archivo_fecha (archivo_id, creado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Migraciones aplicadas (bin/migrar.php). Este esquema ya incluye las que se registran abajo.
+CREATE TABLE IF NOT EXISTS migracion (
+  version      CHAR(3)      NOT NULL,
+  nombre       VARCHAR(120) NOT NULL,
+  checksum     CHAR(40)     NULL,                   -- NULL: incluida en schema.sql
+  duracion_ms  INT UNSIGNED NULL,
+  aplicada_en  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO migracion (version, nombre) VALUES
+  ('001', '001_busqueda_fulltext.sql'),
+  ('002', '002_curaduria_y_anios.sql'),
+  ('003', '003_correccion_masiva.sql'),
+  ('004', '004_registro_anio.sql'),
+  ('005', '005_consultas_y_sitio.sql'),
+  ('006', '006_archivo_drive.sql'),
+  ('007', '007_evento_uso_contexto.sql'),
+  ('008', '008_usuarios_acceso.sql'),
+  ('009', '009_archivo_liviano.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

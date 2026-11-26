@@ -1,0 +1,33 @@
+/* Banner de la vista previa del backoffice (“Ver como en el sitio”). No es parte del diseño del sitio:
+   a propósito se ve distinto (gris pizarra, letra del sistema) para que nadie lo confunda con la página. */
+.vp-barra {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;
+  padding: 8px var(--margen, 16px); background: #1F2933; color: #FFFFFF;
+  font: 400 15px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  border-bottom: 4px solid #F5C518;
+}
+.vp-barra p { margin: 0; }
+.vp-barra__guion { opacity: .8; }
+.vp-barra__volver {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 6px;
+  border: 1px solid #FFFFFF; color: #FFFFFF; font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+.vp-barra__volver::before { content: "←"; margin-right: 6px; }
+.vp-barra__volver:hover { background: #FFFFFF; color: #1F2933; }
+.vp-barra :focus-visible { outline: 3px solid #F5C518; outline-offset: 2px; }
+.vp-avisos { background: #F1F3F5; color: #1F2933; padding: 8px var(--margen, 16px); font: 400 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+.vp-avisos:empty { display: none; }
+.vp-aviso { max-width: var(--ancho, 1240px); margin: 6px auto; padding: 8px 12px; border-left: 4px solid #6B7785; background: #FFFFFF; border-radius: 4px; }
+.vp-aviso p, .vp-aviso ul { margin: 0; }
+.vp-aviso ul { padding-left: 1.2em; margin: 4px 0; }
+.vp-aviso--no { border-left-color: #B42318; background: #FEF3F2; }
+.vp-aviso--si { border-left-color: #2F6B2F; }
+.vp-estado { max-width: var(--ancho, 1240px); margin: 0 auto; }
+.vp-estado:empty { display: none; }
+.vp-estado:not(:empty) { margin: 6px auto; padding: 8px 12px; background: #FFF8DB; border-left: 4px solid #F5C518; border-radius: 4px; }
+/* El bloque Documento queda fijo debajo del banner, no tapado por él */
+@media (min-width: 900px) { .ficha__documento { top: 72px; } }
+/* Al abrir el visor o saltar a un ancla, que el banner fijo no tape el comienzo */
+#visor, #contenido, #citar { scroll-margin-top: 64px; }
+@media (max-width: 599px) { #visor, #contenido, #citar { scroll-margin-top: 104px; } }

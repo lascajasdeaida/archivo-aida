@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explorar el archivo · Las cajas de Aída</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../../../public/sitio/estilo.css">
+</head>
+<body>
+<main id="contenido" tabindex="-1"><div class="contenedor">
+  <nav class="migas" aria-label="Estás en"><ol><li><a href="inicio.html">Inicio</a></li><li aria-current="page">Explorar el archivo</li></ol></nav>
+  <h1>Explorar el archivo</h1>
+  <form class="buscador" id="form-buscar" role="search" aria-label="Buscar en el archivo">
+    <div class="buscador__campo">
+      <svg class="icono" aria-hidden="true" focusable="false"><use href="#i-buscar"/></svg>
+      <label class="solo-lector" for="q">Buscar en el archivo</label>
+      <input type="search" id="q" name="q" placeholder="Título, persona, obra, tipo, año…" autocomplete="off">
+    </div>
+    <button class="boton boton--primario">Buscar</button>
+  </form>
+  <div class="explorar">
+    <div>
+      <button type="button" class="boton boton--secundario boton-filtros" id="boton-filtros" aria-expanded="false" aria-controls="panel-filtros">
+        <span style="display:inline-flex;gap:8px;align-items:center"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-filtro"/></svg>Filtros</span>
+        <span class="boton-filtros__n" id="boton-filtros-n"></span></button>
+      <div class="panel-filtros" id="panel-filtros" role="region" aria-labelledby="h-filtros">
+        <div class="panel-filtros__cabeza"><h2 id="h-filtros-movil">Filtrar</h2>
+          <button type="button" class="boton boton--secundario boton--chico cerrar-panel"><svg class="icono" aria-hidden="true" focusable="false"><use href="#i-cerrar"/></svg>Cerrar</button></div>
+        <div class="panel-filtros__cuerpo">
+          <h2 class="panel-filtros__titulo" id="h-filtros">Filtrar</h2>
+          <div id="facetas"></div>
+        </div>
+        <div class="panel-filtros__pie">
+          <button type="button" class="boton boton--secundario" data-limpiar>Limpiar</button>
+          <button type="button" class="boton boton--primario" id="ver-resultados">Ver <span id="ver-n"></span> resultados</button>
+        </div>
+      </div>
+    </div>
+    <section aria-labelledby="conteo">
+      <div class="barra-resultados">
+        <h2 class="conteo" id="conteo" tabindex="-1"></h2>
+        <label class="orden">Ordenar por
+          <select id="orden">
+            <option value="relevancia">Más relevantes</option>
+            <option value="caja">Caja y número</option>
+            <option value="anio-asc">Año: más antiguos</option>
+            <option value="anio-desc">Año: más recientes</option>
+            <option value="digital">Con documento digital primero</option>
+          </select></label>
+      </div>
+      <ul class="chips" id="chips" aria-label="Filtros activos"></ul>
+      <div id="resultados"></div>
+      <p class="solo-lector" aria-live="polite" id="anuncio"></p>
+    </section>
+  </div>
+</div></main>
+<script src="../../ux/wireframes/datos.js"></script>
+<script src="vocabulario-final.js"></script>
+<script src="maqueta.js"></script>
+<script>MAQ.explorar();</script>
+</body>
+</html>

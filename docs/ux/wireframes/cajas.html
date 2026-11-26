@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las 70 cajas · Las cajas de Aída (wireframe)</title>
+<link rel="stylesheet" href="wf.css">
+</head>
+<body>
+<main id="contenido" tabindex="-1"><div class="contenedor">
+  <nav class="migas" aria-label="Estás en"><ol><li><a href="inicio.html">Inicio</a></li><li aria-current="page">Las 70 cajas</li></ol></nav>
+  <h1>Las 70 cajas</h1>
+  <p>El número de caja es el del depósito. Varias obras ocupan más de una caja.</p>
+  <div class="barra-resultados">
+    <div class="campo" style="flex:1;min-width:200px"><label for="filtro-cajas">Filtrar por nombre o número</label><input id="filtro-cajas" type="search"></div>
+    <div class="campo"><label for="orden-cajas">Ordenar</label><select id="orden-cajas"><option value="numero">Por número</option><option value="nombre">Por nombre (A–Z)</option><option value="digit">Más digitalizadas primero</option></select></div>
+  </div>
+  <p class="conteo" id="conteo-cajas" role="status"></p>
+  <ul class="grilla-cajas" id="lista-cajas"></ul>
+  <div style="height:32px"></div>
+</div></main>
+<script src="datos.js"></script>
+<script src="wf.js"></script>
+<script>WF.cajas();</script>
+</body>
+</html>

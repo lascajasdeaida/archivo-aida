@@ -1,0 +1,67 @@
+/* Las cajas de Aída — tokens del BACKOFFICE. Mismo lenguaje de sistema que el archivo (public/sitio/tokens.css: familias, escala,
+   pesos, radio, espaciado, foco, estados), copiados acá para que el back no dependa de la hoja del sitio.
+   Lo único propio es la COLORIMETRÍA (decisión del PM, 16/11/2026; docs/decisiones.md “Diseño del archivo: lenguaje de sistema”):
+   barra y navegación en tinta oscura azulada, área de trabajo gris frío con tarjetas y tablas blancas, rojo-naranja para marcar
+   dónde se está (ítem activo, contadores) y azul para acciones y enlaces. Así el equipo sabe de un vistazo que está en la herramienta.
+   Contrastes medidos en docs/diseno/sistema.md “Backoffice: sistema” (node docs/diseno/contraste.js admin). */
+
+@import url("https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:ital,wght@0,400;0,600;1,400&display=swap");
+
+:root {
+  /* ---------- Igual que el archivo ---------- */
+  --c-fondo: #FFFFFF;          /* tarjetas, tablas, campos */
+  --c-linea: #D6DBE1;          /* separadores y contorno de tarjetas (decorativo, no delimita controles) */
+  --c-borde: #767069;          /* borde de controles · 4,9:1 sobre blanco, 4,3:1 sobre área (1.4.11 pide 3:1) */
+  --c-texto: #1D1815;          /* tinta · 17,6:1 sobre blanco */
+  --c-texto-2: #5A544D;        /* dato secundario · 7,5:1 sobre blanco, 6,5:1 sobre área */
+  --c-azul: #0D5C9E;           /* acción primaria, enlaces, foco, selección · 6,9:1 sobre blanco */
+  --c-azul-osc: #0A4A80;
+  --c-azul-suave: #EAF1F8;     /* fila en hover, término elegido, chip de acción pendiente */
+  --c-rojo: #EF6A3A;           /* dónde estás y cuántos hay: ítem activo, contadores (nunca texto sobre claro) */
+  --c-resaltado: #FFE0CC;
+
+  /* Estados (forma + color, nunca solo color) */
+  --c-digital: #2F5A2A;  --c-digital-suave: #E6EEDF;   /* ok · crear: círculo lleno, borde lleno */
+  --c-pedido: #A8361A;   --c-pedido-suave: #FDEDE5;    /* restringido / a pedido */
+  --c-duda: #7A5A0E;     --c-duda-suave: #F4E8C4;      /* atención: rombo, borde discontinuo */
+  --c-error: #A12A1A;    --c-error-suave: #F9E1DA;     /* error, baja, sin confirmar: triángulo, barra de 4 px */
+  --c-digital-osc: #22421E; --c-error-osc: #7E2014;   /* hover de los botones crear y baja */
+
+  /* ---------- Colorimetría propia del backoffice ---------- */
+  --c-fondo-2: #F5F7F9;        /* paneles dentro de tarjetas: encabezado de tabla, filtros, fieldset (gris frío, no el papel del sitio) */
+  --c-area: #EDF0F3;           /* área de trabajo, detrás de tarjetas y tablas */
+  --c-barra: #141B24;          /* barra superior, navegación y login: tinta casi negra azulada */
+  --c-barra-2: #243142;        /* hover e ítem activo en la barra */
+  --c-barra-texto: #FFFFFF;    /* 17,3:1 sobre barra */
+  --c-barra-texto-2: #B9C3CF;  /* rótulo y usuario · 9,7:1 sobre barra, 7,4:1 sobre barra-2 */
+  --c-barra-foco: #8CC8FF;     /* anillo de foco sobre la barra · 9,8:1 */
+
+  /* ---------- Tipografía: 2 familias, 3 niveles (igual que el archivo) ---------- */
+  --f-texto: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --f-codigo: "Courier Prime", "Courier New", ui-monospace, monospace;   /* códigos, números de caja/registro, campos técnicos */
+  --t-titulo: 1.5rem;          /* 24 px (28 en escritorio) */
+  --t-texto: 1rem;             /* 16 px */
+  --t-dato: .875rem;           /* 14 px */
+  --lh-texto: 1.5;
+  --lh-lectura: 1.65;
+  --lh-titulo: 1.2;
+  --peso-fuerte: 600;
+  --medida: 70ch;
+
+  /* ---------- Espaciado, forma, movimiento ---------- */
+  --e-1: 4px; --e-2: 8px; --e-3: 12px; --e-4: 16px; --e-5: 24px; --e-6: 32px; --e-7: 48px;
+  --margen: 16px;
+  --ancho: 1280px;
+  --control: 40px;             /* alto de botones y campos: densidad de herramienta (el sitio usa 44) */
+  --control-chico: 32px;
+  --r: 2px;
+  --m-rapido: 80ms;
+}
+
+@media (min-width: 900px) {
+  :root { --t-titulo: 1.75rem; --margen: 32px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --m-rapido: 0ms; }
+}

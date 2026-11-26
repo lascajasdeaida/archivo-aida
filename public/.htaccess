@@ -1,0 +1,20 @@
+# Sitio público (Apache). Ver docs/despliegue.md; el bloque equivalente de nginx está ahí.
+# El servidor apunta a public/. Lo que existe como archivo o carpeta (admin/, sitio/*.css, archivo.php) se sirve tal cual;
+# todo lo demás (/explorar, /caja/2-…, /registro/C2R5, /sitemap.xml…) va al front controller sitio.php.
+
+DirectoryIndex sitio.php index.php
+Options -Indexes -MultiViews
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  RewriteRule ^ sitio.php [L,QSA]
+</IfModule>
+
+# Sin mod_rewrite el sitio funciona igual con sitio.php?ruta=… (los enlaces se arman solos con esa forma).
+
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>

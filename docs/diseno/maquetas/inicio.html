@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inicio · Las cajas de Aída</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../../../public/sitio/estilo.css">
+</head>
+<body>
+<main id="contenido" tabindex="-1">
+  <section class="hero" aria-labelledby="h-hero">
+    <div class="contenedor">
+      <div>
+        <p class="kicker">Archivo digital</p>
+        <h1 id="h-hero">Las cajas <em>de Aída</em></h1>
+        <p class="hero__frase">Más de 70 cajas de un corpus creativo donde las palabras importan más que las imágenes y los sueños más que las ficciones</p>
+        <form class="buscador" id="form-inicio" action="explorar.html" role="search" aria-label="Buscar en el archivo">
+          <div class="buscador__campo">
+            <svg class="icono" aria-hidden="true" focusable="false"><use href="#i-buscar"/></svg>
+            <label class="solo-lector" for="q-inicio">Buscar en el archivo</label>
+            <input type="search" id="q-inicio" name="q" placeholder="Buscá una obra, una persona, un tipo de documento…" autocomplete="off">
+          </div>
+          <button class="boton boton--primario">Buscar</button>
+        </form>
+        <p class="hero__ejemplos">Por ejemplo: <a href="explorar.html?q=historia%20oficial">La historia oficial</a> · <a href="explorar.html?q=tango%20feroz">Tango feroz</a> · <a href="explorar.html?tipo=carta">Cartas</a> · <a href="explorar.html?q=puenzo">Puenzo</a></p>
+        <ul class="cifras" id="cifras"></ul>
+      </div>
+      <svg class="hero__ilustracion" viewBox="0 0 460 440" aria-hidden="true" focusable="false">
+        <defs>
+          <pattern id="perfo" width="22" height="28" patternUnits="userSpaceOnUse"><rect x="6" y="7" width="10" height="13" rx="2" fill="#3A2A1F"/></pattern>
+          <clipPath id="clip-film"><rect x="0" y="0" width="520" height="96"/></clipPath>
+        </defs>
+        <!-- rollo de film -->
+        <g transform="translate(-40 300) rotate(-14)">
+          <rect width="540" height="96" fill="#DD7F2C" opacity=".9"/>
+          <rect width="540" height="96" fill="url(#perfo)" opacity="1" clip-path="url(#clip-film)" transform="translate(0 0)"/>
+          <rect y="68" width="540" height="28" fill="url(#perfo)"/>
+          <g fill="#EA9A3E" stroke="#3A2A1F" stroke-width="3">
+            <rect x="14" y="26" width="92" height="44"/><rect x="118" y="26" width="92" height="44"/><rect x="222" y="26" width="92" height="44"/><rect x="326" y="26" width="92" height="44"/><rect x="430" y="26" width="92" height="44"/>
+          </g>
+          <g fill="none" stroke="#3A2A1F" stroke-width="2" opacity=".55">
+            <path d="M30 60l18-20 14 14 10-8 22 14"/><circle cx="172" cy="44" r="8"/><path d="M236 62h64M246 52h44"/><path d="M340 60c14-22 30-22 44 0"/>
+          </g>
+        </g>
+        <!-- hoja mecanografiada -->
+        <g transform="translate(150 24) rotate(6)">
+          <rect width="250" height="320" fill="#F3EAD9" />
+          <rect width="250" height="320" fill="none" stroke="#3A2A1F" stroke-opacity=".25"/>
+          <g fill="#281D15" opacity=".72">
+            <rect x="26" y="34" width="96" height="7"/>
+            <rect x="26" y="66" width="196" height="4"/><rect x="26" y="80" width="188" height="4"/><rect x="26" y="94" width="200" height="4"/><rect x="26" y="108" width="150" height="4"/>
+            <rect x="26" y="134" width="196" height="4"/><rect x="26" y="148" width="180" height="4"/><rect x="26" y="162" width="198" height="4"/><rect x="26" y="176" width="120" height="4"/>
+            <rect x="26" y="202" width="190" height="4"/><rect x="26" y="216" width="200" height="4"/><rect x="26" y="230" width="84" height="4"/>
+          </g>
+          <!-- corrección a mano -->
+          <g fill="none" stroke="#A14B14" stroke-width="2.4" stroke-linecap="round">
+            <path d="M110 92c20-6 50-4 70 4"/><path d="M134 140c-12 18 4 34 26 26s34-28 58-14"/><path d="M28 262c24-14 42 10 64-4s30-10 46 2"/>
+          </g>
+        </g>
+        <!-- teclas de máquina de escribir -->
+        <g transform="translate(40 30)">
+          <g fill="#3A2A1F" stroke="#EA9A3E" stroke-width="2.5">
+            <circle cx="20" cy="20" r="17"/><circle cx="62" cy="20" r="17"/><circle cx="104" cy="20" r="17"/>
+            <circle cx="41" cy="60" r="17"/><circle cx="83" cy="60" r="17"/>
+          </g>
+          <g font-family="Courier Prime, monospace" font-size="17" font-weight="700" fill="#F3EAD9" text-anchor="middle">
+            <text x="20" y="26">Q</text><text x="62" y="26">W</text><text x="104" y="26">E</text><text x="41" y="66">A</text><text x="83" y="66">S</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <div class="contenedor">
+    <section class="seccion" aria-labelledby="h-etapas">
+      <div class="seccion-cabeza"><h2 id="h-etapas">Etapas</h2></div>
+      <ul class="etapas" id="etapas"></ul>
+    </section>
+
+    <section class="seccion" aria-labelledby="h-tipo">
+      <div class="seccion-cabeza"><h2 id="h-tipo">Explorá por tipo de documento</h2></div>
+      <ul class="accesos" id="por-tipo"></ul>
+    </section>
+
+    <section class="seccion" aria-labelledby="h-decada">
+      <div class="seccion-cabeza"><h2 id="h-decada">Por época</h2></div>
+      <ul class="accesos" id="por-decada"></ul>
+    </section>
+
+    <section class="seccion" aria-labelledby="h-digit">
+      <div class="seccion-cabeza"><h2 id="h-digit">Ya podés leerlos</h2><a href="explorar.html?disponible=digital">Ver todos los documentos digitalizados</a></div>
+      <ul class="carrusel" id="digitalizados" aria-labelledby="h-digit"></ul>
+    </section>
+
+    <section class="seccion" aria-labelledby="h-cajas">
+      <div class="seccion-cabeza"><h2 id="h-cajas">Las cajas</h2><a href="cajas.html">Ver las 70 cajas</a></div>
+      <p>Cada caja reúne el material de una obra o un proyecto, tal como Aída lo guardó.</p>
+      <ul class="grilla-cajas" id="cajas-destacadas"></ul>
+    </section>
+  </div>
+
+  <section class="seccion--pergamino" aria-labelledby="h-sobre">
+    <div class="contenedor">
+      <div class="seccion-cabeza"><h2 id="h-sobre">Sobre el archivo</h2></div>
+      <div class="pendiente-cliente">Texto institucional (lo provee el cliente)</div>
+      <p style="margin-top:16px"><a class="boton boton--secundario" href="sobre.html">Cómo se armó el archivo y cómo consultarlo</a></p>
+    </div>
+  </section>
+</main>
+<script src="../../ux/wireframes/datos.js"></script>
+<script src="vocabulario-final.js"></script>
+<script src="maqueta.js"></script>
+<script>MAQ.inicio();</script>
+</body>
+</html>

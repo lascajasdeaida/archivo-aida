@@ -46,9 +46,20 @@ final class App
         }
     }
 
+    /** Abre la sesión de un usuario recién autenticado (ingreso o cambio de la propia contraseña). */
+    public static function abrirSesionUsuario(array $u): void
+    {
+        session_regenerate_id(true);
+        $_SESSION['usuario'] = ['id' => (int)$u['id'], 'email' => $u['email'], 'nombre' => $u['nombre'], 'rol' => $u['rol']];
+        $_SESSION['version'] = (int)($u['sesion_version'] ?? 0);
+    }
+
     /**
-     * En cada pedido: si el usuario fue desactivado, cambió de perfil o cambió la contraseña después de abrir esta
-     * sesión, se actualiza o se cierra. Así una baja o un restablecimiento corta las sesiones abiertas.
+     * En cada pedido: si el usuario fue desactivado, cambió de perfil o de correo, o cambió la contraseña después de
+     * abrir esta sesión, la sesión se cierra. Se compara usuario.sesion_version (sube con cada uno de esos cambios)
+     * con el valor guardado al ingresar, por igualdad exacta: no depende de relojes ni zonas horarias.
+     *
+     * Si la base no responde, falla cerrado: la sesión se cierra y el pedido sigue como anónimo.
      */
     public static function revalidarSesion(): void
     {
@@ -56,20 +67,44 @@ final class App
             return;
         }
         try {
-            $st = aida_db()->prepare('SELECT email, nombre, rol, activo, clave_cambiada_en FROM usuario WHERE id = ?');
+            $st = aida_db()->prepare('SELECT email, nombre, rol, activo, sesion_version FROM usuario WHERE id = ?');
             $st->execute([(int)$_SESSION['usuario']['id']]);
             $u = $st->fetch();
-        } catch (\PDOException) {
-            return; // migración 008 pendiente: se sigue como antes
+        } catch (\Throwable $t) {
+            error_log('[aida-bo] revalidarSesion: ' . $t->getMessage());
+            $u = false;
         }
-        $desde = (int)($_SESSION['desde'] ?? 0);
-        $cambio = $u && $u['clave_cambiada_en'] ? (int)strtotime((string)$u['clave_cambiada_en']) : 0;
-        if (!$u || !(int)$u['activo'] || $u['rol'] === 'visitante' || ($cambio && $cambio > $desde)) {
+        if (!$u || !(int)$u['activo'] || $u['rol'] === 'visitante' || !isset($_SESSION['version'])
+            || (int)$u['sesion_version'] !== (int)$_SESSION['version']) {
             $_SESSION = [];
             session_regenerate_id(true);
             return;
         }
-        $_SESSION['usuario'] = ['id' => (int)$_SESSION['usuario']['id'], 'email' => $u['email'], 'nombre' => $u['nombre'], 'rol' => $u['rol']];
+        $_SESSION['usuario']['nombre'] = $u['nombre'];
+    }
+
+    /**
+     * Para el sitio público y la entrega de archivos: si llega la cookie del backoffice, abre la sesión, la revalida y
+     * devuelve el usuario; si no hay sesión válida, no deja una sesión nueva ni manda Set-Cookie (al público no se le
+     * crean sesiones). La sesión se cierra enseguida para no bloquear pedidos largos (un PDF pesado).
+     *
+     * @return array{id:int,email:string,nombre:?string,rol:string}|null
+     */
+    public static function sesionInterna(): ?array
+    {
+        if (empty($_COOKIE['aida_bo']) || !is_string($_COOKIE['aida_bo'])) {
+            return null;
+        }
+        self::iniciarSesion();
+        self::revalidarSesion();
+        $u = self::usuario();
+        if ($u === null) {
+            session_destroy();
+            header_remove('Set-Cookie');
+            return null;
+        }
+        session_write_close();
+        return $u;
     }
 
     /** @return array{id:int,email:string,nombre:?string,rol:string}|null */

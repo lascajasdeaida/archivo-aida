@@ -415,8 +415,9 @@ final class Sitio
     }
 
     /**
-     * Estado de un código en el sitio: 'visible', 'oculto' (existe pero no se muestra: baja, no publicado, caja sin
-     * publicar o “a revisar”) o null (no existe). Con la caja, si está publicada, para el enlace de la página 410.
+     * Estado de un código en el sitio: 'visible', 'retirado' (estuvo a la vista y se despublicó o se dio de baja: 410),
+     * 'oculto' (existe pero nunca se mostró: borrador, caja sin publicar o “a revisar”; el sitio responde 404 como si
+     * no existiera) o null (no existe). Con la caja, si está publicada, para el enlace de la página 410.
      * @return array{estado:string, caja:?array}|null
      */
     public function estadoCodigo(string $codigo): ?array
@@ -425,7 +426,7 @@ final class Sitio
         if ($p === null || $p[2] !== 0) {
             return null;
         }
-        $st = $this->db->prepare('SELECT r.eliminado_en, r.publicado, r.acceso, r.excel_privado, c.id caja_id, c.numero caja_numero, c.nombre caja_nombre,
+        $st = $this->db->prepare('SELECT r.id, r.eliminado_en, r.publicado, r.acceso, r.excel_privado, c.id caja_id, c.numero caja_numero, c.nombre caja_nombre,
                 c.publicada caja_publicada, c.eliminado_en caja_baja
             FROM registro r JOIN caja c ON c.id = r.caja_id WHERE c.numero = ? AND r.numero = ?');
         $st->execute([$p[0], $p[1]]);
@@ -434,8 +435,19 @@ final class Sitio
             return null;
         }
         $cajaVisible = $r['caja_baja'] === null && (int)$r['caja_publicada'];
+        $oculto = (bool)self::motivosRegistro($r);
+        // “Retirado” (410) solo si estuvo a la vista y se sacó: caja publicada, no está a revisar y alguien lo despublicó
+        // o le dio de baja. Un borrador, algo a revisar o una caja nunca publicada responden como inexistentes (404),
+        // para no revelar qué códigos existen.
+        $retirado = false;
+        if ($oculto && $cajaVisible && $r['acceso'] !== 'a_revisar' && ($r['eliminado_en'] !== null || !(int)$r['publicado'])) {
+            $au = $this->db->prepare("SELECT 1 FROM auditoria WHERE entidad = 'registro' AND entidad_id = ?
+                AND (JSON_CONTAINS_PATH(cambios, 'one', '$.publicado', '$.eliminado_en')) AND accion <> 'alta' LIMIT 1");
+            $au->execute([(int)$r['id']]);
+            $retirado = (bool)$au->fetchColumn();
+        }
         return [
-            'estado' => self::motivosRegistro($r) ? 'oculto' : 'visible',
+            'estado' => $oculto ? ($retirado ? 'retirado' : 'oculto') : 'visible',
             'caja' => $cajaVisible ? ['id' => (int)$r['caja_id'], 'numero' => (int)$r['caja_numero'], 'nombre' => $r['caja_nombre']] : null,
         ];
     }

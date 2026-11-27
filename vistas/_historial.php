@@ -34,7 +34,7 @@ $mostrar = function ($v, string $campo = '') use (&$etiquetas) {
 <ul class="historial">
 <?php foreach ($historial as $a):
     $propio = $a['usuario_id'] !== null && (int)$a['usuario_id'] === App::usuarioId();
-    $puede = App::puede($propio ? 'deshacer_propio' : 'deshacer_todo');
+    $puede = App::puede($propio ? 'deshacer_propio' : 'deshacer_todo') && \Aida\Web\Rutas::motivoSinDeshacer($a) === null;
     $campos = $a['cambios'];
     if ($a['accion'] === 'alta') { $campos = array_intersect_key($campos, array_flip(['titulo', 'nombre', 'numero', 'codigo', 'acceso', 'uso', 'estado'])); }
 ?>

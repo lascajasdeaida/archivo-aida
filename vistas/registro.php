@@ -136,10 +136,10 @@ $hayArchivo = (bool)array_filter($archivos, fn($a) => $a['presente'] && !$a['eli
               <?php foreach (['publico', 'restringido', 'a_revisar'] as $a): ?><option value="<?= $a ?>" <?= $r['acceso'] === $a ? 'selected' : '' ?>><?= acceso_txt($a) ?></option><?php endforeach ?>
             </select>
           </label>
-          <label class="check" style="margin-top:22px"><input type="checkbox" name="publicado" value="1" <?= $r['publicado'] ? 'checked' : '' ?> <?= $puedeEditar ? '' : 'disabled' ?>> Publicado en el sitio</label>
+          <label class="check" style="margin-top:22px"><input type="checkbox" name="publicado" value="1" <?= $r['publicado'] ? 'checked' : '' ?> <?= $puedeEditar && App::puede('publicar') ? '' : 'disabled' ?>> Publicado en el sitio</label>
         </div>
-        <?php if ($r['excel_privado'] === 'VERDADERO'): ?>
-          <label class="check"><input type="checkbox" name="confirmar_publico" value="1"> La planilla lo marca PRIVADO: confirmo que se puede publicar como público</label>
+        <?php if (\Aida\Texto::marcaPrivada($r['excel_privado'])): ?>
+          <label class="check"><input type="checkbox" name="confirmar_publico" value="1"> La planilla lo marca en PRIVADO (“<?= e($r['excel_privado']) ?>”): confirmo que se puede publicar como público</label>
         <?php endif ?>
         <?php if (!App::puede('acceso')): ?><p class="nota">Tu perfil no puede cambiar el acceso.</p><?php endif ?>
       </fieldset>

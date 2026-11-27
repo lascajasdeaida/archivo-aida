@@ -308,7 +308,7 @@ final class Correccion
                 return ['estado' => 'error', 'nota' => "“{$nuevoTxt}” no es un acceso. Usá Público, Restringido o A revisar "
                     . '(también VERDADERO = restringido, FALSO = público, VERLO = a revisar).'] + $p;
             }
-            if ($nuevo === 'publico' && $fila['excel_privado'] === 'VERDADERO') {
+            if ($nuevo === 'publico' && Texto::marcaPrivada($fila['excel_privado'])) {
                 $p['nota'] = 'La planilla lo marca PRIVADO: pasa a público solo con la confirmación aparte.';
                 $p['privado_publico'] = true;
             }

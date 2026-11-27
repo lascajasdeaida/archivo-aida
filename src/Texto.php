@@ -259,6 +259,17 @@ final class Texto
     }
 
     /** Clave más laxa para encontrar equivalentes entre vocabularios: sin signos y sin plural (“Referencias de época” = “Referencia de época”). */
+    /**
+     * ¿La columna PRIVADO de la planilla (valor crudo guardado en excel_privado) indica algo distinto de «público»?
+     * Cualquier valor que no sea vacío ni FALSO/NO/0 cuenta como marca: VERDADERO, sí, x, privado, VERLO o un texto
+     * que no se entiende. Pasar a público un registro con marca pide confirmación aparte.
+     */
+    public static function marcaPrivada(?string $excelPrivado): bool
+    {
+        $k = self::clave($excelPrivado);
+        return $k !== '' && !in_array($k, ['falso', 'false', 'no', '0'], true);
+    }
+
     public static function claveFlexible(?string $s): string
     {
         $s = (string)preg_replace('/[^\p{L}\p{N} ]+/u', ' ', self::clave($s));

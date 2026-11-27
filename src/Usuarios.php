@@ -121,8 +121,11 @@ final class Usuarios
         }
         $this->db->prepare('UPDATE usuario SET email = ?, nombre = ?, rol = ?, activo = ? WHERE id = ?')
                  ->execute([$d['email'], $d['nombre'] ?: null, $d['rol'], $d['activo'], $id]);
-        if (!$d['activo']) {
+        // Si cambia el correo, el perfil o el estado, los enlaces pendientes (pueden estar en manos del destinatario
+        // anterior) se anulan y las sesiones abiertas se cierran.
+        if ($antes['email'] !== $d['email'] || $antes['rol'] !== $d['rol'] || (int)$antes['activo'] !== (int)$d['activo']) {
             $this->anularEnlaces($id);
+            $this->cerrarSesiones($id);
         }
         $accion = (int)$antes['activo'] === 1 && !$d['activo'] ? 'baja' : ((int)$antes['activo'] === 0 && $d['activo'] ? 'restauracion' : 'modificacion');
         $this->historial()->registrar('usuario', $id, $accion, self::publicos($antes), self::publicos($d));
@@ -152,7 +155,7 @@ final class Usuarios
 
     public function cambiarClave(int $id, string $clave): void
     {
-        $this->db->prepare('UPDATE usuario SET password_hash = ?, clave_cambiada_en = NOW() WHERE id = ?')
+        $this->db->prepare('UPDATE usuario SET password_hash = ?, clave_cambiada_en = NOW(), sesion_version = sesion_version + 1 WHERE id = ?')
                  ->execute([password_hash($clave, PASSWORD_DEFAULT), $id]);
         $this->anularEnlaces($id);
         $this->historial()->registrar('usuario', $id, 'modificacion', ['clave' => 'anterior'], ['clave' => 'cambiada']);
@@ -235,6 +238,12 @@ final class Usuarios
             $this->db->rollBack();
             throw $t;
         }
+    }
+
+    /** Cierra todas las sesiones abiertas del usuario (App::revalidarSesion compara esta versión). */
+    public function cerrarSesiones(int $usuarioId): void
+    {
+        $this->db->prepare('UPDATE usuario SET sesion_version = sesion_version + 1 WHERE id = ?')->execute([$usuarioId]);
     }
 
     public function anularEnlaces(int $usuarioId): void

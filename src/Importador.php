@@ -13,8 +13,8 @@ namespace Aida;
  *    (en algunas pestañas el encabezado está invertido respecto de los datos).
  *  - La clave del registro es caja + n.º de registro → C{caja}R{registro}. La columna de nomenclatura
  *    del Excel solo se usa como control cruzado.
- *  - Acceso: “Nivel de Acceso” si dice Público/Restringido; si no, PRIVADO = VERDADERO → restringido,
- *    “VERLO” → a_revisar; en cualquier otro caso, público.
+ *  - Acceso: “Nivel de Acceso” si dice Público/Restringido; si no, PRIVADO = VERDADERO/sí/x/privado → restringido,
+ *    vacío o FALSO → público; “VERLO” o cualquier otro texto → a_revisar (estado seguro).
  *  - Es incremental: crea lo nuevo, actualiza lo que cambió y respeta los campos bloqueados
  *    (editados a mano en el backoffice). Nunca borra registros.
  *  - El estado “digitalizado” no lo toca: lo define el escaneo de carpetas.
@@ -571,8 +571,12 @@ final class Importador
                 $this->rep->incidencia('aviso', 'ACCESO_A_REVISAR', $caja, $num, 'PRIVADO dice “VERLO”');
                 return ['a_revisar', $privTxt];
             }
-            $this->rep->incidencia('aviso', 'PRIVADO_CON_TEXTO', $caja, $num,
-                'La columna PRIVADO tiene texto que no es un valor de acceso: “' . mb_substr($privTxt, 0, 60) . '…”; se tomó como público');
+            if (!in_array($k, ['falso', 'false', 'no', '0', ''], true)) {
+                // Valor desconocido: estado seguro, que lo decida el equipo editorial
+                $this->rep->incidencia('aviso', 'PRIVADO_CON_TEXTO', $caja, $num,
+                    'La columna PRIVADO tiene texto que no es un valor de acceso: “' . mb_substr($privTxt, 0, 60) . '…”; quedó a revisar');
+                return ['a_revisar', $privTxt];
+            }
         }
         return ['publico', $privTxt];
     }

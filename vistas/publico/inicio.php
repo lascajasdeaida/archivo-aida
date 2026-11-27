@@ -23,7 +23,7 @@ ob_start(); ?>
         <label class="solo-lector" for="q-inicio">Buscar en el archivo</label>
         <input type="search" id="q-inicio" name="q" placeholder="Obra, persona, año o código" autocomplete="off" aria-keyshortcuts="/" aria-describedby="ayuda-inicio">
         <span class="buscador__cursor" aria-hidden="true"></span></div>
-      <button class="boton boton--primario"><?= H::icono('buscar') ?>Buscar</button>
+      <button class="boton boton--primario"><?= H::icono('buscar') ?><span class="buscador__texto">Buscar</span></button>
     </form>
     <p class="ayuda" id="ayuda-inicio">Por ejemplo: <a href="<?= H::e($enl->explorar(['q' => 'carta'])) ?>">carta</a>, <a href="<?= H::e($enl->explorar(['q' => 'guion'])) ?>">guion</a>, <a href="<?= H::e($enl->explorar(['q' => 'La historia oficial'])) ?>">La historia oficial</a> o un código como <span class="codigo">C2R5</span>.<span class="ayuda__atajo"> Tecla <kbd>/</kbd> para buscar desde cualquier página.</span></p>
     <p class="cifras">

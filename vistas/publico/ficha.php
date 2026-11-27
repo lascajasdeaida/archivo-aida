@@ -124,7 +124,9 @@ ob_start(); ?>
           // Si la fecha es solo el año, una fila alcanza (antes salía «Fecha 1983» y «Año 1983»).
           $mismoAnio = $anioHtml !== null && trim((string)$r['fecha_texto']) === (string)$anio['etiqueta'];
         ?>
-        <?= $fila('Fecha', $mismoAnio ? $anioHtml : H::e($r['fecha_texto'])) ?>
+        <?php // Fechas cargadas como «15/ 09/ 1983»: se muestran sin los espacios sueltos (el dato no se toca)
+          $fechaTxt = preg_replace('~(\d)\s*/\s*(?=\d)~u', '$1/', (string)$r['fecha_texto']); ?>
+        <?= $fila('Fecha', $mismoAnio ? $anioHtml : H::e($fechaTxt)) ?>
         <?= $fila('Año', $mismoAnio ? null : $anioHtml) ?>
         <?= $fila('Lugar', H::e($r['lugar'])) ?>
         <?= $fila('Páginas', $r['paginas'] ? (string)(int)$r['paginas'] : null) ?>
@@ -150,7 +152,7 @@ ob_start(); ?>
       </div>
 
       <h2 id="citar">Cómo citar</h2>
-      <p class="cita" id="cita"><?= H::e($cita) ?></p>
+      <p class="cita" id="cita"><?= str_replace('/', '/<wbr>', H::e($cita)) ?></p>
     </div>
   </div>
 

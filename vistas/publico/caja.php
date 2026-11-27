@@ -63,7 +63,7 @@ ob_start(); ?>
       <input type="hidden" name="caja" value="<?= $n ?>">
       <div class="buscador__campo"><label class="solo-lector" for="q-caja">Buscar en la caja <?= $n ?></label>
         <input type="search" id="q-caja" name="q" placeholder="Buscar en esta caja" aria-keyshortcuts="/"><span class="buscador__cursor" aria-hidden="true"></span></div>
-      <button class="boton boton--primario"><?= H::icono('buscar') ?>Buscar</button>
+      <button class="boton boton--primario"><?= H::icono('buscar') ?><span class="buscador__texto">Buscar</span></button>
     </form>
     <?php if ($d['tipos']): ?>
     <ul class="accesos" aria-label="Ver esta caja por tipo de documento">

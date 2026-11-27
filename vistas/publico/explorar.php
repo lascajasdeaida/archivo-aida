@@ -25,7 +25,7 @@ ob_start(); ?>
         <label class="solo-lector" for="q">Buscar en el archivo</label>
         <input type="search" id="q" name="q" value="<?= H::e($e['q']) ?>" placeholder="Obra, persona, año o código" autocomplete="off" aria-keyshortcuts="/" aria-describedby="ayuda-q">
         <span class="buscador__cursor" aria-hidden="true"></span></div>
-      <button class="boton boton--primario"><?= H::icono('buscar') ?>Buscar</button>
+      <button class="boton boton--primario"><?= H::icono('buscar') ?><span class="buscador__texto">Buscar</span></button>
     </div>
     <p class="ayuda ayuda--buscador" id="ayuda-q"><span class="solo-con-js">Los resultados se actualizan mientras escribís.</span><span class="solo-sin-js">Escribí y apretá Enter.</span><span class="ayuda__atajo"> Tecla <kbd>/</kbd> para volver acá.</span></p>
 

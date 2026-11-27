@@ -13,6 +13,11 @@ backoffice en `/archivo/admin/`), sin indexar. El día del lanzamiento, en este 
       `ver_archivo` ya está marcado (21/11/2026).
 - [ ] Respuestas del cliente cargadas (etapas, textos, accesos) y PR revisado por Omar y fusionado.
 - [ ] Backup: `bash bin/backup.sh`.
+- [ ] **lascajasdeaida.com como alias de lascajasdeaida.com.ar** (pedido de Andy, 27/11/2026). En el VPS hoy son dos
+      servidores virtuales separados. Revisar qué tiene el de `.com` (respaldarlo si tiene algo), darlo de baja y volver
+      a crearlo en Virtualmin como **alias** de `lascajasdeaida.com.ar`, con su certificado. El `.htaccess` que escribe
+      `bin/lanzamiento.sh` ya lleva todo a `https://lascajasdeaida.com.ar` (sin www), así que el alias redirige solo.
+      Apuntar el DNS de los dos dominios al VPS.
 
 ## El día
 

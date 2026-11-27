@@ -3,6 +3,19 @@
 Lista de preguntas para mandar **juntas al cliente al cerrar las rondas de trabajo** (decisión del PM, 15/11/2026).
 Cada una con un ejemplo concreto, para que pueda responder sin interpretar.
 
+## Respuestas recibidas (27/11/2026, primera parte, opinión personal de la directora; faltan Silvana y Pato)
+
+- **Etapas:** «Caos Creativo» **es una etapa** (cajas con material de muchos años o proyectos largos). «Sobre Aída»
+  **no es etapa**: es la biografía. Quedan 4 etapas: Inicios, Exilio, Regreso y Caos Creativo. Pide la lista de las
+  70 cajas para completar la etapa ella (enviada en `datos/etapas-cajas.xlsx`, no versionado).
+- **Acceso:** prefiere que los restringidos **se oculten por completo** (también la ficha) y se muestren solo a pedido,
+  con una leyenda única que lo explique. **En espera** de la confirmación de Silvana y Pato antes de implementarlo.
+- **«Aida Bortnik Ferreira»: es correcto.** Es el apellido de casada, que Aída usó en algunos momentos. No se unifica:
+  los 8 registros de la caja 14 de la planilla de correcciones van «No».
+- **Apellidos:** Pía Villaronga, Juana Igartúa, Valentín Rollandi.
+- **Drive:** no se entendió el pedido; se le aclaró por mail (solo C2R2, C2R11 y C2R12, o una carpeta única de restringidos).
+- Sin respuesta todavía: textos, cajas que serían la misma obra, años «1982 /1986», planilla, material del sitio, sinopsis.
+
 ## 1. Etapas
 
 El sitio actual tiene 5 etapas: Inicios 1963–1976 · Exilio 1976–1979 · Regreso 1979–2013 · Caos Creativo 1963–2009 · Sobre Aída 1938–2013.

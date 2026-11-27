@@ -32,6 +32,8 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 ## Acceso (público / restringido)
 
 - Por defecto, **todo es público** (14/11/2026).
+- Autor «Aida Bortnik Ferreira» **se conserva tal cual** (confirmado por el cliente, 27/11/2026): es el apellido de casada
+  que usó en algunos momentos. La unificación a «Aída Bortnik» no lo toca.
 - El equipo marca lo privado en la columna **PRIVADO**: VERDADERO (o sí, x, privado) → `restringido`; vacío o FALSO → público;
   «VERLO» → `a_revisar`. **Cualquier otro texto → `a_revisar`** y se reporta (27/11/2026, revisión de seguridad: antes se tomaba
   como público; C6R5 tiene texto pegado por error). Así un error en la planilla nunca expone material sin revisión editorial.

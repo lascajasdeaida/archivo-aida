@@ -20,6 +20,7 @@ use Aida\Texto;
 final class SitioPublico
 {
     public const POR_PAGINA = 20;
+    private const MAX_SUGERENCIAS = 6;
 
     /** Facetas de Explorar en el orden de docs/ux/sitio-publico.md §4.1 (etapa va después de Año, como en la maqueta). */
     public const FACETAS = [
@@ -315,18 +316,14 @@ final class SitioPublico
         $terminos = $s->terminos();
         $etapas = $s->etapas();
         $f = self::filtros($e, $terminos, $etapas);
-        $r = $b->buscar($e['q'], $f, $e['pagina'], self::POR_PAGINA, self::ORDENES[$e['orden']][1]);
-        $tarjetasPagina = $s->tarjetasDe(array_column($r['resultados'], 'id'));
         // Con “Mostrar más” (JS) la URL guarda desde qué página se ve (primera=1&pagina=3): se arma la lista acumulada,
-        // hasta 10 páginas, para que recargar o volver muestre lo mismo.
+        // hasta 10 páginas, para que recargar o volver muestre lo mismo. Todo sale de una sola búsqueda.
+        $r = $b->buscar($e['q'], $f, $e['pagina'], self::POR_PAGINA, self::ORDENES[$e['orden']][1], $e['pagina'] - $e['primera']);
+        $tarjetasPagina = $s->tarjetasDe(array_column($r['resultados'], 'id'));
         $tarjetas = $tarjetasPagina;
-        $e['primera'] = max($e['primera'], $r['pagina'] - 9);
-        if ($e['primera'] < $r['pagina']) {
-            $antes = [];
-            for ($pg = $e['primera']; $pg < $r['pagina']; $pg++) {
-                array_push($antes, ...array_column($b->buscar($e['q'], $f, $pg, self::POR_PAGINA, self::ORDENES[$e['orden']][1])['resultados'], 'id'));
-            }
-            $tarjetas = array_merge($s->tarjetasDe($antes), $tarjetasPagina);
+        if ($r['resultados_antes']) {
+            $e['primera'] = $r['pagina'] - intdiv(count($r['resultados_antes']), self::POR_PAGINA);
+            $tarjetas = array_merge($s->tarjetasDe($r['resultados_antes']), $tarjetasPagina);
         } else {
             $e['primera'] = $r['pagina'];
         }
@@ -378,7 +375,9 @@ final class SitioPublico
             : Html::numero($r['total']) . ($r['total'] === 1 ? ' resultado' : ' resultados');
         $sugerencias = [];
         if ($r['total'] === 0) {
-            foreach ($chips as $ch) {
+            // Cuántos resultados habría quitando cada filtro: como mucho para los primeros chips (cada uno es una
+            // búsqueda; una URL con decenas de filtros no puede multiplicar el trabajo del servidor)
+            foreach (array_slice($chips, 0, self::MAX_SUGERENCIAS) as $ch) {
                 $e2 = self::leerEstado(self::parametrosDesdeUrl($ch['quitar']));
                 $sugerencias[] = $ch + ['n' => $b->buscar($e2['q'], self::filtros($e2, $terminos, $etapas), 1, 1)['total']];
             }
@@ -550,7 +549,7 @@ final class SitioPublico
         $d = self::$sitio->fichaPorCodigo($codigo);
         if (!$d) {
             $estado = self::$sitio->estadoCodigo($codigo);
-            if ($estado && $estado['estado'] === 'oculto') {
+            if ($estado && $estado['estado'] === 'retirado') {
                 self::pagina('no_disponible', ['caja' => $estado['caja'], 'codigo' => $canon, 'robots' => 'noindex'], 410);
             }
             self::noEncontrado();
@@ -696,22 +695,10 @@ final class SitioPublico
         $responder(200, ['ok' => true]);
     }
 
-    /** Hasta 5 envíos por hora por conexión (IP firmada, en var/). */
+    /** Hasta 5 envíos por hora por conexión. Se cuenta en la base (tabla intento): atómico y sin archivos. */
     private static function muestraExcedeLimite(): bool
     {
-        $dir = dirname(__DIR__, 2) . '/var/limites';
-        if (!is_dir($dir) && !@mkdir($dir, 0700, true)) {
-            return false;
-        }
-        $f = $dir . '/muestra-' . substr(self::firma('ip|' . ($_SERVER['REMOTE_ADDR'] ?? '')), 0, 32);
-        $ahora = time();
-        $marcas = array_filter(array_map('intval', is_file($f) ? (array)file($f, FILE_IGNORE_NEW_LINES) : []), fn($t) => $ahora - $t < 3600);
-        if (count($marcas) >= 5) {
-            return true;
-        }
-        $marcas[] = $ahora;
-        @file_put_contents($f, implode("\n", $marcas), LOCK_EX);
-        return false;
+        return (new \Aida\Intentos(aida_db()))->excedeIp('muestra_ip', 5, 60);
     }
 
     private static function consultaEnviada(string $codigo): void
@@ -755,6 +742,11 @@ final class SitioPublico
         return hash_hmac('sha256', $dato, self::secreto());
     }
 
+    /**
+     * Secreto de las firmas HMAC: config 'secreto' (32 caracteres o más) o var/secreto, que se crea solo la primera
+     * vez de forma atómica (archivo temporal + rename, así dos pedidos simultáneos nunca leen un archivo a medio
+     * escribir) y no se versiona. Si no se puede obtener un secreto válido, falla: nunca se firma con una clave vacía.
+     */
     private static function secreto(): string
     {
         static $s = null;
@@ -768,13 +760,25 @@ final class SitioPublico
         $dir = dirname(__DIR__, 2) . '/var';
         $f = "$dir/secreto";
         if (!is_file($f)) {
-            if (!is_dir($dir)) {
-                mkdir($dir, 0700, true);
+            if (!is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) {
+                throw new \RuntimeException('No se pudo crear var/ para el secreto del sitio.');
             }
-            file_put_contents($f, bin2hex(random_bytes(32)), LOCK_EX);
-            chmod($f, 0600);
+            $tmp = @tempnam($dir, 'secreto.');
+            if ($tmp === false || @file_put_contents($tmp, bin2hex(random_bytes(32))) !== 64 || !@chmod($tmp, 0600)) {
+                @unlink((string)$tmp);
+                throw new \RuntimeException('No se pudo escribir var/secreto.');
+            }
+            // link() no pisa un secreto que otro pedido haya creado mientras tanto
+            if (!@link($tmp, $f) && !is_file($f)) {
+                @rename($tmp, $f);
+            }
+            @unlink($tmp);
         }
-        return $s = trim((string)file_get_contents($f));
+        $leido = trim((string)@file_get_contents($f));
+        if (strlen($leido) < 32) {
+            throw new \RuntimeException('El secreto del sitio (var/secreto) está vacío o es demasiado corto.');
+        }
+        return $s = $leido;
     }
 
     // ------------------------------------------------------------------
@@ -848,14 +852,8 @@ final class SitioPublico
      */
     private static function equipo(): ?array
     {
-        if (empty($_COOKIE['aida_bo']) || !is_string($_COOKIE['aida_bo'])) {
-            return null;
-        }
-        App::iniciarSesion();
-        $u = App::usuario();
-        $puede = App::puede('editar');
-        session_write_close();
-        if ($u === null || !$puede) {
+        $u = App::sesionInterna(); // revalidada; con cookie inválida no deja sesión ni Set-Cookie
+        if ($u === null || !App::puede('editar')) {
             return null;
         }
         return ['nombre' => (string)($u['nombre'] ?: $u['email']), 'admin' => self::$enl->base . 'admin/'];

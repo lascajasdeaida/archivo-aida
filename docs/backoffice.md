@@ -100,6 +100,13 @@ modificaciones y bajas a través de esa clase.
   desde Cambios de curaduría, no uno por uno. Si se intenta deshacer uno suelto y el término ya no corresponde
   («Televisión» ya es descriptor), el conflicto lo explica.
 - Las listas de tipos y descriptores se comparan por término vigente: un renombre o una fusión posteriores no cuentan como conflicto.
+- **Deshacer no da más permisos que hacer** (27/11/2026, revisión de seguridad): el servidor valida cada cambio por entidad,
+  acción y campo (`Rutas::motivoSinDeshacer`), además de «propio / de otros». Deshacer un alta, una baja o una restauración
+  pide permiso de baja; si toca el acceso, permiso de acceso (y volver a público algo con marca en PRIVADO se hace desde la
+  ficha, que pide la confirmación); publicado/publicada, permiso de publicar; número o código, nomenclatura; vocabularios y
+  períodos, curaduría; consultas, permiso de consultas. Nunca se deshacen por acá: el alta de una consulta (se descarta),
+  un paso suelto de curaduría ni los cambios de usuarios. Un perfil degradado no puede revertir lo que hizo antes con
+  otro perfil si hoy no podría hacerlo.
 
 ## 6. Perfiles
 
@@ -117,6 +124,8 @@ modificaciones y bajas a través de esa clase.
 | Importar Excel / correr escaneo | ✅ | ✅ | — | — |
 | Corrección masiva por planilla (incluye cambio masivo de acceso) | ✅ | ✅ | — | — |
 | Publicar / despublicar una caja en el sitio | ✅ | ✅ | — | — |
+| Publicar / despublicar una ficha suelta (las altas de carga de datos nacen sin publicar) | ✅ | ✅ | — | — |
+| Volver a tomar el acceso desde el Excel (desbloquear «acceso») | ✅ | ✅ | — | — |
 | Ver y atender consultas del sitio (datos personales) | ✅ | ✅ | — | — |
 | Usuarios y borrado definitivo | ✅ | — | — | — |
 
@@ -361,7 +370,15 @@ Pantalla **Usuarios** (solo administradores) y **Mi cuenta** (todos, desde el no
 - **Olvidé mi contraseña** (en el ingreso): pide el correo y responde siempre lo mismo, exista o no. Si corresponde a un
   usuario activo manda un enlace (vale 2 h, un solo uso), como mucho uno cada 5 minutos por usuario.
 - **Contraseñas:** al menos 10 caracteres, distinta del correo. Cambiarla (por enlace o en Mi cuenta) cierra las otras
-  sesiones abiertas de ese usuario (`usuario.clave_cambiada_en`).
+  sesiones abiertas de ese usuario.
+- **Sesiones** (27/11/2026, migración 010): `usuario.sesion_version` sube con cada cambio de contraseña, correo, perfil o
+  estado; la sesión guarda el valor con que se abrió y en cada pedido (backoffice, `archivo.php` y botón «Editar» del
+  sitio) se compara por igualdad exacta: no depende de relojes ni zonas horarias. Si la base no responde, la sesión se
+  cierra (falla cerrado). Cambiar el correo, el perfil o el estado de una cuenta además **anula sus enlaces pendientes**.
+  `bin/crear-usuario.php` usa la misma lógica.
+- **Freno de intentos** (tabla `intento`, solo hashes): 5 ingresos fallidos en 15 min por correo (10 en 1 h, 20 en 24 h)
+  o 20 por IP en 15 min (50 en 1 h) bloquean el ingreso hasta que pase la ventana; también cuenta la contraseña actual
+  mal puesta en Mi cuenta. «Olvidé mi contraseña» acepta 5 pedidos por hora por IP. Turnstile queda como capa adicional.
 - **Enlaces:** 32 bytes al azar en la URL; en la base solo el hash SHA-256 (`usuario_token`). Generar uno nuevo anula
   los anteriores.
 - **Configuración** (`config/config.php`):

@@ -159,10 +159,13 @@ final class Buscador
      * Con el tamaño del archivo (≈1.100 registros hoy, unos pocos miles al final) es más rápido que repetir
      * el texto en cada conteo de faceta. Ver docs/busqueda.md.
      *
+     * $antes: además de la página pedida, trae los resultados de hasta esa cantidad de páginas anteriores (9 como mucho) en la misma
+     * búsqueda (lista acumulada de “Mostrar más”), en 'resultados_antes'.
+     *
      * @param array<string,mixed> $filtros
-     * @return array{total:int, pagina:int, por_pagina:int, paginas:int, orden:string, resultados:list<array>, facetas:array, consulta:array, ms:float}
+     * @return array{total:int, pagina:int, por_pagina:int, paginas:int, orden:string, resultados:list<array>, resultados_antes:list<int>, facetas:array, consulta:array, ms:float}
      */
-    public function buscar(string $q, array $filtros = [], int $pagina = 1, int $porPagina = 20, ?string $orden = null): array
+    public function buscar(string $q, array $filtros = [], int $pagina = 1, int $porPagina = 20, ?string $orden = null, int $antes = 0): array
     {
         $t0 = hrtime(true);
         $consulta = $this->interpretar($q);
@@ -244,6 +247,8 @@ final class Buscador
         $paginas = max(1, (int)ceil($total / $porPagina));
         $pagina = min($pagina, $paginas);
         $enPagina = array_slice($final, ($pagina - 1) * $porPagina, $porPagina);
+        $antes = max(0, min(9, $antes, $pagina - 1)); // hasta 10 páginas en total
+        $idsAntes = $antes ? array_map(fn($c) => (int)$c['id'], array_slice($final, ($pagina - 1 - $antes) * $porPagina, $antes * $porPagina)) : [];
 
         // 3. Datos para mostrar, solo de la página
         $resultados = [];
@@ -276,6 +281,7 @@ final class Buscador
 
         return [
             'total' => $total,
+            'resultados_antes' => $idsAntes,
             'pagina' => $pagina,
             'por_pagina' => $porPagina,
             'paginas' => $paginas,

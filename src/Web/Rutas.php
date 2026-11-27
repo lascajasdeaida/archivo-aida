@@ -15,6 +15,7 @@ use Aida\Correccion;
 use Aida\Curaduria;
 use Aida\Historial;
 use Aida\Sitio;
+use Aida\Intentos;
 use Aida\Texto;
 use Aida\Usuarios;
 use Aida\Correo;
@@ -63,16 +64,24 @@ final class Rutas
                 App::render('login', ['error' => 'No pudimos verificar que no seas un robot. Esperá a que aparezca el tilde y volvé a probar.']);
                 return;
             }
+            $email = Usuarios::normalizarEmail((string)($_POST['email'] ?? ''));
+            $intentos = new Intentos(self::db());
+            if ($intentos->loginBloqueado($email)) {
+                // Mismo mensaje exista o no la cuenta; no se prueba la contraseña mientras dure el bloqueo
+                usleep(400000);
+                App::render('login', ['error' => 'Demasiados intentos fallidos. Esperá unos minutos antes de volver a probar, o usá “Olvidé mi contraseña”.']);
+                return;
+            }
             $st = self::db()->prepare('SELECT * FROM usuario WHERE email = ? AND activo = 1');
-            $st->execute([Usuarios::normalizarEmail((string)($_POST['email'] ?? ''))]);
+            $st->execute([$email]);
             $u = $st->fetch();
             if ($u && password_verify((string)($_POST['clave'] ?? ''), $u['password_hash']) && $u['rol'] !== 'visitante') {
-                session_regenerate_id(true);
-                $_SESSION['usuario'] = ['id' => (int)$u['id'], 'email' => $u['email'], 'nombre' => $u['nombre'], 'rol' => $u['rol']];
-                $_SESSION['desde'] = time();
+                $intentos->loginCorrecto($email);
+                App::abrirSesionUsuario($u);
                 (new Usuarios(self::db()))->registrarIngreso((int)$u['id']);
                 App::redirigir('cajas');
             }
+            $intentos->loginFallido($email);
             $error = 'Usuario o contraseña incorrectos.';
             usleep(400000);
         }
@@ -565,7 +574,8 @@ final class Rutas
             $nuevos[$k] = $v === '' ? null : $v;
         }
         $nuevos['paginas'] = $nuevos['paginas'] !== null ? (Texto::entero($nuevos['paginas']) ?? $r['paginas']) : null;
-        $nuevos['publicado'] = empty($_POST['publicado']) ? 0 : 1;
+        // Publicar o despublicar una ficha suelta es decisión editorial, como publicar una caja
+        $nuevos['publicado'] = App::puede('publicar') ? (empty($_POST['publicado']) ? 0 : 1) : (int)$r['publicado'];
         if (App::puede('acceso') && isset($_POST['acceso']) && in_array($_POST['acceso'], ['publico', 'restringido', 'a_revisar'], true)) {
             $nuevos['acceso'] = $_POST['acceso'];
         }
@@ -588,8 +598,8 @@ final class Rutas
         }
 
         // Pasar a público algo que el Excel marca como privado pide confirmación
-        if (($cambios['acceso'] ?? null) === 'publico' && $r['excel_privado'] === 'VERDADERO' && empty($_POST['confirmar_publico'])) {
-            App::aviso('error', 'La planilla marca este registro como PRIVADO. Para publicarlo igual, tildá la confirmación junto al acceso.');
+        if (($cambios['acceso'] ?? null) === 'publico' && Texto::marcaPrivada($r['excel_privado']) && empty($_POST['confirmar_publico'])) {
+            App::aviso('error', 'La planilla marca este registro en la columna PRIVADO (“' . $r['excel_privado'] . '”). Para publicarlo igual, tildá la confirmación junto al acceso.');
             App::redirigir('registro', ['id' => $r['id']]);
         }
 
@@ -634,6 +644,8 @@ final class Rutas
                 $id = self::historial()->crear('registro', [
                     'caja_id' => $c['id'], 'numero' => $num, 'codigo' => Texto::codigo((int)$c['numero'], $num),
                     'titulo' => $titulo, 'acceso' => 'publico',
+                    // Las altas de carga de datos nacen sin publicar: las publica un editor
+                    'publicado' => App::puede('publicar') ? 1 : 0,
                 ]);
                 App::aviso('ok', 'Registro ' . Texto::codigo((int)$c['numero'], $num) . ' creado. Completá el resto de la ficha.');
                 App::redirigir('registro', ['id' => $id]);
@@ -688,6 +700,14 @@ final class Rutas
         $fila = $entidad === 'caja' ? self::cargarCaja(self::int('id')) : self::cargarRegistro(self::int('id'));
         $campo = (string)($_POST['campo'] ?? '');
         $bloq = json_decode((string)$fila['campos_bloqueados'], true) ?: [];
+        if (!in_array($campo, $bloq, true)) {
+            App::aviso('error', 'Ese campo no está bloqueado.');
+            App::redirigir($entidad, ['id' => $fila['id']]);
+        }
+        if ($campo === 'acceso') {
+            // Que el acceso vuelva a tomarse del Excel puede hacerlo público: es decisión editorial
+            App::exigir('acceso');
+        }
         $nuevo = array_values(array_diff($bloq, [$campo]));
         self::historial()->actualizar($entidad, (int)$fila['id'], ['campos_bloqueados' => $nuevo ? json_encode($nuevo) : null], false);
         App::aviso('ok', "“{$campo}” se va a volver a actualizar desde el Excel en la próxima importación.");
@@ -746,6 +766,15 @@ final class Rutas
         }
         $propio = $a['usuario_id'] !== null && (int)$a['usuario_id'] === App::usuarioId();
         App::exigir($propio ? 'deshacer_propio' : 'deshacer_todo');
+        $pt = self::db()->prepare('SELECT tipo FROM proceso WHERE id = ?');
+        $pt->execute([(int)$a['proceso_id']]);
+        $a['proceso_tipo'] = $a['proceso_id'] !== null ? $pt->fetchColumn() : null;
+        $a['cambios'] = json_decode((string)$a['cambios'], true) ?: [];
+        if ($motivo = self::motivoSinDeshacer($a)) {
+            http_response_code(403);
+            App::render('error', ['titulo' => 'No se puede deshacer', 'mensaje' => $motivo]);
+            exit;
+        }
         $forzar = !empty($_POST['forzar']) && App::puede('forzar');
 
         $db = self::db();
@@ -764,6 +793,66 @@ final class Rutas
         $volver = (string)($_POST['volver'] ?? '');
         header('Location: ' . (str_starts_with($volver, '?r=') ? $volver : App::url('cajas')));
         exit;
+    }
+
+    /**
+     * Reglas del servidor para deshacer un cambio, además de deshacer_propio / deshacer_todo: deshacer no puede hacer
+     * lo que el perfil no podría hacer directamente. Devuelve el motivo si no se puede, o null.
+     *
+     * @param array{entidad:string,accion:string,cambios:array,proceso_tipo:?string,entidad_id:int|string} $a
+     */
+    public static function motivoSinDeshacer(array $a): ?string
+    {
+        $entidad = $a['entidad'];
+        $campos = array_keys($a['cambios']);
+        $sin = 'Tu perfil no puede hacer este cambio, así que tampoco puede deshacerlo.';
+        if (($a['proceso_tipo'] ?? null) === 'curaduria') {
+            return 'Un cambio de curaduría se deshace completo, para todos sus registros, desde Vocabularios → Cambios de curaduría.';
+        }
+        if ($entidad === 'usuario') {
+            return 'Los cambios de usuarios se corrigen desde Usuarios.';
+        }
+        if ($entidad === 'consulta') {
+            if ($a['accion'] === 'alta') {
+                return 'Un pedido recibido desde el sitio no se deshace: se descarta desde Consultas.';
+            }
+            return App::puede('consultas') ? null : $sin;
+        }
+        if (in_array($entidad, ['vocabulario', 'vocabulario_alias', 'periodo'], true) && !App::puede('vocabularios')) {
+            return $sin;
+        }
+        // Altas, bajas y restauraciones (deshacer un alta da de baja; deshacer una baja restaura)
+        if ((in_array($a['accion'], ['alta', 'baja', 'restauracion'], true) || in_array('eliminado_en', $campos, true)
+             || in_array('origen', $campos, true)) && !App::puede('baja')) {
+            return $sin;
+        }
+        if (array_intersect($campos, ['publicado', 'publicada']) && !App::puede('publicar')) {
+            return $sin;
+        }
+        if (array_intersect($campos, ['numero', 'codigo', 'caja_id']) && !App::puede('nomenclatura')) {
+            return $sin;
+        }
+        $tocaAcceso = in_array('acceso', $campos, true);
+        if (in_array('campos_bloqueados', $campos, true)) {
+            [$antes, $despues] = $a['cambios']['campos_bloqueados'];
+            $lista = fn($v) => is_array($v) ? $v : (is_string($v) && $v !== '' ? (json_decode($v, true) ?: []) : []);
+            $tocaAcceso = $tocaAcceso || in_array('acceso', $lista($antes), true) !== in_array('acceso', $lista($despues), true);
+        }
+        if ($tocaAcceso) {
+            if (!App::puede('acceso')) {
+                return $sin;
+            }
+            // Volver a público algo que la planilla marca PRIVADO pide la confirmación de la ficha
+            if ($entidad === 'registro' && in_array('acceso', $campos, true) && ($a['cambios']['acceso'][0] ?? null) === 'publico') {
+                $st = self::db()->prepare('SELECT excel_privado FROM registro WHERE id = ?');
+                $st->execute([(int)$a['entidad_id']]);
+                if (Texto::marcaPrivada($st->fetchColumn() ?: null)) {
+                    return 'Este cambio vuelve público un registro que la planilla marca en PRIVADO. Cambialo desde la ficha, '
+                         . 'que pide la confirmación.';
+                }
+            }
+        }
+        return null;
     }
 
     // ------------------------------------------------------------------
@@ -1875,6 +1964,8 @@ final class Rutas
                 $error = 'Escribí un correo válido.';
             } elseif (!Turnstile::verificar('olvide')) {
                 $error = 'No pudimos verificar que no seas un robot. Esperá a que aparezca el tilde y volvé a probar.';
+            } elseif ((new Intentos(self::db()))->excedeIp('olvide_ip', 5, 60)) {
+                $error = 'Se pidieron demasiados enlaces desde esta conexión. Probá de nuevo en una hora.';
             } else {
                 $us = new Usuarios(self::db());
                 $u = $us->porEmail($email);
@@ -1931,7 +2022,11 @@ final class Rutas
         $u = $us->buscar((int)App::usuarioId());
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             App::verificarPost();
-            if (!password_verify((string)($_POST['actual'] ?? ''), (string)$u['password_hash'])) {
+            $intentos = new Intentos(self::db());
+            if ($intentos->loginBloqueado((string)$u['email'])) {
+                $error = 'Demasiados intentos fallidos. Esperá unos minutos antes de volver a probar.';
+            } elseif (!password_verify((string)($_POST['actual'] ?? ''), (string)$u['password_hash'])) {
+                $intentos->loginFallido((string)$u['email']);
                 $error = 'La contraseña actual no es correcta.';
                 usleep(400000);
             } else {
@@ -1939,8 +2034,7 @@ final class Rutas
                 $error = Usuarios::errorClave($clave, (string)($_POST['clave2'] ?? ''), (string)$u['email']);
                 if (!$error) {
                     $us->cambiarClave((int)$u['id'], $clave);
-                    session_regenerate_id(true);
-                    $_SESSION['desde'] = time() + 1;
+                    App::abrirSesionUsuario((array)$us->buscar((int)$u['id'])); // esta sesión sigue; las demás se cierran
                     App::aviso('ok', 'Contraseña cambiada. Las otras sesiones abiertas con tu usuario se cerraron.');
                     App::redirigir('cuenta');
                 }

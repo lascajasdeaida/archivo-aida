@@ -16,20 +16,11 @@ use Aida\Archivos\Origenes;
 use Aida\Entrega;
 use Aida\Web\App;
 
-// ¿Es un usuario del backoffice? Solo se abre la sesión si ya existe la cookie (al público no se le crea sesión),
-// y se cierra enseguida para no bloquear el resto del backoffice mientras se transmite un PDF grande.
-$interno = false;
-if (isset($_COOKIE['aida_bo'])) {
-    App::iniciarSesion();
-    $interno = App::usuario() !== null && App::puede('ver');
-    if (!$interno) {
-        // Cookie vieja o inventada: no dejar una sesión nueva ni mandar Set-Cookie al público.
-        session_destroy();
-        header_remove('Set-Cookie');
-    } else {
-        session_write_close();
-    }
-}
+// ¿Es un usuario del backoffice? Solo se abre la sesión si ya existe la cookie (al público no se le crea sesión), se
+// revalida contra la base (una baja, un cambio de perfil o de contraseña cortan el acceso al instante) y se cierra
+// enseguida para no bloquear el resto del backoffice mientras se transmite un PDF grande.
+$u = App::sesionInterna();
+$interno = $u !== null && App::puede('ver');
 
 $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if (!in_array($metodo, ['GET', 'HEAD'], true)) {

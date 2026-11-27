@@ -32,8 +32,11 @@ Registro de las decisiones que condicionan el código. Cada una con su fecha y s
 ## Acceso (público / restringido)
 
 - Por defecto, **todo es público** (14/11/2026).
-- El equipo marca lo privado en la columna **PRIVADO**: VERDADERO → `restringido`; «VERLO» → `a_revisar`.
-  Si tiene otro texto, se toma como público y se reporta (C6R5 tiene texto pegado por error).
+- El equipo marca lo privado en la columna **PRIVADO**: VERDADERO (o sí, x, privado) → `restringido`; vacío o FALSO → público;
+  «VERLO» → `a_revisar`. **Cualquier otro texto → `a_revisar`** y se reporta (27/11/2026, revisión de seguridad: antes se tomaba
+  como público; C6R5 tiene texto pegado por error). Así un error en la planilla nunca expone material sin revisión editorial.
+- Pasar a público un registro con **cualquier marca en PRIVADO** (no solo VERDADERO) pide la confirmación aparte, en la ficha y
+  en la corrección masiva (`Texto::marcaPrivada`).
 - Si alguna vez completan «Nivel de Acceso» con Público/Restringido, esa columna tiene prioridad.
 - Restringido = la ficha se ve, el documento se consulta a pedido.
 

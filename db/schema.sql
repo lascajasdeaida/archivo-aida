@@ -1,6 +1,7 @@
 -- =====================================================================
 -- Archivo AIDA BORTNIK · Las cajas de Aída
 -- Esquema MySQL / MariaDB · InnoDB · utf8mb4
+-- Versión 1.4 (27/11/2026) — seguridad: versión de sesión por usuario y registro de intentos (intento)
 -- Versión 1.0 (16/11/2026) — origen de archivos intercambiable: id de Drive y si está compartido (archivo_digital)
 -- Versión 0.9 (15/11/2026) — consultas a pedido del sitio público (consulta) y publicación por caja
 -- Versión 0.8 (15/11/2026) — años de cada registro (registro_anio): las listas salteadas filtran solo sus años
@@ -256,10 +257,22 @@ CREATE TABLE IF NOT EXISTS usuario (
   rol           ENUM('admin','editor','data_entry','qa','visitante') NOT NULL DEFAULT 'visitante',
   activo        TINYINT(1)   NOT NULL DEFAULT 1,
   ultimo_ingreso    DATETIME NULL,
-  clave_cambiada_en DATETIME NULL,                  -- las sesiones abiertas antes se cierran solas
+  clave_cambiada_en DATETIME NULL,                  -- cuándo se cambió la contraseña (informativo)
+  sesion_version    INT UNSIGNED NOT NULL DEFAULT 0, -- sube con cada cambio de clave, correo, perfil o baja: corta sesiones
   creado_en     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_usuario_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Intentos para frenar abusos (ingreso fallido, «Olvidé mi contraseña», formulario de la Muestra).
+-- Solo se guarda el hash SHA-256 del correo o de la IP.
+CREATE TABLE IF NOT EXISTS intento (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  tipo       ENUM('login_email','login_ip','olvide_ip','muestra_ip') NOT NULL,
+  clave      CHAR(64)  NOT NULL,
+  creado_en  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_intento (tipo, clave, creado_en)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Enlaces de un solo uso para crear o restablecer la contraseña. Solo se guarda el hash SHA-256 del enlace.
@@ -361,6 +374,7 @@ INSERT IGNORE INTO migracion (version, nombre) VALUES
   ('006', '006_archivo_drive.sql'),
   ('007', '007_evento_uso_contexto.sql'),
   ('008', '008_usuarios_acceso.sql'),
-  ('009', '009_archivo_liviano.sql');
+  ('009', '009_archivo_liviano.sql'),
+  ('010', '010_seguridad.sql');
 
 SET FOREIGN_KEY_CHECKS = 1;

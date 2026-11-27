@@ -18,6 +18,12 @@ backoffice en `/archivo/admin/`), sin indexar. El día del lanzamiento, en este 
       a crearlo en Virtualmin como **alias** de `lascajasdeaida.com.ar`, con su certificado. El `.htaccess` que escribe
       `bin/lanzamiento.sh` ya lleva todo a `https://lascajasdeaida.com.ar` (sin www), así que el alias redirige solo.
       Apuntar el DNS de los dos dominios al VPS.
+- [ ] **Retiro del WordPress actual** (vnct1010): con el lanzamiento el sitio HTML nuevo lo reemplaza y el WordPress
+      desaparece. Antes: respaldo completo (archivos + base). Ya hay una copia del 24/11/2026 en el VPS nuevo
+      (`~/public_html.wp-20261124` y `~/backups-aida/wp-migrado-antes-de-restaurar-*.sql.gz`); conservarla.
+- [ ] **Redirecciones 301** de las direcciones del WordPress a las páginas nuevas (`/introduccion/`, `/contacto/`,
+      `/muestra-homenaje-a-aida-bortnik-en-el-museo-del-cine/`, categorías, etc.), para no perder enlaces ni posiciones
+      en buscadores. Armar la lista desde el sitemap del WordPress antes de apagarlo.
 
 ## El día
 
